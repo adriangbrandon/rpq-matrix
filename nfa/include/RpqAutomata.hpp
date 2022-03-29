@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include "regular.h"
+#include "regular.hpp"
 
 /* A class abastracting an NFA for an RPQ.
    

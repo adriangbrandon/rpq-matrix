@@ -26,7 +26,7 @@ Chile. Blanco Encalada 2120, Santiago, Chile. gnavarro@dcc.uchile.cl
 #ifndef PARSERINCLUDED
 #define PARSERINCLUDED
 
-#include "basics.h"
+#include "basics.hpp"
 
 /* Gets one character assuming it is not special.
            Returns -1 in case of syntax error: \x not followed by 2 hex

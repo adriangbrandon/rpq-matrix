@@ -23,12 +23,12 @@ Chile. Blanco Encalada 2120, Santiago, Chile. gnavarro@dcc.uchile.cl
 
 */
  
-#include "options.h"
+#include "../include/options.hpp"
 
         /* Global search options */
  
 boolean OptCaseInsensitive = false;   /* case insensitive search? */
-byte *OptRecPatt = "\n";  /* record delimiter */
+byte *OptRecPatt = (byte*) ("\n");  /* record delimiter */
 int OptRecChar = '\n';  /* OptRecPatt[0] if single char, else -1 */
 boolean OptRecPos = 1;  /* record starts at this position inside rec delimiter */
 boolean OptRecPrint = true;  /* print matching records? */
@@ -38,7 +38,7 @@ boolean OptRecFileNames = true;  /* show filenames? */
 int OptBufSize = 64*1024;  /* buffer size */
 boolean OptRecPositive = true;  /* show matching (not nonmatching) records */ 
 boolean OptRecNumber = false;  /* output record preceded by record number */
-byte *OptRecSep = "";  /* output record separator */
+byte *OptRecSep =  (byte*) ("");  /* output record separator */
 boolean OptLiteral = false;	/* take pattern literally? */
 int OptErrors = 0;	/* number of errors permitted */
 boolean OptIns = true;         /* permit insertions in the pattern */

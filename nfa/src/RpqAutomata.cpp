@@ -2,9 +2,9 @@
 #include <string>
 #include <vector>
 #include <regex>
-#include "parser.h"
-#include "regular.h"
-#include "RpqAutomata.hpp"
+#include "../include/parser.hpp"
+#include "../include/regular.hpp"
+#include "../include/RpqAutomata.hpp"
 
 using std::pair;
 using std::string;

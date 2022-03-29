@@ -23,18 +23,18 @@ Chile. Blanco Encalada 2120, Santiago, Chile. gnavarro@dcc.uchile.cl
 
 */
 
-#include "basics.h"
+#include "../include/basics.hpp"
 
 	/* multiword masks */
 
 Mask createMask (int l)
 
-   { return malloc (maskSize(l) * sizeof(mask));
+   { return (Mask) malloc (maskSize(l) * sizeof(mask));
    }
 
 Mask createMasks (int num, int l)
 
-   { return malloc (num * maskSize(l) * sizeof(mask));
+   { return (Mask) malloc (num * maskSize(l) * sizeof(mask));
    }
 
 Mask COPY (Mask m, Mask m1, int l)

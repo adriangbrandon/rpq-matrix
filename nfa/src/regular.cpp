@@ -25,7 +25,7 @@ Chile. Blanco Encalada 2120, Santiago, Chile. gnavarro@dcc.uchile.cl
 
 /* Search a regular expression in a text */
 
-#include "regular.h"
+#include "../include/regular.hpp"
 
 /* compute number of bits necessary to hold the regexp */
 

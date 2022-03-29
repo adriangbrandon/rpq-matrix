@@ -48,7 +48,7 @@ typedef unsigned char byte;
 #include <ctype.h>
 
 	
-#include "bitmasks.h"	/* bitmask management */
+#include "bitmasks.hpp"    /* bitmask management */
 
 #define SIGMA 64 /* Size of the alphabet that can appear */
 #define FWD    1

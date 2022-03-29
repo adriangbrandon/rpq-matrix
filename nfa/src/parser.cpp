@@ -23,8 +23,8 @@ Chile. Blanco Encalada 2120, Santiago, Chile. gnavarro@dcc.uchile.cl
 
 */
 
-#include "parser.h"
-#include "options.h"
+#include "../include/parser.hpp"
+#include "../include/options.hpp"
 
 #define Sep '#'
 #define All '.'

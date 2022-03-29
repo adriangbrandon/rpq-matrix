@@ -26,7 +26,7 @@ Chile. Blanco Encalada 2120, Santiago, Chile. gnavarro@dcc.uchile.cl
 #ifndef OPTIONSINCLUDED
 #define OPTIONSINCLUDED
 
-#include "basics.h"
+#include "basics.hpp"
 
 	/* Global search options */
 

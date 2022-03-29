@@ -28,9 +28,9 @@ Chile. Blanco Encalada 2120, Santiago, Chile. gnavarro@dcc.uchile.cl
 
 /* Search a regular expression in a text */
 
-#include "basics.h"  /* basics */
-#include "options.h" /* buffer management */
-#include "parser.h"  /* parser */
+#include "basics.hpp"  /* basics */
+#include "options.hpp" /* buffer management */
+#include "parser.hpp"  /* parser */
 #include <string.h>
 
 typedef struct

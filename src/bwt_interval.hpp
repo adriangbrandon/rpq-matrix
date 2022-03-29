@@ -84,6 +84,10 @@ public:
         cur_rank = _r;
     }
 
+    inline void set_right(uint64_t _r){
+        r = _r;
+    }
+
     bwt_interval operator =(bwt_interval i)
     {
         l = i.l;
