@@ -52,3 +52,4 @@ target_link_libraries(build-index sdsl divsufsort divsufsort64 nfa)
 
 add_executable(query-index src/query-index.cpp)
 target_link_libraries(query-index sdsl divsufsort divsufsort64 nfa)
+

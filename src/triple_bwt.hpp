@@ -446,21 +446,33 @@ private:
         return false;
     }
 
-    void push_merge_interval(std::vector<std::pair<bwt_interval, word_t>> &input_for_step_1,
-                             std::pair<bwt_interval, word_t> &element){
+
+    //TODO: rename element to object
+    void push_merge_interval(std::vector<std::pair<bwt_interval, word_t>>& input_for_step_1,
+                             const std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>> &element){
+
+        /**
+             * get<0>: symbol
+             * get<1>: NFA states (D)
+             * get<2>: [lb, rb]
+             */
+
+        const auto lb = L_P.get_C(get<0>(element));
+        const auto rb = L_P.get_C(get<0>(element) + 1) - 1;
 
         if(input_for_step_1.empty()){
-            input_for_step_1.push_back(element);
+            input_for_step_1.emplace_back(std::pair<bwt_interval, word_t>(bwt_interval(lb, rb),
+                                           get<1>(element)));
             return;
         }
-
-        auto &last = input_for_step_1.back();
-        //The last's interval is contiguous to element's interval and
-        //both have same NFA state
-        if(last.first.right()+1 == element.first.left() && last.second == element.second){
-            last.first.set_right(element.first.right());
+        //The previous interval is contiguous to element's interval and
+        //both have equal NFA state
+        auto& last = input_for_step_1.back();
+        if(last.first.right()+1 == lb && last.second == get<1>(element)){
+            last.first.set_right(rb);
         }else{
-            input_for_step_1.push_back(element);
+            input_for_step_1.emplace_back(std::pair<bwt_interval, word_t>(bwt_interval(lb, rb),
+                                                                          get<1>(element)));
         }
     }
 
@@ -478,19 +490,9 @@ private:
 
         // Por cada elemento s reportado en el paso anterior, tengo que hacer un backward step para irme a un intervalo en L_o.
         // Ver como hago esto, si conviene hacerlo aqui o en el paso 3
-        uint64_t c;
         for (uint64_t i = 0; i < values_in_I_s_test.size() and output_subjects.size() < bound; i++) {
-            /**
-             * get<0>: symbol
-             * get<1>: NFA states (D)
-             * get<2>: [lb, rb]
-             */
 
-            c = L_P.get_C(get<0>(values_in_I_s_test[i]));
-
-            auto interval_state = std::pair<bwt_interval, word_t>(bwt_interval(c, L_P.get_C(get<0>(values_in_I_s_test[i]) + 1) - 1),
-                                            get<1>(values_in_I_s_test[i]));
-            push_merge_interval(input_for_step_1, interval_state);
+            push_merge_interval(input_for_step_1, values_in_I_s_test[i]);
 
             if (A.atFinal(get<1>(values_in_I_s_test[i]), BWD)) {
                 if (const_to_var)
@@ -511,16 +513,12 @@ private:
 
         // Por cada elemento s reportado en el paso anterior, tengo que hacer un backward step para irme a un intervalo en L_o.
         // Ver como hago esto, si conviene hacerlo aqui o en el paso 3
-        uint64_t c;
         for (uint64_t i = 0; i < values_in_I_s_test.size() and object_vector.size() < bound; i++) {
-            c = L_P.get_C(get<0>(values_in_I_s_test[i]));
 
             if (A.atFinal(get<1>(values_in_I_s_test[i]), BWD))
                 object_vector.push_back(get<0>(values_in_I_s_test[i]));
 
-            auto interval_state = std::pair<bwt_interval, word_t>(bwt_interval(c, L_P.get_C(get<0>(values_in_I_s_test[i]) + 1) - 1),
-                                                                  get<1>(values_in_I_s_test[i]));
-            push_merge_interval(input_for_step_1, interval_state);
+            push_merge_interval(input_for_step_1, values_in_I_s_test[i]);
         }
 
         return false;
