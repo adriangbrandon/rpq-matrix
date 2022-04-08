@@ -107,7 +107,7 @@ int main(int argc, char **argv)
     for(const auto& interval : intervals){
         o = get<2>(D[interval.first]);
         if(so_hashtable.find(o) == so_hashtable.end()){
-            so_hashtable.insert({s, so});
+            so_hashtable.insert({o, so});
             ++so;
         }
     }
@@ -115,9 +115,8 @@ int main(int argc, char **argv)
     intervals.shrink_to_fit();
 
     for(auto& d : D){
-        s = so_hashtable[get<0>(d)];
-        p = get<1>(d);
-        o = so_hashtable[get<2>(d)];
+        get<0>(d) = so_hashtable[get<0>(d)];
+        get<2>(d) = so_hashtable[get<2>(d)];
     }
     std::cout << "Triples are updated." << std::endl;
 
