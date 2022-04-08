@@ -44,6 +44,17 @@ bool sortby_triple(const spo_triple &a, const spo_triple &b)
     return get<0>(a) < get<0>(b);
 }
 
+bool sortby_pos(const spo_triple &a, const spo_triple &b)
+{
+    if(get<1>(a) == get<1>(b)){
+        if(get<2>(a) == get<2>(b)){
+            return get<0>(a) < get<0>(b);
+        }
+        return get<2>(a) < get<2>(b);
+    }
+    return get<1>(a) < get<1>(b);
+}
+
 
 bool sortby_interval(const pair<uint64_t, uint64_t> &a,
                      const pair<uint64_t, uint64_t> &b)
@@ -65,10 +76,30 @@ int main(int argc, char **argv)
     unordered_map<uint64_t, uint64_t> so_hashtable;
     std::ifstream data_ifs(data_file);
     uint64_t s, p , o;
+    do {
+        data_ifs >> s >> p >> o;
+        D.emplace_back(spo_triple(s, p, o));
+    } while (!data_ifs.eof());
+    data_ifs.close();
+    std::sort(D.begin(), D.end(), sortby_pos);
+
     uint64_t p1, o1;
     uint64_t lb, line = 0;
     p1 = o1 = lb = 0;
-    do {
+    while(line < D.size()){
+        s = get<0>(D[line]);
+        p = get<1>(D[line]);
+        o = get<2>(D[line]);
+        if(line > 0 && (p != p1 || o != o1)){
+            intervals.emplace_back(lb, line-1);
+            lb = line;
+        }
+        p1 = p;
+        o1 = o;
+        ++line;
+    }
+    if (line> 0) intervals.emplace_back(lb, line-1);
+    /*do {
         data_ifs >> s >> p >> o;
         if(data_ifs.eof()){
             if (line> 0) intervals.emplace_back(lb, line-1);
@@ -82,8 +113,8 @@ int main(int argc, char **argv)
         p1 = p;
         o1 = o;
         ++line;
-    } while (true);
-    data_ifs.close();
+    } while (true);*/
+
 
     std::cout << "D:         " << D.size() << std::endl;
     std::cout << "Intervals: " << intervals.size() << std::endl;
@@ -141,7 +172,7 @@ int main(int argc, char **argv)
     std::string url;
     do{
         so_ifs >> id >> url;
-        so_ofs << so_hashtable[id] << url  << std::endl;
+        so_ofs << so_hashtable[id] << " " << url  << std::endl;
     }while(!so_ifs.eof());
     so_ifs.close();
     so_ofs.close();
