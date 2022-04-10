@@ -146,8 +146,10 @@ int main(int argc, char **argv)
     intervals.shrink_to_fit();
 
     for(auto& d : D){
-        get<0>(d) = so_hashtable[get<0>(d)];
-        get<2>(d) = so_hashtable[get<2>(d)];
+        s = so_hashtable[get<0>(d)];
+        o = so_hashtable[get<2>(d)];
+        get<0>(d) = s;
+        get<2>(d) = o;
     }
     std::cout << "Triples are updated." << std::endl;
 
