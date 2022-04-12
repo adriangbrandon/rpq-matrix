@@ -130,7 +130,7 @@ int main(int argc, char **argv)
         if(s != s1){
             hash_table_adj_lists.insert({s, adj_lists.size()});
             adj_lists.emplace_back();
-            //vec_s.push_back(s);
+            vec_s.push_back(s);
         }
         adj_lists.back().emplace_back(p, o);
         s1 = s;
@@ -144,10 +144,11 @@ int main(int argc, char **argv)
     //BFS traversal
     std::vector<bool> visited(max_so+1, false);
     std::queue<uint64_t> nodes;
-    s = get<0>(D[0]);
+    s = vec_s[0];
     p = 0;
     nodes.push(s);
     visited[s] = true;
+    auto n_visited = 1;
     BFS_node(p, s, hash_table, subjects);
     while(!nodes.empty()){
         auto n = nodes.front();
@@ -159,23 +160,27 @@ int main(int argc, char **argv)
                     nodes.push(nn.second);
                     BFS_node(nn.first, nn.second, hash_table, subjects);
                     visited[nn.second]=true;
+                    ++n_visited;
                 }
             }
         }
 
         if(nodes.empty()){
+            std::cout << "Visited: " << n_visited << " total: " << vec_s.size() << std::endl;
             auto i = 0;
-            while(i < D.size() && visited[get<0>(D[i])]){
+            while(i < vec_s.size() && visited[vec_s[i]]){
                 ++i;
             }
-            if(i >= D.size()) break;
-            s = get<0>(D[i]);
+            if(i >= vec_s.size()) break;
+            s = vec_s[i];
             p = 0;
             nodes.push(s);
             BFS_node(p, s, hash_table, subjects);
             visited[s] = true;
+            ++n_visited;
         }
     }
+    vec_s.clear();
     std::cout << "[done]" << std::endl;
     std::cout << "Sorting by predicate... " << std::flush;
     std::vector<p_data> data_vec;
