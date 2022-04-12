@@ -166,7 +166,7 @@ int main(int argc, char **argv)
         }
 
         if(nodes.empty()){
-            std::cout << "Visited: " << n_visited << " total: " << vec_s.size() << std::endl;
+            std::cout << "Visited: " << n_visited << " total: " << max_so << std::endl;
             auto i = 0;
             while(i < vec_s.size() && visited[vec_s[i]]){
                 ++i;
