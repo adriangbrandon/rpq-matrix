@@ -167,12 +167,11 @@ int main(int argc, char **argv)
 
         if(nodes.empty()){
             std::cout << "Visited: " << n_visited << " total: " << max_so << std::endl;
-            auto i = 0;
-            while(i < vec_s.size() && visited[vec_s[i]]){
-                ++i;
+            while(lb < vec_s.size() && visited[vec_s[lb]]){
+                ++lb;
             }
-            if(i >= vec_s.size()) break;
-            s = vec_s[i];
+            if(lb >= vec_s.size()) break;
+            s = vec_s[lb];
             p = 0;
             nodes.push(s);
             BFS_node(p, s, hash_table, subjects);
