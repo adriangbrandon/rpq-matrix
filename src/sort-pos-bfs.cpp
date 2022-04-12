@@ -157,7 +157,7 @@ int main(int argc, char **argv)
         }
         if(nodes.empty()){
             auto i = 0;
-            while(visited[get<0>(D[i])] && i < D.size()){
+            while(i < D.size() && visited[get<0>(D[i])]){
                 ++i;
             }
             if(i >= D.size()) break;
