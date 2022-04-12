@@ -116,6 +116,7 @@ int main(int argc, char **argv)
     std::cout << "Building adjacency lists... " << std::flush;
     typedef vector<std::pair<uint64_t, uint64_t>> adj_list_type;
     vector<adj_list_type> adj_lists;
+    std::unordered_map<uint64_t, uint64_t> hash_table_adj_lists;
 
     uint64_t s1, lb, line, max_so;
     line = s1 = lb = max_so = 0;
@@ -126,6 +127,7 @@ int main(int argc, char **argv)
         if(s > max_so) max_so = s;
         if(o > max_so) max_so = o;
         if(s != s1){
+            hash_table_adj_lists.insert({s, adj_lists.size()});
             adj_lists.emplace_back();
         }
         adj_lists.back().emplace_back(p, s);
@@ -148,7 +150,7 @@ int main(int argc, char **argv)
     while(!nodes.empty()){
         auto n = nodes.front();
         nodes.pop();
-        for(const auto& nn : adj_lists[n-1]){
+        for(const auto& nn : adj_lists[hash_table_adj_lists[n]]){
             if(!visited[nn.second]){
                 nodes.push(nn.second);
                 BFS_node(nn.first, nn.second, hash_table, subjects);
