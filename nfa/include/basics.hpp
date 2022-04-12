@@ -36,8 +36,6 @@ typedef unsigned char byte;
 
 	/* some basic operations */
 
-#define max(x,y) ((x)>(y)?(x):(y))
-#define min(x,y) ((x)<(y)?(x):(y))
 
 	/* some public modules */
 

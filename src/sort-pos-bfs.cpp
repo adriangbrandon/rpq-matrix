@@ -150,13 +150,17 @@ int main(int argc, char **argv)
     while(!nodes.empty()){
         auto n = nodes.front();
         nodes.pop();
-        for(const auto& nn : adj_lists[hash_table_adj_lists[n]]){
-            if(!visited[nn.second]){
-                nodes.push(nn.second);
-                BFS_node(nn.first, nn.second, hash_table, subjects);
-                visited[nn.second]=true;
+        auto it = hash_table_adj_lists.find(n);
+        if(it != hash_table_adj_lists.end()){
+            for(const auto& nn : adj_lists[it->second]){
+                if(!visited[nn.second]){
+                    nodes.push(nn.second);
+                    BFS_node(nn.first, nn.second, hash_table, subjects);
+                    visited[nn.second]=true;
+                }
             }
         }
+
         if(nodes.empty()){
             auto i = 0;
             while(i < D.size() && visited[get<0>(D[i])]){
