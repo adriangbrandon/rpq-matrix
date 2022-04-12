@@ -117,6 +117,7 @@ int main(int argc, char **argv)
     typedef vector<std::pair<uint64_t, uint64_t>> adj_list_type;
     vector<adj_list_type> adj_lists;
     std::unordered_map<uint64_t, uint64_t> hash_table_adj_lists;
+    std::vector<uint64_t> vec_s;
 
     uint64_t s1, lb, line, max_so;
     line = s1 = lb = max_so = 0;
@@ -129,8 +130,9 @@ int main(int argc, char **argv)
         if(s != s1){
             hash_table_adj_lists.insert({s, adj_lists.size()});
             adj_lists.emplace_back();
+            //vec_s.push_back(s);
         }
-        adj_lists.back().emplace_back(p, s);
+        adj_lists.back().emplace_back(p, o);
         s1 = s;
         ++line;
     }
