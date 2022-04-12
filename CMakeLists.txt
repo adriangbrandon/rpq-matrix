@@ -53,6 +53,8 @@ target_link_libraries(build-index sdsl divsufsort divsufsort64 nfa)
 add_executable(query-index src/query-index.cpp)
 target_link_libraries(query-index sdsl divsufsort divsufsort64 nfa)
 
-add_executable(sort-dict src/sort-dict.cpp)
+add_executable(sort-dict src/sort-pos.cpp)
 target_link_libraries(sort-dict sdsl divsufsort divsufsort64 nfa)
 
+add_executable(sort-dict-bfs src/sort-pos-bfs.cpp)
+target_link_libraries(sort-dict-bfs sdsl divsufsort divsufsort64 nfa)
