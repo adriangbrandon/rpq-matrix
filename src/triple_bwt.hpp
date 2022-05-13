@@ -382,7 +382,7 @@ private:
         }
     }
 
-    void step_2(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D, bwt_interval &I_s,
+    /*void step_2(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D, bwt_interval &I_s,
                 std::vector<std::pair<bwt_interval, word_t>> &input_for_step_1,
                 uint64_t starting_o,
                 std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
@@ -414,10 +414,10 @@ private:
                     output_subjects.push_back(std::pair<uint64_t, uint64_t>(get<0>(values_in_I_s_test[i]), starting_o));
             }
         }
-    }
+    }*/
 
 
-    bool step_2_check(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D, bwt_interval &I_s,
+    /*bool step_2_check(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D, bwt_interval &I_s,
                       std::vector<std::pair<bwt_interval, word_t>> &input_for_step_1,
                       std::vector<uint64_t> &object_vector, uint64_t bound
     ) {
@@ -444,7 +444,7 @@ private:
         }
 
         return false;
-    }
+    }*/
 
 
     //TODO: rename element to object
@@ -496,9 +496,9 @@ private:
 
             if (A.atFinal(get<1>(values_in_I_s_test[i]), BWD)) {
                 if (const_to_var)
-                    output_subjects.push_back(std::pair<uint64_t, uint64_t>(starting_o, get<0>(values_in_I_s_test[i])));
+                    output_subjects.emplace_back(std::pair<uint64_t, uint64_t>(starting_o, get<0>(values_in_I_s_test[i])));
                 else
-                    output_subjects.push_back(std::pair<uint64_t, uint64_t>(get<0>(values_in_I_s_test[i]), starting_o));
+                    output_subjects.emplace_back(std::pair<uint64_t, uint64_t>(get<0>(values_in_I_s_test[i]), starting_o));
             }
         }
     }
@@ -576,7 +576,8 @@ private:
                 if (total_time > TIME_OUT) time_out = true;
 
                 current_D = input_for_step_2[i].second;
-                step_2_check(A, D_array, current_D, input_for_step_2[i].first, input_for_step_1, object_vector, bound);
+                step_2_check_merge_interval(A, D_array, current_D, input_for_step_2[i].first,
+                                            input_for_step_1, object_vector, bound);
             }
             if (time_out) break;
         }
@@ -640,7 +641,7 @@ private:
                 if (total_time > TIME_OUT) time_out = true;  // 10 minute timeout
 
                 current_D = input_for_step_2[i].second;
-                step_2(A, D_array, current_D, input_for_step_2[i].first, input_for_step_1, initial_object,
+                step_2_merge_interval(A, D_array, current_D, input_for_step_2[i].first, input_for_step_1, initial_object,
                        output_subjects, bound, const_to_var);
             }
 
