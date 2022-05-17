@@ -5,7 +5,7 @@ project(Ring-RPQ)
 set(CMAKE_PROJECT_NAME "Ring RPQ")
 
 #Change to "Debug" when you need it
-set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "Debug")
 
 # C++11 compiler Check
 if(NOT CMAKE_CXX_COMPILER_VERSION) # work around for cmake versions smaller than 2.8.10
@@ -58,3 +58,9 @@ target_link_libraries(sort-dict sdsl divsufsort divsufsort64 nfa)
 
 add_executable(sort-dict-bfs src/sort-pos-bfs.cpp)
 target_link_libraries(sort-dict-bfs sdsl divsufsort divsufsort64 nfa)
+
+add_executable(mandatory src/mandatory.cpp)
+target_link_libraries(mandatory sdsl divsufsort divsufsort64 nfa)
+
+add_executable(intersection_or src/intersection_or.cpp)
+target_link_libraries(intersection_or sdsl divsufsort divsufsort64 nfa)

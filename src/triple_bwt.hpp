@@ -34,12 +34,14 @@
 #include "RpqAutomata.hpp"
 #include "query_config.hpp"
 #include "parse_query.cpp"
+#include "wt_intersection.hpp"
 
 
 using namespace std::chrono;
 
 class ring_rpq {
     bwt_nose L_S;
+    bwt_type wt_pred_s;
     bwt L_P;
 
     uint64_t real_max_P;
@@ -50,6 +52,20 @@ class ring_rpq {
     uint64_t nTriples;  // number of triples
 
 public:
+
+    typedef struct {
+        uint64_t beg;
+        bool is_or = false;
+    } section_type;
+
+    typedef struct {
+        uint64_t id;
+        uint64_t beg;
+        uint64_t end;
+        bool mandatory = true;
+    } pred_data_type;
+
+
     ring_rpq() { ; }
 
     // Assumes the triples have been stored in a vector<spo_triple>
@@ -226,12 +242,23 @@ public:
         cout << "...done" << endl;
 
         {
+            std::unordered_map<uint64_t, uint64_t> hash_table;
             int_vector<> bwt_s(n + 1);
+            int_vector<> pred_s(n + 1);
             bwt_s[0] = 0;
+            pred_s[0] = 0;
             fp.open("bwt_s.tmp", ios::in | ios::binary);
             for (j = 1; j <= n; j++) {
                 fp.read((char *) &tmp, sizeof(uint64_t));
                 bwt_s[j] = tmp;
+                auto ht_it = hash_table.find(tmp);
+                if(ht_it == hash_table.end()){
+                    pred_s[j] = 0;
+                    hash_table.insert({tmp, j});
+                }else{
+                    pred_s[j] = ht_it->second;
+                    ht_it->second = j;
+                }
             }
             fp.close();
             util::bit_compress(bwt_s);
@@ -258,6 +285,7 @@ public:
                 fflush(stdout);
             }
             L_S = bwt_nose(bwt_s, C_S);
+            construct_im(wt_pred_s, pred_s);
             if (verbose) cout << "... [done]" << endl;
             C_S.clear();
             C_S.shrink_to_fit();
@@ -326,6 +354,7 @@ public:
     void save(string filename) {
         L_S.save(filename + ".bwts");
         L_P.save(filename + ".bwtp");
+        sdsl::store_to_file(wt_pred_s, filename+".wt_pred_s");
 
         std::ofstream ofs(filename + ".nTriples");
         ofs << nTriples << endl;
@@ -340,6 +369,7 @@ public:
         L_S.load(filename + ".bwts");
         //cout << "Loading L_P" << endl; fflush(stdout);
         L_P.load(filename + ".bwtp");
+        sdsl::load_from_file(wt_pred_s, filename+".wt_pred_s");
         //cout << "Loading done" << endl; fflush(stdout);
         std::ifstream ifs(filename + ".nTriples");
         ifs >> nTriples;
@@ -352,6 +382,18 @@ public:
     uint64_t pred_selectivity(uint64_t pred_id) {
         return L_S.get_C(pred_id + 1) - L_S.get_C(pred_id);
     };
+
+    uint64_t pred_distinct_values(uint64_t pred_id){
+        auto e = L_S.get_C(pred_id + 1)-1;
+        auto b = L_S.get_C(pred_id);
+        auto v = wt_pred_s.range_search_2d(b, e, 0, b, false);
+        return v.first;
+    }
+
+    inline uint64_t pred_reverse(uint64_t pred_id) const{
+        return (pred_id > max_P) ? pred_id - max_P : pred_id + max_P;
+    }
+
 
 private:
     void step_1(RpqAutomata &A, std::vector<word_t> &B_array,
@@ -447,7 +489,7 @@ private:
     }*/
 
 
-    //TODO: rename element to object
+
     void push_merge_interval(std::vector<std::pair<bwt_interval, word_t>>& input_for_step_1,
                              const std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>> &element){
 
@@ -523,6 +565,141 @@ private:
 
         return false;
     }
+    
+    void info_predicates(const std::string &rpq,
+                         unordered_map<std::string, uint64_t> &predicates_map,
+                         const uint64_t n_predicates,
+                         std::vector<pred_data_type> &pred_v){
+
+        uint64_t i = 0, p_i;
+        bool negated;
+        std::stack<section_type> sections; //first + parentheses
+
+        //Adding first section (without parentheses)
+        section_type first;
+        first.beg = 0;
+        sections.push(first);
+        for(uint64_t p = 0; p < n_predicates; ++p) {
+            while (rpq.at(i) == '(') {
+                section_type sec;
+                sec.beg = p;
+                sections.push(sec);
+                ++i;
+            }
+            pred_data_type pred_data;
+            pred_data.beg = i;
+            //3. Find the end of predicate
+            negated = (rpq.at(i + 1) == '%');
+            while (rpq.at(i) != '>') ++i;
+            ++i; //Next to '>'
+            pred_data.end = i;
+            if (negated) {
+                pred_data.id = pred_reverse(predicates_map["<" + rpq.substr(pred_data.beg + 2,
+                                                               pred_data.end - (pred_data.beg +2))]);
+            }
+            else {
+                pred_data.id = predicates_map[rpq.substr(pred_data.beg, pred_data.end - pred_data.beg)];
+            }
+            pred_v.push_back(pred_data);
+            while (i < rpq.size() && (rpq.at(i) != '<' && rpq.at(i) != '(')) {
+                if (rpq.at(i) == ')') {
+                    auto sec = sections.top();
+                    sections.pop();
+                    p_i = sec.beg;
+                    if (sec.is_or) {
+                        for (auto j = p_i; j <= p; ++j) {
+                            pred_v[j].mandatory = false;
+                        }
+                    }
+                } else if (rpq.at(i) == '|') {
+                    sections.top().is_or = true;
+                } else if (rpq.at(i) == '?' || rpq.at(i) == '*') {
+                    for (auto j = p_i; j <= p; ++j) { //p_i is initialized because it has to be preceded by ')'
+                        pred_v[j].mandatory = false;
+                    }
+                }
+                ++i;
+            }
+            if (i == rpq.size()) {
+                if (sections.top().is_or) { //first section (no parentheses)
+                    auto sec = sections.top();
+                    sections.pop();
+                    p_i = sec.beg;
+                    if (sec.is_or) {
+                        for (auto j = p_i; j <= p; ++j) {
+                            pred_v[j].mandatory = false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    inline void get_elements_intersection(const uint64_t pred_1, const uint64_t pred_2,
+                                    std::vector<uint64_t> &elements){
+
+        std::vector<std::array<uint64_t, 2ul>> ranges;
+
+        ranges.push_back({L_S.get_C(pred_1), L_S.get_C(pred_1+1)-1});
+        ranges.push_back({L_S.get_C(pred_2), L_S.get_C(pred_2+1)-1});
+        elements = L_S.intersect_nofreq(ranges);
+    }
+
+    inline void get_elements(const uint64_t pred_1, std::vector<uint64_t> &elements){
+        elements = L_S.all_values_in_range(L_S.get_C(pred_1), L_S.get_C(pred_1+1)-1);
+    }
+
+
+    std::pair<std::string, std::string> split_rpq(const std::string &rpq,
+                                                  unordered_map<std::string, uint64_t> &predicates_map,
+                                                  const uint64_t n_predicates,
+                                                  std::vector<uint64_t> &elements){
+
+        std::vector<pred_data_type> pred_v;
+        info_predicates(rpq, predicates_map, n_predicates, pred_v);
+        uint64_t pred_i = 0, i = 0;
+        uint64_t min_selectivity = -1ULL;
+        //1. Looking for a predicate that is mandatory and has the smallest selectivity
+        for(const auto &pred : pred_v){
+            if(pred.mandatory){
+                auto s = pred_selectivity(pred.id);
+                if(s < min_selectivity){
+                    min_selectivity = s;
+                    pred_i = i;
+                }
+            }
+            ++i;
+        }
+        //2. Choosing the node to split the RPQ
+        std::string rpq_l, rpq_r;
+        uint64_t pred = pred_v[pred_i].id;
+        uint64_t pred_rev = pred_reverse(pred);
+
+        if(pred_distinct_values(pred_rev) > pred_distinct_values(pred)){
+            //Target as splitting node
+            rpq_l = rpq.substr(0, pred_v[pred_i].end);
+            rpq_r = rpq.substr(pred_v[pred_i].end);
+            if(pred_i+1<pred_v.size() && pred_v[pred_i+1].mandatory){
+                get_elements_intersection(pred_rev, pred_v[pred_i+1].id, elements);
+            }else{
+                get_elements(pred_rev, elements);
+            }
+        }else{
+            //Source as splitting node
+            rpq_l = rpq.substr(0, pred_v[pred_i].beg);
+            rpq_r = rpq.substr(pred_v[pred_i].beg);
+            if(pred_i>0 && pred_v[pred_i-1].mandatory){
+                get_elements_intersection(pred, pred_reverse(pred_v[pred_i-1].id), elements);
+            }else{
+                get_elements(pred, elements);
+            }
+        }
+        return {rpq_l, rpq_r};
+
+
+    }
+
+
 
     bool rpq_var_to_var_obtain_o(RpqAutomata &A,
                                  std::vector<uint64_t> &object_vector,
@@ -606,6 +783,7 @@ private:
         std::vector<std::pair<bwt_interval, word_t>> input_for_step_2;
 
         current_D = (word_t) A.getFinalStates();
+        //push_merge_interval(input_for_step_1, initial_object, current_D);
         input_for_step_1.push_back(std::pair<bwt_interval, word_t>(
                 bwt_interval(L_P.get_C(initial_object), L_P.get_C(initial_object + 1) - 1),
                 current_D)
@@ -1305,6 +1483,138 @@ public:
             L_P.unmark<word_t>(it->first, B_array);
 
     };
+
+    void rpq_var_to_var_split(const std::string &rpq,
+                              unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
+                              std::vector<word_t> &B_array,
+                              std::vector<std::pair<uint64_t, uint64_t>> &solution,
+                              uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path,
+                              uint64_t bound){
+
+
+        std::string rpq_l, rpq_r;
+        std::vector<uint64_t> elements;
+        split_rpq(rpq, predicates_map, n_predicates, elements);
+
+        //TODO: deberiamos evitar que aquelas a cortar polas esquinas entren nesta función (eso creo)
+        //TODO: por eso penso que deberiamos facer o de mandatory antes.
+        //3.Solve RPQ1 and RPQ2 by using the selected ranges of objects (RPQ1 and RPQ2 exist)
+        if(!rpq_l.empty() && !rpq_r.empty()) {
+            int64_t p_rev = rpq_l.size() - 1, p = 0;
+            std::vector<std::pair<uint64_t, uint64_t>> output_l, output_r;
+            std::string q_l = parse(rpq_l, p_rev, predicates_map, real_max_P);
+            std::string q_r = parse_reverse(rpq_r, p, predicates_map, real_max_P);
+            RpqAutomata A_l = RpqAutomata(q_l, predicates_map);
+            RpqAutomata A_r = RpqAutomata(q_r, predicates_map);
+
+            high_resolution_clock::time_point start;
+            double total_time = 0.0;
+            duration<double> time_span;
+            start = high_resolution_clock::now();
+
+            //std::vector<std::pair<uint64_t, uint64_t>> output_l, output_r;
+            typedef struct {
+                uint64_t element;
+                std::vector<std::pair<uint64_t, uint64_t>> solutions;
+            } element_solution_type;
+            std::vector<element_solution_type> solutions_l;
+
+            //RPQ1: var_s_to_const_o
+            //RPQ1: Mark the NFA states that are reachable
+            std::unordered_map<uint64_t, uint64_t> m = A_l.getB();
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
+            }
+            for (const auto &e : elements) {
+                _rpq_const_s_to_var_o(A_l, predicates_map, B_array, e, output_l, false, start, bound);
+                if (output_l.empty()) continue; //There is no solution
+                solutions_l.push_back({e, output_l});
+                output_l.clear();
+            }
+            //RPQ1: Unmark the NFA states
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.unmark<word_t>(it->first, B_array);
+            }
+
+            //RPQ2: const_s_to_var_o
+            //RPQ2: Mark the NFA states that are reachable
+            m = A_r.getB();
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
+            }
+            //Check the solutions from RPQ1
+            std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
+            for (const auto &s_l : solutions_l) {
+                _rpq_const_s_to_var_o(A_r, predicates_map, B_array, s_l.element, output_r, true, start, bound);
+                if (output_r.empty()) continue; //There is no solution
+                //Adding results to solution
+                for (const auto &o_l : s_l.solutions) {
+                    for (const auto &o_r : output_r) {
+                        //Check duplicates
+                        auto it_set = sol_set.insert({o_l.first, o_r.second});
+                        if (it_set.second) {
+                            solution.emplace_back(o_l.first, o_r.second);
+                        }
+                    }
+                }
+                output_r.clear();
+            }
+            //RPQ2: Unmark the NFA states
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.unmark<word_t>(it->first, B_array);
+            }
+        }else if(rpq_l.empty()){
+            int64_t p = 0;
+            std::string q_r = parse_reverse(rpq_r, p, predicates_map, real_max_P);
+            RpqAutomata A_r = RpqAutomata(q_r, predicates_map);
+
+            high_resolution_clock::time_point start;
+            double total_time = 0.0;
+            duration<double> time_span;
+            start = high_resolution_clock::now();
+
+            //RPQ2: Mark the NFA states
+            std::unordered_map<uint64_t, uint64_t> m = A_r.getB();
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
+            }
+
+            //Check the solutions from RPQ2
+            std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
+            for (const auto &e : elements) {
+                _rpq_const_s_to_var_o(A_r, predicates_map, B_array, e, solution, true, start, bound);
+            }
+            //RPQ2: Unmark the NFA states
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.unmark<word_t>(it->first, B_array);
+            }
+        }else{ //rpq_r.empty()
+            int64_t p_rev = rpq_l.size() - 1;
+            std::string q_l = parse(rpq_l, p_rev, predicates_map, real_max_P);
+            RpqAutomata A_l = RpqAutomata(q_l, predicates_map);
+
+            high_resolution_clock::time_point start;
+            double total_time = 0.0;
+            duration<double> time_span;
+            start = high_resolution_clock::now();
+
+            //RPQ1: Mark the NFA states
+            std::unordered_map<uint64_t, uint64_t> m = A_l.getB();
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
+            }
+
+            //Check the solutions from RPQ1
+            std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
+            for (const auto &e : elements) {
+                _rpq_const_s_to_var_o(A_l, predicates_map, B_array, e, solution, false, start, bound);
+            }
+            //RPQ1: Unmark the NFA states
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.unmark<word_t>(it->first, B_array);
+            }
+        }
+    }
 
 };
 

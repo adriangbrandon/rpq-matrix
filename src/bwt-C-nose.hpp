@@ -22,6 +22,7 @@
 #define BWT_NOSE_T
 
 #include "Config.hpp"
+#include "wt_intersection.hpp"
 
 using namespace std;
 
@@ -203,7 +204,11 @@ class bwt_nose
         {
             return L.range_next_value(x, l, r);
         }
-        
+
+        inline std::pair<uint64_t, uint64_t> range_next_value_pos(uint64_t x, uint64_t l, uint64_t r)
+        {
+            return L.range_next_value_pos(x, l, r);
+        }
         std::vector<pair<uint64_t, uint64_t>>
         //inline void
         values_in_range(uint64_t pos_min, uint64_t pos_max, uint64_t sigma/*, std::vector<uint64_t> & values, uint64_t & k*/)
@@ -321,6 +326,12 @@ class bwt_nose
 	{
             return sdsl::intersect<bwt_type>(L, ranges);
         };
+
+    std::vector<uint64_t>
+    intersect_nofreq(const std::vector<std::array<uint64_t, 2ul>>& ranges)
+    {
+        return sdsl::intersect_nofreq<bwt_type>(L, ranges);
+    };
 
  };
 #endif

@@ -118,6 +118,8 @@ pair<regularData *, unordered_map<uint64_t, char>> build(const string rpq, const
     return {regularData, patternAndMap.second};
 }
 
+RpqAutomata::RpqAutomata() {};
+
 RpqAutomata::RpqAutomata(const string rpq, const unordered_map<string, uint64_t> predicates)
 {
     auto nfaAndMap = build(rpq, predicates);

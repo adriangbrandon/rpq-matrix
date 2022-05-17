@@ -18,6 +18,8 @@ class RpqAutomata
 {
 
 public:
+
+    RpqAutomata();
   /* Creates an instance of an RpqAutomata given the RPQ query, and the global map of predicate names to predicate ids
     */
   RpqAutomata(const std::string rpq, const std::unordered_map<std::string, uint64_t> predicates);

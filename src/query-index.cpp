@@ -46,6 +46,12 @@ int main(int argc, char **argv) {
     } while (!ifs_P.eof());
 
 
+    typedef struct {
+        uint64_t id;
+        uint64_t beg;
+        uint64_t end;
+    } rpq_predicate;
+
     std::unordered_map<std::string, uint64_t> pred_map;
     std::string query, line;
     uint64_t s_id, o_id, n_line = 0, q = 0;
