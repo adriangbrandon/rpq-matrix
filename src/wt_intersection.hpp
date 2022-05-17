@@ -54,8 +54,7 @@ namespace sdsl {
         static_assert(has_expand<t_wt, std::array<node_type,2>(const node_type&)>::value,
                 "intersect requires t_wt to have expand(const node_type&)");
 
-        using p_t = std::pair<value_type,size_type>;
-        std::vector<p_t> res;
+        std::vector<size_type> res;
 
         auto push_node = [&wt,&t](stack_type& s, node_type& child,
                                   range_vec_type& child_range) {
