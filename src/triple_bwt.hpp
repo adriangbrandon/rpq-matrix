@@ -696,8 +696,8 @@ private:
                 }
             }
             //Target of i_split is the splitting node
-            auto pred_rev = pred_reverse(mandData.pos_pred[i_split].id_pred);
-            auto pred = mandData.pos_pred[i_split+1].id_pred;
+            auto pred_rev = pred_reverse(mandData.pos_pred[i_split+1].id_pred);
+            auto pred = mandData.pos_pred[i_split].id_pred;
             get_elements_intersection(pred_rev, pred, elements);
         }else{
             for(uint64_t i = 0; i < mandData.pos_pred.size();++i){
@@ -712,11 +712,11 @@ private:
             if(i_split == 0 || i_split == mandData.pos_pred.size()-1
                 || pred_distinct_values(pred_rev) < pred_distinct_values(pred)){
                 //Target as splitting node
-                get_elements(pred_rev, elements);
+                get_elements(pred, elements);
             }else{
                 --i_split;
                 //Source as splitting node
-                get_elements(pred, elements);
+                get_elements(pred_rev, elements);
             }
         }
         return rpqTree.splitRpq(mandData.pos_pred[i_split].pos);
@@ -1528,9 +1528,9 @@ public:
         if(!rpq_l.empty() && !rpq_r.empty()) {
             std::vector<std::pair<uint64_t, uint64_t>> output_l, output_r;
             int64_t p = 0;
-            int64_t p_rev = rpq_l.size()-1;
-            std::string q_r = parse(rpq_r, p, predicates_map, real_max_P);
-            std::string q_l = parse_reverse(rpq_l, p_rev, predicates_map, real_max_P);
+            int64_t p_rev = rpq_r.size()-1;
+            std::string q_r = parse_reverse(rpq_r, p_rev, predicates_map, real_max_P);
+            std::string q_l = parse(rpq_l, p, predicates_map, real_max_P);
             RpqAutomata A_l = RpqAutomata(q_l, predicates_map);
             RpqAutomata A_r = RpqAutomata(q_r, predicates_map);
 
