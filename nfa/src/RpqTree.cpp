@@ -52,8 +52,6 @@ PatternData rpqToPatternData(const std::string &rpq,
         std::smatch match = *next;
         const auto str = match.str();
         pos_length.push_back(match.length());
-        std::cout << str << std::endl;
-        std::cout << match.length() << std::endl;
 
         const auto predicateId = predicates.at(str);
         if (map_pred_to_id.find(predicateId) == map_pred_to_id.end())

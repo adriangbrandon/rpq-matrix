@@ -1518,6 +1518,9 @@ public:
         std::string rpq_l, rpq_r;
         std::vector<uint64_t> elements;
         std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
+        std::cout << "split" << std::endl;
+        std::cout << "rpq_l: " << rpq_l << std::endl;
+        std::cout << "rpq_r: " << rpq_r << std::endl;
 
         //TODO: deberiamos evitar que aquelas a cortar polas esquinas entren nesta función (eso creo)
         //TODO: por eso penso que deberiamos facer o de mandatory antes.

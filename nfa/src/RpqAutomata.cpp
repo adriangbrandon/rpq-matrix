@@ -114,7 +114,6 @@ pair<regularData *, unordered_map<uint64_t, char>> build(const string &rpq, cons
     auto pattern = patternAndMap.first;
 
     // 2. Use nrgrep to parse the pattern and build the NFA
-    std::cout << "pattern: " << pattern << std::endl;
     auto regularData = buildNFA(pattern.c_str(), pattern.length());
 
     return {regularData, patternAndMap.second};
