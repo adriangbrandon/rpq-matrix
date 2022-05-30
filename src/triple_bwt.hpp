@@ -691,7 +691,7 @@ private:
                                         pred_selectivity(mandData.pos_pred[i].id_pred));
                     if(min_selectivity > sel) {
                         min_selectivity = sel;
-                        i_split = i;
+                        i_split = i-1;
                     }
                 }
             }
