@@ -392,7 +392,7 @@ public:
     }
 
     inline uint64_t pred_reverse(uint64_t pred_id) const{
-        return (pred_id > max_P) ? pred_id - max_P : pred_id + max_P;
+        return (pred_id > real_max_P) ? pred_id - real_max_P : pred_id + real_max_P;
     }
 
 
@@ -695,9 +695,9 @@ private:
                     }
                 }
             }
-            //Source of i_split is the splitting node
-            auto pred_rev = pred_reverse(mandData.pos_pred[i_split-1].id_pred);
-            auto pred = mandData.pos_pred[i_split].id_pred;
+            //Target of i_split is the splitting node
+            auto pred_rev = pred_reverse(mandData.pos_pred[i_split].id_pred);
+            auto pred = mandData.pos_pred[i_split+1].id_pred;
             get_elements_intersection(pred_rev, pred, elements);
         }else{
             for(uint64_t i = 0; i < mandData.pos_pred.size();++i){
