@@ -52,6 +52,8 @@ typedef struct
 	   for searching */
 
 regularData *regularPreproc(const char *pat, Tree *tree, Tree **pos);
+regularData *regularPreproc(const char *pat, Tree *tree, Tree **pos, std::vector<int> &pos_pred);
+
 
 /* Frees P */
 
@@ -85,5 +87,9 @@ void regularMakeDet1(int width, Mask *trans, int m, mask ***dtrans);
 
 void regularLoadMasks(const char *pat, int m, int L, Tree *e, Tree **pos,
                       Mask *B, Mask **trans, Mask initial, Mask final);
+
+void regularLoadMasks(const char *pat, int m, int L, Tree *e, Tree **pos,
+                      Mask *B, std::vector<int> &pos_pred,
+                      Mask **trans, Mask initial, Mask final);
 
 #endif

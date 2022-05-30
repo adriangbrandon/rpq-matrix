@@ -32,6 +32,7 @@
 #include "bwt_interval.hpp"
 #include "utils.hpp"
 #include "RpqAutomata.hpp"
+#include "RpqTree.hpp"
 #include "query_config.hpp"
 #include "parse_query.cpp"
 #include "wt_intersection.hpp"
@@ -649,54 +650,76 @@ private:
         elements = L_S.all_values_in_range(L_S.get_C(pred_1), L_S.get_C(pred_1+1)-1);
     }
 
+    /*inline void fix_parentheses(std::string &rpq){
+        int64_t parentheses = 0;
+        for(uint64_t i = 0; i < rpq.size(); ++i){
+            if(rpq.at(i) == '(') ++parentheses;
+            if(rpq.at(i) == ')') --parentheses;
+        }
+        for(uint64_t i = 0; i < parentheses; ++i){
+            rpq += ")";
+        }
+    }
+
+    inline void fix_parentheses_right(std::string &rpq){
+        int64_t parentheses = 0;
+        for(uint64_t i = 0; i < rpq.size(); ++i){
+            if(rpq.at(rpq.size()-1-i) == ')') ++parentheses;
+            if(rpq.at(rpq.size()-1-i) == '(') --parentheses;
+        }
+        std::string aux;
+        for(uint64_t i = 0; i < parentheses; ++i){
+            aux += "(";
+        }
+        rpq = aux + rpq;
+    }*/
+
 
     std::pair<std::string, std::string> split_rpq(const std::string &rpq,
                                                   unordered_map<std::string, uint64_t> &predicates_map,
-                                                  const uint64_t n_predicates,
                                                   std::vector<uint64_t> &elements){
 
-        std::vector<pred_data_type> pred_v;
-        info_predicates(rpq, predicates_map, n_predicates, pred_v);
-        uint64_t pred_i = 0, i = 0;
+
+        RpqTree rpqTree(rpq, predicates_map);
+        auto mandData = rpqTree.getMandatoryData();
         uint64_t min_selectivity = -1ULL;
-        //1. Looking for a predicate that is mandatory and has the smallest selectivity
-        for(const auto &pred : pred_v){
-            if(pred.mandatory){
-                auto s = pred_selectivity(pred.id);
-                if(s < min_selectivity){
-                    min_selectivity = s;
-                    pred_i = i;
+        uint64_t i_split = 0;
+        if(mandData.c){
+            for(uint64_t i = 1; i < mandData.pos_pred.size();++i){
+                if(mandData.pos_pred[i-1].pos == mandData.pos_pred[i].pos-1){
+                    auto sel = std::min(pred_selectivity(mandData.pos_pred[i-1].id_pred),
+                                        pred_selectivity(mandData.pos_pred[i].id_pred));
+                    if(min_selectivity > sel) {
+                        min_selectivity = sel;
+                        i_split = i;
+                    }
                 }
             }
-            ++i;
-        }
-        //2. Choosing the node to split the RPQ
-        std::string rpq_l, rpq_r;
-        uint64_t pred = pred_v[pred_i].id;
-        uint64_t pred_rev = pred_reverse(pred);
-
-        if(pred_distinct_values(pred_rev) > pred_distinct_values(pred)){
-            //Target as splitting node
-            rpq_l = rpq.substr(0, pred_v[pred_i].end);
-            rpq_r = rpq.substr(pred_v[pred_i].end);
-            if(pred_i+1<pred_v.size() && pred_v[pred_i+1].mandatory){
-                get_elements_intersection(pred_rev, pred_v[pred_i+1].id, elements);
-            }else{
-                get_elements(pred_rev, elements);
-            }
+            //Target of i_split is the splitting node
+            auto pred_rev = pred_reverse(mandData.pos_pred[i_split].id_pred);
+            auto pred = mandData.pos_pred[i_split+1].id_pred;
+            get_elements_intersection(pred_rev, pred, elements);
         }else{
-            //Source as splitting node
-            rpq_l = rpq.substr(0, pred_v[pred_i].beg);
-            rpq_r = rpq.substr(pred_v[pred_i].beg);
-            if(pred_i>0 && pred_v[pred_i-1].mandatory){
-                get_elements_intersection(pred, pred_reverse(pred_v[pred_i-1].id), elements);
+            for(uint64_t i = 0; i < mandData.pos_pred.size();++i){
+                auto sel = pred_selectivity(mandData.pos_pred[i].id_pred);
+                if(min_selectivity > sel) {
+                    min_selectivity = sel;
+                    i_split = i;
+                }
+            }
+            auto pred = mandData.pos_pred[i_split].id_pred;
+            auto pred_rev = pred_reverse(pred);
+            if(i_split == 0 || i_split == mandData.pos_pred.size()-1
+                || pred_distinct_values(pred_rev) < pred_distinct_values(pred)){
+                //Target as splitting node
+                get_elements(pred_rev, elements);
             }else{
+                --i_split;
+                //Source as splitting node
                 get_elements(pred, elements);
             }
         }
-        return {rpq_l, rpq_r};
-
-
+        return rpqTree.splitRpq(rpq, mandData.pos_pred[i_split].pos);
     }
 
 
@@ -1494,16 +1517,17 @@ public:
 
         std::string rpq_l, rpq_r;
         std::vector<uint64_t> elements;
-        split_rpq(rpq, predicates_map, n_predicates, elements);
+        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
 
         //TODO: deberiamos evitar que aquelas a cortar polas esquinas entren nesta función (eso creo)
         //TODO: por eso penso que deberiamos facer o de mandatory antes.
         //3.Solve RPQ1 and RPQ2 by using the selected ranges of objects (RPQ1 and RPQ2 exist)
         if(!rpq_l.empty() && !rpq_r.empty()) {
-            int64_t p_rev = rpq_l.size() - 1, p = 0;
             std::vector<std::pair<uint64_t, uint64_t>> output_l, output_r;
-            std::string q_l = parse(rpq_l, p_rev, predicates_map, real_max_P);
-            std::string q_r = parse_reverse(rpq_r, p, predicates_map, real_max_P);
+            int64_t p = 0;
+            int64_t p_rev = rpq_l.size()-1;
+            std::string q_r = parse(rpq_r, p, predicates_map, real_max_P);
+            std::string q_l = parse_reverse(rpq_l, p_rev, predicates_map, real_max_P);
             RpqAutomata A_l = RpqAutomata(q_l, predicates_map);
             RpqAutomata A_r = RpqAutomata(q_r, predicates_map);
 
@@ -1565,7 +1589,7 @@ public:
             }
         }else if(rpq_l.empty()){
             int64_t p = 0;
-            std::string q_r = parse_reverse(rpq_r, p, predicates_map, real_max_P);
+            std::string q_r = parse(rpq, p, predicates_map, real_max_P);
             RpqAutomata A_r = RpqAutomata(q_r, predicates_map);
 
             high_resolution_clock::time_point start;
@@ -1582,15 +1606,16 @@ public:
             //Check the solutions from RPQ2
             std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
             for (const auto &e : elements) {
-                _rpq_const_s_to_var_o(A_r, predicates_map, B_array, e, solution, true, start, bound);
+                _rpq_const_s_to_var_o(A_r, predicates_map, B_array, e,
+                                      solution, true, start, bound);
             }
             //RPQ2: Unmark the NFA states
             for (auto it = m.begin(); it != m.end(); it++) {
                 L_P.unmark<word_t>(it->first, B_array);
             }
         }else{ //rpq_r.empty()
-            int64_t p_rev = rpq_l.size() - 1;
-            std::string q_l = parse(rpq_l, p_rev, predicates_map, real_max_P);
+            int64_t p_rev = rpq.size()-1;
+            std::string q_l = parse_reverse(rpq, p_rev, predicates_map, real_max_P);
             RpqAutomata A_l = RpqAutomata(q_l, predicates_map);
 
             high_resolution_clock::time_point start;

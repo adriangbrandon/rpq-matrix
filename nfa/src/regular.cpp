@@ -242,6 +242,65 @@ void regularLoadMasks(const char *pat, int m, int L, Tree *e, Tree **pos,
 	}
 }
 
+/* receives pat and its strlen m, the number of bits L to store the
+	   regexp, trees e and pos[]. It fills the preallocated tables B,S,A,
+	   and the automaton: transitions *trans (not preallocated), and
+	   initial and final states (preallocated) */
+
+void regularLoadMasks(const char *pat, int m, int L, Tree *e, Tree **pos,
+                      Mask *B, std::vector<int> &pos_pred,
+                      Mask **trans, Mask initial, Mask final)
+
+{
+    int i, j;
+
+    /* compute the B,S,A tables */
+    i = 0;
+    while (i < m)
+        if (pos[i])
+            getAclass(pat, &i, B, pos[i]->pos, pos_pred);
+        else
+            i++;
+    if (OptRecChar != -1)
+        ZERO(B[OptRecChar], L);
+
+    /* compute maskPos */
+    setMaskPos(e, L);
+    /* compute firstPos and lastPos */
+    firstLast(e, L);
+
+    /* initial and final states */
+    SET(ZERO(initial, L), 0);
+    COPY(final, e->lastPos, L);
+
+    /* If the expression admits the empty string then the initial states are also final */
+    if (e->eps)
+        OR(final, initial, L);
+
+    /* allocate the transitions */
+    *trans = (mask**)malloc(L * sizeof(Mask *));
+    (*trans)[0] = createMasks(L, m);
+    for (i = 1; i < L; i++)
+    {
+        (*trans)[i] = (*trans)[0] + i * maskSize(m);
+        ZERO((*trans)[i], m);
+    }
+
+    /* load the transitions. this is basically the follow set, but it is
+        "first" for the initial state */
+    for (i = 0; i < L; i++)
+    {
+        if (i == 0)
+            COPY((*trans)[i], e->firstPos, L); /* initial position */
+        else								   /* all other positions */
+        {
+            Mask tmp = follow(e, i, L);
+            COPY((*trans)[i], tmp, L);
+            free(tmp);
+        }
+    }
+}
+
 void regularReverseArrows(Mask *trans, int m, Mask initial,
 						  Mask final, Mask **rtrans, Mask *rinitial, Mask *rfinal)
 
@@ -363,7 +422,7 @@ void regularMakeDet1(int width, Mask *trans, int m, mask ***dtrans)
 	}
 }
 
-regularData *regularPreproc(const char *pat, Tree *tree, Tree **pos)
+regularData *regularPreproc(const char *pat, Tree *tree, Tree **pos, std::vector<int> &pos_pred)
 
 {
 	regularData *P = (regularData*)malloc(sizeof(regularData));
@@ -382,7 +441,7 @@ regularData *regularPreproc(const char *pat, Tree *tree, Tree **pos)
 		P->B[c] = ZERO(P->B[0] + c * maskSize(P->m), P->m);
 	}
 
-	regularLoadMasks(pat, strlen(pat), P->m, tree, pos, P->B, &trans, P->initial, P->final);
+	regularLoadMasks(pat, strlen(pat), P->m, tree, pos, P->B, pos_pred, &trans, P->initial, P->final);
 
 	/* make rtrans = reverse of trans, O(m^2/w + m^2) time */
 
@@ -407,7 +466,7 @@ regularData *regularPreproc(const char *pat, Tree *tree, Tree **pos)
 	free(rtrans[0]);
 	free(rtrans);
 	P->V1 = createMask(P->m);
-	return P;
+ 	return P;
 }
 
 void regularFree(regularData *P)

@@ -1,4 +1,5 @@
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <regex>
@@ -71,7 +72,7 @@ regularData *buildNFA(const char *pattern, int length)
     return regularPreproc(pattern, tree, pos);
 }
 
-pair<string, unordered_map<uint64_t, char>> rpqToStringPattern(const string rpq, const unordered_map<string, uint64_t> predicates)
+pair<string, unordered_map<uint64_t, char>> rpqToStringPattern(const string &rpq, const unordered_map<string, uint64_t> &predicates)
 {
     unordered_map<uint64_t, char> map;
     char firstUnassigned = 1;
@@ -105,7 +106,7 @@ pair<string, unordered_map<uint64_t, char>> rpqToStringPattern(const string rpq,
     return {pattern, map};
 }
 
-pair<regularData *, unordered_map<uint64_t, char>> build(const string rpq, const unordered_map<string, uint64_t> predicates)
+pair<regularData *, unordered_map<uint64_t, char>> build(const string &rpq, const unordered_map<string, uint64_t> &predicates)
 {
 
     // 1. Transform RPQ to a regular expression
@@ -113,16 +114,40 @@ pair<regularData *, unordered_map<uint64_t, char>> build(const string rpq, const
     auto pattern = patternAndMap.first;
 
     // 2. Use nrgrep to parse the pattern and build the NFA
+    std::cout << "pattern: " << pattern << std::endl;
     auto regularData = buildNFA(pattern.c_str(), pattern.length());
 
     return {regularData, patternAndMap.second};
 }
 
+pair<regularData *, unordered_map<uint64_t, char>> build(const string &pattern, const unordered_map<uint64_t , char> &map)
+{
+
+
+    // 2. Use nrgrep to parse the pattern and build the NFA
+    auto regularData = buildNFA(pattern.c_str(), pattern.length());
+
+    return {regularData, map};
+}
+
 RpqAutomata::RpqAutomata() {};
 
-RpqAutomata::RpqAutomata(const string rpq, const unordered_map<string, uint64_t> predicates)
+RpqAutomata::RpqAutomata(const string &rpq, const unordered_map<string, uint64_t> &predicates)
 {
     auto nfaAndMap = build(rpq, predicates);
+
+    _nfaData = nfaAndMap.first;
+    _isValid = _nfaData != NULL;
+
+    for (auto pair : nfaAndMap.second)
+    {
+        _B[pair.first] = _nfaData->B[pair.second];
+    }
+}
+
+RpqAutomata::RpqAutomata(const string &pattern, const unordered_map<uint64_t , char> &map)
+{
+    auto nfaAndMap = build(pattern, map);
 
     _nfaData = nfaAndMap.first;
     _isValid = _nfaData != NULL;

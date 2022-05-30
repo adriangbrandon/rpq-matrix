@@ -22,7 +22,11 @@ public:
     RpqAutomata();
   /* Creates an instance of an RpqAutomata given the RPQ query, and the global map of predicate names to predicate ids
     */
-  RpqAutomata(const std::string rpq, const std::unordered_map<std::string, uint64_t> predicates);
+  RpqAutomata(const std::string &rpq, const std::unordered_map<std::string, uint64_t> &predicates);
+
+    /* Creates an instance of an RpqAutomata given the pattern, and the map of predicate ids to regex ids
+      */
+  RpqAutomata(const std::string &pattern, const std::unordered_map<uint64_t , char> &map);
 
    ~RpqAutomata(void);
 

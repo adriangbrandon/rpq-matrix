@@ -34,6 +34,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <vector>
 #include <iostream>
+#include <random>
+#include <sdsl/int_vector.hpp>
 
 uint64_t next(const std::vector<uint64_t>& vec, const uint64_t pos, const uint64_t value){
     for(uint64_t i = pos; i < vec.size(); ++i){
@@ -45,6 +47,41 @@ uint64_t next(const std::vector<uint64_t>& vec, const uint64_t pos, const uint64
 
 }
 
+std::vector<uint64_t> base(8, 0);
+
+typedef struct {
+    uint64_t bytes;
+    uint64_t codeword;
+} cw_t;
+
+cw_t encode(uint64_t i, uint64_t s){
+    uint64_t c = 256-s;
+    cw_t cw;
+    cw.bytes = 1;
+    cw.codeword = i % s;
+    uint64_t x = i /s;
+    while(x > 0){
+        x = x -1;
+        cw.codeword = (cw.codeword << 8);
+        cw.codeword += ((x % c) + s);
+        x = x / c;
+        ++cw.bytes;
+    }
+    return cw;
+}
+
+ std::pair<uint64_t, uint64_t> decode(const sdsl::int_vector<> &buffer, uint64_t index, uint64_t s){
+    uint64_t c = 256-s;
+    uint64_t i = 0;
+    uint64_t k = 0;
+    while(buffer[index+k] >= s){
+        i = i * c + (buffer[index+k]-s);
+        ++k;
+    }
+    i = i * s + buffer[index+k];
+    i = i + base[k];
+    return {i, k};
+}
 
 int main(int argc, char **argv) {
 
@@ -79,8 +116,50 @@ int main(int argc, char **argv) {
         }
     }
 
-    for(const auto &r : result){
-        std::cout << r << std::endl;
+   /* for(const auto &r : result){
+       // std::cout << r << std::endl;
+    }*/
+
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<int32_t> dist(-20, 20);
+    for(uint64_t i = 0; i < 20; ++i){
+        std::cout << dist(gen) << std::endl;
     }
+
+    uint64_t s = 230;
+    base[0] = 0;
+    for(uint64_t i = 1; i < 8; ++i){
+        base[i] = base[i-1] + s * std::pow((256-s), (i-1));
+    }
+
+
+
+    std::vector<cw_t> cws;
+    uint64_t bytes = 0;
+    for(uint64_t i = 0; i < 100; ++i){
+        auto cw = encode(i, s);
+        cws.push_back(cw);
+        bytes += cw.bytes;
+        std::cout << "i: " << i << " cw.bytes:" << cw.bytes << " cw.codeword: " << cw.codeword << std::endl;
+    }
+    sdsl::int_vector<> buffer;
+    buffer.width(8);
+    buffer.resize(bytes);
+    uint64_t index = 0;
+    for(const auto &cw : cws){
+        buffer.set_int(index, cw.codeword, cw.bytes*8);
+        index += cw.bytes * 8;
+    }
+    index = 0;
+    while(index < buffer.size()){
+        auto pair = decode(buffer, index, s);
+        std::cout << "Decoded: " << pair.first << std::endl;
+        index = index + pair.second + 1;
+
+    }
+
+
+
 
 }

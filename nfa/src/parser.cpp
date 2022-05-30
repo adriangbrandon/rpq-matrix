@@ -25,6 +25,7 @@ Chile. Blanco Encalada 2120, Santiago, Chile. gnavarro@dcc.uchile.cl
 
 #include "../include/parser.hpp"
 #include "../include/options.hpp"
+#include <iostream>
 
 #define Sep '#'
 #define All '.'
@@ -191,6 +192,132 @@ boolean getAclass(const char *pat, int *i, Mask *B, int l)
 	return true;
 }
 
+boolean getAclass(const char *pat, int *i, Mask *B, int l, std::vector<int> &pos_pred)
+
+/* Gets a class of characters from pat[i...] (sets i at the next
+	   position to read) and sets the appropriate bits in
+	   B[*] column l. It assumes that the first character is not a
+	   metacharacter. It returns true if it could read a class, false
+	   in case of syntax error: from getAchar or missing ]. It can
+	   also be used to test syntax, with B = NULL */
+/* Syntax: class -> [set*] or [^set*] (^ complements the set)
+		   set -> X-Y  (range of chars) or X (single char)
+		   X,Y -> . (a class with all), # (a separator) or getAchar
+	*/
+
+{
+	int c, c1, c2;
+	boolean pos = true;
+	switch (pat[*i])
+	{
+		case OpenBracket: /* a class is opened */
+			(*i)++;
+			if (pat[*i] == Neg) /* reverse meaning */
+			{
+				if (B)
+					for (c = 0; c < SIGMA; c++) {
+						SET(B[c], l);
+						pos_pred[l] = c;
+					}
+				pos = false;
+				(*i)++;
+			}
+			while (pat[*i] && (pat[*i] != CloseBracket))
+			{
+				c1 = getAchar(pat, i);
+				if (c1 == -1)
+					return false;
+				if ((pat[*i] == Dash) && pat[*i + 1] &&
+					(pat[*i + 1] != CloseBracket))
+				{
+					(*i)++;
+					c2 = getAchar(pat, i);
+					if (c2 == -1)
+						return false;
+				}
+				else
+					c2 = c1;
+				if (B)
+					for (c = c1; c <= c2; c++)
+					{
+						if (pos){
+							SET(B[c], l);
+							pos_pred[l] = c;
+						}
+						else {
+							CLEAR(B[c], l);
+							pos_pred[l] = 0;
+						}
+					}
+			}
+			if (!pat[*i])
+				return false; /* ] missing */
+			(*i)++;
+			break;
+		case All: /* a class with everything */
+			if (B)
+				for (c = 0; c < SIGMA; c++){
+					SET(B[c], l);
+					pos_pred[l] = c;
+				}
+			(*i)++;
+			break;
+		case Sep: /* a class of separators */
+			if (B)
+				for (c = 0; c < SIGMA; c++) {
+					if (!isalnum(c)) {
+						SET(B[c], l);
+						pos_pred[l] = c;
+					}
+				}
+			(*i)++;
+			break;
+		case OpenPar:
+		case ClosePar:
+		case Or:
+		case Question:
+		case Star:
+		case Plus:
+			/* higher level constructions, reject */
+			return false;
+			break;
+		default: /* a plain letter or escape code */
+			c = getAchar(pat, i);
+			if (c == -1)
+				return false;
+			if (B) {
+				SET(B[c], l);
+				pos_pred[l] = c;
+			}
+			break;
+	}
+
+	/* expand for case insensitive searching */
+	if (B && OptCaseInsensitive)
+	{
+		for (c = 'A'; c <= 'Z'; c++)
+			if (pos && ISSET(B[c], l)) {
+				SET(B[tolower(c)], l);
+				pos_pred[l] = tolower(c);
+			}
+			else if (!pos && !ISSET(B[c], l)) {
+				CLEAR(B[tolower(c)], l);
+				pos_pred[l] = 0;
+			}
+		for (c = 'a'; c <= 'z'; c++)
+			if (pos && ISSET(B[c], l)) {
+				SET(B[toupper(c)], l);
+				pos_pred[l] = toupper(c);
+			}
+			else if (!pos && !ISSET(B[c], l)) {
+				CLEAR(B[toupper(c)], l);
+				pos_pred[l] = 0;
+			}
+	}
+
+	return true;
+}
+
 /* Regexp Syntax:
 		inside a class [...]
 			^ at the beginning: negation of class
@@ -265,6 +392,7 @@ static Tree *parseOne(const char *pat, int *i, Tree **pos)
 	return e;
 }
 
+
 static Tree *parseOneClosed(const char *pat, int *i, Tree **pos)
 
 /* parses one subexpression plus closures +,*,? */
@@ -314,6 +442,8 @@ static Tree *parseOneClosed(const char *pat, int *i, Tree **pos)
 		}
 }
 
+
+
 static Tree *parseConc(const char *pat, int *i, Tree **pos)
 
 /* parses a concatenation */
@@ -347,6 +477,8 @@ static Tree *parseConc(const char *pat, int *i, Tree **pos)
 	return e;
 }
 
+
+
 static Tree *parseOr(const char *pat, int *i, Tree **pos)
 
 /* parses a disjunction */
@@ -379,6 +511,7 @@ static Tree *parseOr(const char *pat, int *i, Tree **pos)
 	}
 	return e;
 }
+
 
 static void simpFree(Tree *e, Tree **pos, int m)
 
@@ -545,6 +678,7 @@ static Tree *parseLiteral(const char *pat, int *i, Tree **pos)
 	return r;
 }
 
+
 void setMaskPos(Tree *e, int L)
 
 /* compute maskPos (positions of subexpression) */
@@ -573,7 +707,7 @@ void setMaskPos(Tree *e, int L)
 	}
 }
 
-Tree *parse(const char *pat, int m, Tree **pos)
+Tree *parse(const char *pat, int m, Tree **pos, bool simple)
 
 /* captures the structure of the regular expression and
 	   maps each character to the place where it has to be put. It then
@@ -597,6 +731,27 @@ Tree *parse(const char *pat, int m, Tree **pos)
 	if (e == NULL)
 		return NULL;
 	/* simplify the expression */
-	e = simplify(e, pos, m);
+	if(simple) e = simplify(e, pos, m);
 	return e;
 }
+
+
+
+std::pair<std::string, std::string> split_pattern(const std::string &pat, int m, Tree** pos, int p_split){
+	int i = 0;
+	while(i < m){
+		if(pos[i] != NULL && pos[i]->pos == p_split){
+			while(i < m && (pos[i] == NULL && pat[i] != OpenPar && pat[i] != Or)){
+				++i;
+			}
+			break;
+		}
+		++i;
+	}
+	std::pair<std::string, std::string> res;
+	res.first = pat.substr(0, i);
+	res.second = pat.substr(i);
+	return res;
+
+}
+

@@ -27,6 +27,8 @@ Chile. Blanco Encalada 2120, Santiago, Chile. gnavarro@dcc.uchile.cl
 #define PARSERINCLUDED
 
 #include "basics.hpp"
+#include <string>
+#include <vector>
 
 /* Gets one character assuming it is not special.
            Returns -1 in case of syntax error: \x not followed by 2 hex
@@ -36,12 +38,19 @@ Chile. Blanco Encalada 2120, Santiago, Chile. gnavarro@dcc.uchile.cl
 
 int getAchar(const char *pat, int *i);
 
+
 /* Gets a class of characters from pat[i...] (sets i at the next
            position to read) and sets the appropriate bits in B[*] column l. 
 	   From outside it should be used to work on positions marked by
 	   the pos[] array returned by parse */
 
 boolean getAclass(const char *pat, int *i, Mask *B, int l);
+
+/* Gets a class of characters from pat[i...] (sets i at the next
+           position to read) and sets the appropriate bits in B[*] column l.
+	   From outside it should be used to work on positions marked by
+	   the pos[] array returned by parse */
+boolean getAclass(const char *pat, int *i, Mask *B, int l, std::vector<int> &pos_pred);
 
 /* probabilities of individual letters */
 
@@ -56,7 +65,7 @@ typedef struct sTree
 {
         int type;              /* node type: STR,STAR,OOR,CONC,QUESTION,PLUS */
         int pos;               /* for STR type, position in bit mask */
-        boolean eps;              /* subexpression recognizes epsilon? */
+        boolean eps;           /* subexpression recognizes epsilon? */
         struct sTree *e1, *e2; /* subexpressions */
         Mask maskPos;          /* positions covered by subexpression */
         Mask firstPos;         /* initial positions of subexpression */
@@ -71,14 +80,19 @@ typedef struct sTree
         where the class starting at pat[i] must be set.
 */
 
-Tree *parse(const char *pat, int m, Tree **pos);
+Tree *parse(const char *pat, int m, Tree **pos, bool simple = true);
+
 
 /* determines the class of pattern for a subset active (all if NULL) */
+
 
 void setMaskPos(Tree *e, int L);
 
 /* frees a structure allocated by parse */
 
 void freeTree(Tree *e);
+
+/*splits pattern into two halves*/
+std::pair<std::string, std::string> split_pattern(const std::string &pat, int m, Tree** pos, int p_split);
 
 #endif
