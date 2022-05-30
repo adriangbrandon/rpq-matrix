@@ -695,9 +695,9 @@ private:
                     }
                 }
             }
-            //Target of i_split is the splitting node
-            auto pred_rev = pred_reverse(mandData.pos_pred[i_split].id_pred);
-            auto pred = mandData.pos_pred[i_split+1].id_pred;
+            //Source of i_split is the splitting node
+            auto pred_rev = pred_reverse(mandData.pos_pred[i_split-1].id_pred);
+            auto pred = mandData.pos_pred[i_split].id_pred;
             get_elements_intersection(pred_rev, pred, elements);
         }else{
             for(uint64_t i = 0; i < mandData.pos_pred.size();++i){
