@@ -103,7 +103,7 @@ RpqTree::RpqTree(const std::string &rpq, const std::unordered_map<std::string, u
     pos = new Tree *[m];
     pos_id = std::vector<int>(m, 0);
     tree = parse(patternData.pattern.c_str(), m, pos, false);
-    regularPreproc(patternData.pattern.c_str(), tree, pos, pos_id);
+    regularPreprocBInv(patternData.pattern.c_str(), tree, pos, pos_id);
 }
 
 MandatoryData RpqTree::getMandatoryData() {

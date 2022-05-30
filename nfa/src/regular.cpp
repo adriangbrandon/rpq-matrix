@@ -422,7 +422,55 @@ void regularMakeDet1(int width, Mask *trans, int m, mask ***dtrans)
 	}
 }
 
-regularData *regularPreproc(const char *pat, Tree *tree, Tree **pos, std::vector<int> &pos_pred)
+regularData *regularPreproc(const char *pat, Tree *tree, Tree **pos)
+
+{
+    regularData *P = (regularData*)malloc(sizeof(regularData));
+    int slices, i, j, c, *map;
+    Mask *trans, *rtrans; /* nondet trans */
+
+    /* allocate and load the masks */
+
+    P->m = 0;
+    regularLength(tree, &P->m);
+    P->initial = createMask(P->m);
+    P->final = createMask(P->m);
+    P->B[0] = createMasks(SIGMA, P->m);
+    for (c = 0; c < SIGMA; c++)
+    {
+        P->B[c] = ZERO(P->B[0] + c * maskSize(P->m), P->m);
+    }
+
+    regularLoadMasks(pat, strlen(pat), P->m, tree, pos, P->B, &trans, P->initial, P->final);
+
+    /* make rtrans = reverse of trans, O(m^2/w + m^2) time */
+
+    rtrans = (mask**) malloc(P->m * sizeof(Mask));
+    rtrans[0] = createMasks(P->m, P->m);
+    for (i = 0; i < P->m; i++)
+        rtrans[i] = ZERO(rtrans[0] + i * maskSize(P->m), P->m);
+    for (i = 0; i < P->m; i++)
+        for (j = 0; j < P->m; j++)
+            if (ISSET(trans[i], j))
+                SET(rtrans[j], i);
+
+    /* create verification automata */
+    slices = (P->m + OptDetWidth - 1) / OptDetWidth;
+    P->slices = slices;
+    P->width = (P->m + slices - 1) / slices;
+    regularMakeDet(P->width, trans, P->m, &P->fwdTrans);
+    regularMakeDet(P->width, rtrans, P->m, &P->bwdTrans);
+
+    free(trans[0]);
+    free(trans);
+    free(rtrans[0]);
+    free(rtrans);
+    P->V1 = createMask(P->m);
+    return P;
+}
+
+
+regularData *regularPreprocBInv(const char *pat, Tree *tree, Tree **pos, std::vector<int> &pos_pred)
 
 {
 	regularData *P = (regularData*)malloc(sizeof(regularData));
