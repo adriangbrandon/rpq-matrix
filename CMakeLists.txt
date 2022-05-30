@@ -64,3 +64,6 @@ target_link_libraries(mandatory sdsl divsufsort divsufsort64 nfa)
 
 add_executable(intersection_or src/intersection_or.cpp)
 target_link_libraries(intersection_or sdsl divsufsort divsufsort64 nfa)
+
+add_executable(pre-query src/pre-query.cpp)
+target_link_libraries(pre-query sdsl divsufsort divsufsort64 nfa)

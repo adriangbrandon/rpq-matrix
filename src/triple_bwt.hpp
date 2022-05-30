@@ -719,7 +719,7 @@ private:
                 get_elements(pred, elements);
             }
         }
-        return rpqTree.splitRpq(rpq, mandData.pos_pred[i_split].pos);
+        return rpqTree.splitRpq(mandData.pos_pred[i_split].pos);
     }
 
 

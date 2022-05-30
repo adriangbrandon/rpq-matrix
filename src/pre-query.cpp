@@ -28,68 +28,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 //
-// Created by Adrián on 26/5/22.
+// Created by Adrián on 30/5/22.
 //
-
-#ifndef RPQ_TREE_INCLUDED
-#define RPQ_TREE_INCLUDED
-
 #include <string>
-#include <vector>
 #include <unordered_map>
-#include <iostream>
-#include <regex>
-#include "regular.hpp"
+#include <RpqTree.hpp>
+#include "parse_query.cpp"
 
+int main(int argc, char **argv) {
 
-typedef struct {
-    int id_pred;
-    int pos;
-} PairPredPos;
+    std::string rpq = argv[1];
+    int pos = atoi(argv[2]);
 
-typedef struct
-{
-    bool c = false;
-    std::vector<PairPredPos> pos_pred;
-} MandatoryData;
-
-typedef struct {
-    std::string pattern;
-    std::unordered_map<char, uint64_t> id_to_pred;
-    std::unordered_map<uint64_t, std::string> pred_to_str;
-} PatternData;
-
-class RpqTree {
-
-private:
-
-    void mandatoryTraversal(Tree* e, MandatoryData &md, int& last);
-
-    void splitTraversal(Tree* e, int split_pos, bool &left, std::string &rpq_l, std::string &rpq_r);
-
-    int posToPred(int pos);
-    std::string posToPredStr(int p);
-public:
-
-    RpqTree();
-
-    RpqTree(const std::string &rpq, const std::unordered_map<std::string, uint64_t> &predicates);
-
-    ~RpqTree(void);
-
-    //TODO: debería devolver os predicados
-    MandatoryData getMandatoryData();
-
-    std::pair<std::string, std::string> splitRpq(int p);
-
-
-
-private:
-    Tree *tree;
-    Tree **pos;
-    int m;
-    std::vector<int> pos_id;
-    PatternData patternData;
-};
-
-#endif //RPQ_TREE_INCLUDED
+    std::unordered_map<std::string, uint64_t> predicates;
+    for(uint64_t i = 1; i < 20; ++i){
+        predicates.insert({"<pred"+std::to_string(i)+">", i});
+    }
+    int64_t p = 0;
+    //std::string q = parse(rpq, p, predicates, 20);
+    RpqTree rpqTree(rpq, predicates);
+    auto res = rpqTree.splitRpq(pos);
+    std::cout << res.first << std::endl;
+    std::cout << res.second << std::endl;
+}

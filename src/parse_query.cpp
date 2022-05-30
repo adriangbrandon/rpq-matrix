@@ -22,13 +22,13 @@
 #include <cstdint>
 #include <set>
 #include <unordered_set>
+#include <unordered_map>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sdsl/init_array.hpp>
 
 
 std::string parse(const std::string& rpq, int64_t& i,
-                  unordered_map<std::string, uint64_t>& predicates_map, uint64_t max_P)
+                  std::unordered_map<std::string, uint64_t>& predicates_map, uint64_t max_P)
 {
     std::string str_aux;
     char _operator;
@@ -77,7 +77,7 @@ std::string parse(const std::string& rpq, int64_t& i,
 
 
 std::string parse_reverse(const std::string& rpq, int64_t& i, 
-                          unordered_map<std::string, uint64_t>& predicates_map, uint64_t max_P)
+                          std::unordered_map<std::string, uint64_t>& predicates_map, uint64_t max_P)
 {
     std::string str_aux;
     char _operator;

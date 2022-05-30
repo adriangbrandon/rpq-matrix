@@ -35,11 +35,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 PatternData rpqToPatternData(const std::string &rpq,
-                             const std::unordered_map<std::string, uint64_t> &predicates,
-                             std::vector<int> &pos_length)
+                             const std::unordered_map<std::string, uint64_t> &predicates)
 {
-    std::unordered_map<uint64_t, char> map_pred_to_id;
+    //std::unordered_map<uint64_t, char> map_pred_to_id;
     std::unordered_map<char, uint64_t> map_id_to_pred;
+    std::unordered_map<uint64_t , std::string> map_pred_to_str;
     char firstUnassigned = 1;
     auto pattern = rpq;
 
@@ -51,12 +51,10 @@ PatternData rpqToPatternData(const std::string &rpq,
     {
         std::smatch match = *next;
         const auto str = match.str();
-        pos_length.push_back(match.length());
-
         const auto predicateId = predicates.at(str);
-        if (map_pred_to_id.find(predicateId) == map_pred_to_id.end())
+        if (map_pred_to_str.find(predicateId) == map_pred_to_str.end())
         {
-            map_pred_to_id[predicateId] = firstUnassigned;
+            map_pred_to_str[predicateId] = str;
             map_id_to_pred[firstUnassigned] = predicateId;
 
             std::regex replaceRE(str);
@@ -70,7 +68,7 @@ PatternData rpqToPatternData(const std::string &rpq,
     std::regex slashRE("/");
     pattern = std::regex_replace(pattern, slashRE, "");
 
-    return {pattern, map_id_to_pred};
+    return {pattern, map_id_to_pred, map_pred_to_str};
 }
 
 void RpqTree::mandatoryTraversal(Tree* e, MandatoryData &md, int& last){
@@ -90,13 +88,85 @@ void RpqTree::mandatoryTraversal(Tree* e, MandatoryData &md, int& last){
     }
 }
 
+void RpqTree::splitTraversal(Tree* e, int split_pos, bool &left, std::string &rpq_l, std::string &rpq_r){
+
+    switch (e->type)
+    {
+        case STR:
+            if(left){
+                rpq_l += posToPredStr(e->pos);
+                if(e->pos == split_pos) left = false;
+            }else{
+                rpq_r += posToPredStr(e->pos);
+            }
+            break;
+        case STAR:
+            if(left) {
+                rpq_l += "(";
+                splitTraversal(e->e1, split_pos, left, rpq_l, rpq_r);
+                rpq_l += ")*";
+            }else{
+                rpq_r += "(";
+                splitTraversal(e->e1, split_pos, left, rpq_l, rpq_r);
+                rpq_r += ")*";
+            }
+            break;
+        case PLUS:
+            if(left) {
+                rpq_l += "(";
+                splitTraversal(e->e1, split_pos, left, rpq_l, rpq_r);
+                rpq_l += ")+";
+            }else{
+                rpq_r += "(";
+                splitTraversal(e->e1, split_pos, left, rpq_l, rpq_r);
+                rpq_r += ")+";
+            }
+            break;
+        case QUESTION:
+            if(left) {
+                rpq_l += "(";
+                splitTraversal(e->e1, split_pos, left, rpq_l, rpq_r);
+                rpq_l += ")?";
+            }else{
+                rpq_r += "(";
+                splitTraversal(e->e1, split_pos, left, rpq_l, rpq_r);
+                rpq_r += ")?";
+            }
+            break;
+        case OOR:
+            if(left){
+                rpq_l += "(";
+                splitTraversal(e->e1, split_pos, left, rpq_l, rpq_r);
+                rpq_l += "|";
+                splitTraversal(e->e2, split_pos, left, rpq_l, rpq_r);
+                rpq_l += ")";
+            }else{
+                rpq_r += "(";
+                splitTraversal(e->e1, split_pos, left, rpq_l, rpq_r);
+                rpq_r += "|";
+                splitTraversal(e->e2, split_pos, left, rpq_l, rpq_r);
+                rpq_r += ")";
+            }
+            break;
+        case CONC:
+            splitTraversal(e->e1, split_pos, left, rpq_l, rpq_r);
+            splitTraversal(e->e2, split_pos, left, rpq_l, rpq_r);
+            break;
+
+    }
+}
+
 inline int RpqTree::posToPred(int p){
     return patternData.id_to_pred[pos_id[p]];
 }
 
+inline std::string RpqTree::posToPredStr(int p){
+    return patternData.pred_to_str[patternData.id_to_pred[pos_id[p]]];
+}
+
 RpqTree::RpqTree(const std::string &rpq, const std::unordered_map<std::string, uint64_t> &predicates){
 
-    patternData = rpqToPatternData(rpq, predicates, pos_length);
+    patternData = rpqToPatternData(rpq, predicates);
     m = patternData.pattern.length();
     pos = new Tree *[m];
     pos_id = std::vector<int>(m, 0);
@@ -111,7 +181,14 @@ MandatoryData RpqTree::getMandatoryData() {
     return md;
 }
 
-std::pair<std::string, std::string> RpqTree::splitRpq(const std::string &rpq, int p_split){
+std::pair<std::string, std::string> RpqTree::splitRpq( int p_split){
+    std::pair<std::string, std::string> res;
+    bool left = true;
+    splitTraversal(tree, p_split, left, res.first,  res.second);
+    return res;
+}
+
+/*std::pair<std::string, std::string> RpqTree::splitRpq(const std::string &rpq, int p_split){
     int i = 0, j = 0, p = 0;
     while(i < m){
         if(pos[i] != NULL){
@@ -134,7 +211,7 @@ std::pair<std::string, std::string> RpqTree::splitRpq(const std::string &rpq, in
     res.first = rpq.substr(0, j);
     res.second = rpq.substr(j);
     return res;
-}
+}*/
 
 RpqTree::~RpqTree() {
     freeTree(tree);
