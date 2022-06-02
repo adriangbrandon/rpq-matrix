@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     }
     int64_t p = 0;
     //std::string q = parse(rpq, p, predicates, 20);
-    RpqTree rpqTree(rpq, predicates);
+    RpqTree rpqTree(rpq, predicates, 20);
     auto res = rpqTree.splitRpq(pos);
     std::cout << res.first << std::endl;
     std::cout << res.second << std::endl;
