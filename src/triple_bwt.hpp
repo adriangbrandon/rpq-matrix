@@ -546,6 +546,32 @@ private:
         }
     }
 
+    void step_2_merge_interval(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D,
+                               bwt_interval &I_s,
+                               std::vector<std::pair<bwt_interval, word_t>> &input_for_step_1,
+                               uint64_t starting_o,
+                               std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                               bool const_to_var = true){
+
+        std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> values_in_I_s_test;
+        L_S.all_active_s_values_in_range_test<word_t>(I_s.left(), I_s.right(), D_array, current_D, values_in_I_s_test);
+
+
+        // Por cada elemento s reportado en el paso anterior, tengo que hacer un backward step para irme a un intervalo en L_o.
+        // Ver como hago esto, si conviene hacerlo aqui o en el paso 3
+        for (uint64_t i = 0; i < values_in_I_s_test.size(); i++) {
+
+            push_merge_interval(input_for_step_1, values_in_I_s_test[i]);
+
+            if (A.atFinal(get<1>(values_in_I_s_test[i]), BWD)) {
+                if (const_to_var)
+                    output_subjects.emplace_back(std::pair<uint64_t, uint64_t>(starting_o, get<0>(values_in_I_s_test[i])));
+                else
+                    output_subjects.emplace_back(std::pair<uint64_t, uint64_t>(get<0>(values_in_I_s_test[i]), starting_o));
+            }
+        }
+    }
+
     bool step_2_check_merge_interval(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D, bwt_interval &I_s,
                       std::vector<std::pair<bwt_interval, word_t>> &input_for_step_1,
                       std::vector<uint64_t> &object_vector, uint64_t bound
