@@ -86,7 +86,7 @@ void RpqTree::mandatoryTraversal(Tree* e, MandatoryData &md, int& last){
         if(e->e1->type != STAR && e->e1->type != QUESTION && e->e1->type != OOR){
             mandatoryTraversal(e->e1, md, last);
         }
-        if(e->e2->type != STAR && e->e2->type != QUESTION && e->e2->type != OOR){
+        if(e->type != PLUS && e->e2->type != STAR && e->e2->type != QUESTION && e->e2->type != OOR){
             mandatoryTraversal(e->e2, md, last);
         }
     }
