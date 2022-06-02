@@ -2358,11 +2358,6 @@ public:
                         auto it_set = sol_set.insert({o_l.first, o_r.second});
                         if (it_set.second) {
                             solution.emplace_back(o_l.first, o_r.second);
-                            //RPQ2: Unmark the NFA states
-                            for (auto it = m.begin(); it != m.end(); it++) {
-                                L_P.unmark<word_t>(it->first, B_array);
-                            }
-                            return;
                         }
                     }
                 }
