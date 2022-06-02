@@ -519,7 +519,7 @@ private:
         }
     }
 
-    void step_2_merge_interval(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D,
+    void step_2_merge_interval_bound(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D,
                                bwt_interval &I_s,
                                std::vector<std::pair<bwt_interval, word_t>> &input_for_step_1,
                                uint64_t starting_o,
@@ -947,7 +947,7 @@ private:
                 if (total_time > TIME_OUT) time_out = true;  // 10 minute timeout
 
                 current_D = input_for_step_2[i].second;
-                step_2_merge_interval(A, D_array, current_D, input_for_step_2[i].first, input_for_step_1, initial_object,
+                step_2_merge_interval_bound(A, D_array, current_D, input_for_step_2[i].first, input_for_step_1, initial_object,
                        output_subjects, bound, const_to_var);
             }
 
