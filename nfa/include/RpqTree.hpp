@@ -73,7 +73,7 @@ public:
 
     RpqTree();
 
-    RpqTree(const std::string &rpq, const std::unordered_map<std::string, uint64_t> &predicates);
+    RpqTree(const std::string &rpq, const std::unordered_map<std::string, uint64_t> &predicates, uint64_t max_pred);
 
     ~RpqTree(void);
 

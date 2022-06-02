@@ -506,8 +506,8 @@ regularData *regularPreprocBInv(const char *pat, Tree *tree, Tree **pos, std::ve
 	slices = (P->m + OptDetWidth - 1) / OptDetWidth;
 	P->slices = slices;
 	P->width = (P->m + slices - 1) / slices;
-	regularMakeDet(P->width, trans, P->m, &P->fwdTrans);
-	regularMakeDet(P->width, rtrans, P->m, &P->bwdTrans);
+	//regularMakeDet(P->width, trans, P->m, &P->fwdTrans);
+	//regularMakeDet(P->width, rtrans, P->m, &P->bwdTrans);
 
 	free(trans[0]);
 	free(trans);

@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
     std::string query_type;
     uint64_t first_pred_id, last_pred_id;
 
-   // uint64_t bound = 1000000; // bound for the number of results
+    //uint64_t bound = 1000000; // bound for the number of results
     uint64_t bound = -1ULL; // bound for the number of results
 
     do {
@@ -227,25 +227,25 @@ int main(int argc, char **argv) {
                     else if (is_or and n_predicates > 3)
                         graph.or_query_var_to_var(query, n_predicates, bound, pred_map, query_output);
                     else if (query_type[query_type.size() - 1] == '*' and query_type[0] != '*')
-                        graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
-                                                n_operators, false, bound);
-                        /*graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                        /*graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
                                                 n_operators, false, bound);*/
+                        graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                n_operators, false, bound);
                     else if (query_type[0] == '*' or query_type[0] == '+')
-                        graph.rpq_var_to_var_os(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
-                                                n_operators, false, bound);
-                        /*graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                        /*graph.rpq_var_to_var_os(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
                                                 n_operators, false, bound);*/
+                        graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                n_operators, false, bound);
                     else if (graph.pred_selectivity(first_pred_id) <= graph.pred_selectivity(last_pred_id))
-                        graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
-                                                n_operators, is_a_path, bound);
-                        /*graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
-                                                   n_operators, is_a_path, bound);*/
+                        /*graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                n_operators, is_a_path, bound);*/
+                        graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                   n_operators, is_a_path, bound);
                     else
-                        graph.rpq_var_to_var_os(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
-                                                n_operators, is_a_path, bound);
-                        /*graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
-                                               n_operators, is_a_path, bound);*/
+                        /*graph.rpq_var_to_var_os(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                n_operators, is_a_path, bound);*/
+                        graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                               n_operators, is_a_path, bound);
                 } else {
                     if (flag_s) {
                         graph.rpq_const_s_to_var_o(query, pred_map, B_array, s_id, query_output, n_predicates,

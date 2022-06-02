@@ -35,7 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 PatternData rpqToPatternData(const std::string &rpq,
-                             const std::unordered_map<std::string, uint64_t> &predicates)
+                             const std::unordered_map<std::string, uint64_t> &predicates,
+                             uint64_t max_pred)
 {
     //std::unordered_map<uint64_t, char> map_pred_to_id;
     std::unordered_map<char, uint64_t> map_id_to_pred;
@@ -51,7 +52,10 @@ PatternData rpqToPatternData(const std::string &rpq,
     {
         std::smatch match = *next;
         const auto str = match.str();
-        const auto predicateId = predicates.at(str);
+        auto predicateId = predicates.at(str);
+        if(str[1] == '%'){ //<%...>
+            predicateId = predicateId + max_pred;
+        }
         if (map_pred_to_str.find(predicateId) == map_pred_to_str.end())
         {
             map_pred_to_str[predicateId] = str;
@@ -164,9 +168,10 @@ inline std::string RpqTree::posToPredStr(int p){
     return patternData.pred_to_str[patternData.id_to_pred[pos_id[p]]];
 }
 
-RpqTree::RpqTree(const std::string &rpq, const std::unordered_map<std::string, uint64_t> &predicates){
+RpqTree::RpqTree(const std::string &rpq, const std::unordered_map<std::string, uint64_t> &predicates,
+                 uint64_t max_pred){
 
-    patternData = rpqToPatternData(rpq, predicates);
+    patternData = rpqToPatternData(rpq, predicates, max_pred);
     m = patternData.pattern.length();
     pos = new Tree *[m];
     pos_id = std::vector<int>(m, 0);

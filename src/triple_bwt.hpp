@@ -680,7 +680,7 @@ private:
                                                   std::vector<uint64_t> &elements){
 
 
-        RpqTree rpqTree(rpq, predicates_map);
+        RpqTree rpqTree(rpq, predicates_map, real_max_P);
         auto mandData = rpqTree.getMandatoryData();
         uint64_t min_selectivity = -1ULL;
         uint64_t i_split = 0;
