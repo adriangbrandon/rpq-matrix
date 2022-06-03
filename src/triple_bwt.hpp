@@ -2368,8 +2368,8 @@ public:
                 L_P.unmark<word_t>(it->first, B_array);
             }
         }else if(rpq_l.empty()){
-            int64_t p = 0;
-            std::string q_r = parse(rpq, p, predicates_map, real_max_P);
+            int64_t p = rpq.size()-1;
+            std::string q_r = parse_reverse(rpq, p, predicates_map, real_max_P);
             RpqAutomata A_r = RpqAutomata(q_r, predicates_map);
 
             high_resolution_clock::time_point start;
@@ -2394,8 +2394,8 @@ public:
                 L_P.unmark<word_t>(it->first, B_array);
             }
         }else{ //rpq_r.empty()
-            int64_t p_rev = rpq.size()-1;
-            std::string q_l = parse_reverse(rpq, p_rev, predicates_map, real_max_P);
+            int64_t p = 0;
+            std::string q_l = parse(rpq, p, predicates_map, real_max_P);
             RpqAutomata A_l = RpqAutomata(q_l, predicates_map);
 
             high_resolution_clock::time_point start;
