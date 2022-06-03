@@ -762,11 +762,14 @@ private:
             //^pred: o->s (left) -> parse
             if(/*position == 1 || (position < rpqTree.patternPredicates()
                 &&*/ pred_distinct_values(pred_rev) < pred_distinct_values(pred)/*)*/){
-                //Target as splitting node (left)
+                //x-pred->y
+                //x<-^pred-y
+                //apunta a menos x que a y -> quere decir
+                //Splitting node source
                 get_elements(pred_rev, elements);
-            }else{
                 --position;
-                //Source as splitting node (right)
+            }else{
+                //Splitting node target
                 get_elements(pred, elements);
             }
             return rpqTree.splitRpq(position);
