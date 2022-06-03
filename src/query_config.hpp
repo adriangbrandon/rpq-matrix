@@ -6,7 +6,7 @@
 typedef uint16_t word_t;
 
 // timeout for queries, in seconds
-#define TIME_OUT 60
+#define TIME_OUT 600
 
 #define VAR_TO_VAR 0
 #define VAR_TO_CONST 1
