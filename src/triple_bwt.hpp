@@ -757,7 +757,7 @@ private:
             auto pred = mandData.pos_pred[i_split].id_pred;
             auto pred_rev = pred_reverse(pred);
             auto position = mandData.pos_pred[i_split].pos;
-            if(position == 0 || (position < rpqTree.patternLength()-1
+            if(position == 1 || (position < rpqTree.patternLength()
                 && pred_distinct_values(pred) < pred_distinct_values(pred_rev))){
                 //Target as splitting node
                 get_elements(pred, elements);
