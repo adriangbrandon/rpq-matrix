@@ -82,7 +82,7 @@ public:
 
     std::pair<std::string, std::string> splitRpq(int p);
 
-    int patternLength();
+    int patternPredicates();
 
 
 

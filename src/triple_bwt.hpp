@@ -746,6 +746,7 @@ private:
             auto pred_rev = pred_reverse(mandData.pos_pred[i_split+1].id_pred);
             auto pred = mandData.pos_pred[i_split].id_pred;
             get_elements_intersection(pred_rev, pred, elements);
+            return rpqTree.splitRpq(mandData.pos_pred[i_split].pos);
         }else{
             for(uint64_t i = 0; i < mandData.pos_pred.size();++i){
                 auto sel = pred_selectivity(mandData.pos_pred[i].id_pred);
@@ -757,17 +758,17 @@ private:
             auto pred = mandData.pos_pred[i_split].id_pred;
             auto pred_rev = pred_reverse(pred);
             auto position = mandData.pos_pred[i_split].pos;
-            if(position == 1 || (position < rpqTree.patternLength()
+            if(position == 1 || (position < rpqTree.patternPredicates()
                 && pred_distinct_values(pred) < pred_distinct_values(pred_rev))){
                 //Target as splitting node
                 get_elements(pred, elements);
             }else{
-                --i_split;
+                --position;
                 //Source as splitting node
                 get_elements(pred_rev, elements);
             }
+            return rpqTree.splitRpq(position);
         }
-        return rpqTree.splitRpq(mandData.pos_pred[i_split].pos);
     }
 
 
