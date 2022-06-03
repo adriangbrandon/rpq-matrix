@@ -193,6 +193,10 @@ std::pair<std::string, std::string> RpqTree::splitRpq( int p_split){
     return res;
 }
 
+int RpqTree::patternLength() {
+    return m;
+}
+
 /*std::pair<std::string, std::string> RpqTree::splitRpq(const std::string &rpq, int p_split){
     int i = 0, j = 0, p = 0;
     while(i < m){
