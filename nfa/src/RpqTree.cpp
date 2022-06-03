@@ -194,7 +194,7 @@ std::pair<std::string, std::string> RpqTree::splitRpq( int p_split){
 }
 
 int RpqTree::patternLength() {
-    return m;
+    return patternData.id_to_pred.size();
 }
 
 /*std::pair<std::string, std::string> RpqTree::splitRpq(const std::string &rpq, int p_split){
