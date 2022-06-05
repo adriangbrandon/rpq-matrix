@@ -99,7 +99,7 @@ void RpqTree::splitTraversal(Tree* e, int split_pos, bool &left, std::string &rp
         case STR:
             if(left){
                 rpq_l += posToPredStr(e->pos);
-                if(e->pos == split_pos) left = false;
+                if(e->pos >= split_pos) left = false;
             }else{
                 rpq_r += posToPredStr(e->pos);
             }
