@@ -212,14 +212,14 @@ int main(int argc, char **argv) {
                 start = high_resolution_clock::now();
                 if (!flag_s and !flag_o) {
                     if (query_type.size() == 0)
-                        graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
-                                                n_operators, false, bound);
+                        graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                   n_operators, false);
                     else if (query_type == "/*")
-                        graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
-                                                n_operators, false, bound);
+                        graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                   n_operators, false);
                     else if (query_type == "+" or query_type == "*")
-                        graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
-                                                n_operators, false, bound);
+                        graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                   n_operators, false);
                     else if (query_type == "|")
                         graph.or_query_var_to_var(query, 2, bound, pred_map, query_output);
                     else if (query_type == "||")

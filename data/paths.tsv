@@ -705,8 +705,8 @@
 ?x (<http://www.wikidata.org/prop/direct/P31>)* <http://www.wikidata.org/entity/Q48>
 ?x (<http://www.wikidata.org/prop/direct/P279>)* <http://www.wikidata.org/entity/Q6256>
 ?x (<http://www.wikidata.org/prop/direct/P279>)+ <http://www.wikidata.org/entity/Q2221906>
-?x <http://www.wikidata.org/prop/direct/P279>/(<http://www.wikidata.org/prop/direct/P279>)* <http://www.wikidata.org/entity/Q172937>
-?x <http://www.wikidata.org/prop/direct/P279>/(<http://www.wikidata.org/prop/direct/P279>)* ?y
+    ?x <http://www.wikidata.org/prop/direct/P279>/(<http://www.wikidata.org/prop/direct/P279>)* <http://www.wikidata.org/entity/Q172937>
+    ?x <http://www.wikidata.org/prop/direct/P279>/(<http://www.wikidata.org/prop/direct/P279>)* ?y
 ?x <http://www.wikidata.org/prop/direct/P31>/<http://www.wikidata.org/prop/direct/P279> <http://www.wikidata.org/entity/Q19847637>
 ?x <http://www.wikidata.org/prop/direct/P31>/(<http://www.wikidata.org/prop/direct/P279>)* <http://www.wikidata.org/entity/Q1496967>
 ?x (<http://www.wikidata.org/prop/direct/P131>)* <http://www.wikidata.org/entity/Q77>
