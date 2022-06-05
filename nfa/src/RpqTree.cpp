@@ -97,11 +97,11 @@ void RpqTree::splitTraversal(Tree* e, int split_pos, bool &left, std::string &rp
     switch (e->type)
     {
         case STR:
-            if(e->pos < split_pos){
+            if(left){
                 rpq_l += posToPredStr(e->pos);
+                if(e->pos == split_pos) left = false;
             }else{
                 rpq_r += posToPredStr(e->pos);
-                left = false;
             }
             break;
         case STAR:
@@ -188,7 +188,7 @@ MandatoryData RpqTree::getMandatoryData() {
 
 std::pair<std::string, std::string> RpqTree::splitRpq( int p_split){
     std::pair<std::string, std::string> res;
-    bool left = true;
+    bool left = (p_split > 0);
     splitTraversal(tree, p_split, left, res.first,  res.second);
     return res;
 }
