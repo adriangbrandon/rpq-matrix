@@ -32,8 +32,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 #include <string>
 #include <unordered_map>
-#include <RpqTree.hpp>
+//#include <RpqTree.hpp>
 #include "parse_query.cpp"
+#include <iostream>
+
 
 int main(int argc, char **argv) {
 
@@ -46,9 +48,16 @@ int main(int argc, char **argv) {
     }
     int64_t p = 0;
     //std::string q = parse(rpq, p, predicates, 20);
-    RpqTree rpqTree(rpq, predicates, 20);
+    /*RpqTree rpqTree(rpq, predicates, 20);
     rpqTree.getMandatoryData();
     auto res = rpqTree.splitRpq(pos);
     std::cout << res.first << std::endl;
-    std::cout << res.second << std::endl;
+    std::cout << res.second << std::endl;*/
+    int64_t i = 0;
+    auto a = parse(rpq, i, predicates, 20);
+    i = rpq.size()-1;
+    auto b = parse_reverse(rpq, i, predicates, 20);
+    std::cout << "A: " << a << std::endl;
+    std::cout << "B: " << b << std::endl;
+
 }

@@ -68,8 +68,7 @@ int main(int argc, char **argv) {
     std::string query_type;
     uint64_t first_pred_id, last_pred_id;
 
-    //uint64_t bound = 1000000; // bound for the number of results
-    uint64_t bound = -1ULL; // bound for the number of results
+    uint64_t bound = 1000000; // bound for the number of results
 
     do {
         getline(ifs_q, line);

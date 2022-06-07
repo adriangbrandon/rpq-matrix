@@ -1498,6 +1498,142 @@ public:
         }
     };
 
+    void rpq_const_s_to_var_o_split(const std::string &rpq,
+                              unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
+                              std::vector<word_t> &B_array,
+                              uint64_t initial_object,
+                              std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                              uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path) {
+        std::string rpq_l, rpq_r;
+        std::vector<uint64_t> elements;
+        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
+        std::cout << "rpq_l: " << rpq_l << std::endl;
+        std::cout << "rpq_r: " << rpq_r << std::endl;
+
+        //TODO: deberiamos evitar que aquelas a cortar polas esquinas entren nesta función (eso creo)
+        //TODO: por eso penso que deberiamos facer o de mandatory antes.
+
+        if(!rpq_l.empty() && !rpq_r.empty()) {
+
+            //3.Solve RPQ1 and RPQ2 by using the selected ranges of objects (RPQ1 and RPQ2 exist)
+            std::vector<std::pair<uint64_t, uint64_t>> output_l, output_r;
+            int64_t p = 0;
+            int64_t p_rev = rpq_r.size() - 1;
+            std::string q_r = parse_reverse(rpq_r, p_rev, predicates_map, real_max_P);
+            std::string q_l = parse(rpq_l, p, predicates_map, real_max_P);
+            RpqAutomata A_l = RpqAutomata(q_l, predicates_map);
+            RpqAutomata A_r = RpqAutomata(q_r, predicates_map);
+
+            high_resolution_clock::time_point start;
+            double total_time = 0.0;
+            duration<double> time_span;
+            start = high_resolution_clock::now();
+
+            //std::vector<std::pair<uint64_t, uint64_t>> output_l, output_r;
+            typedef struct {
+                uint64_t element;
+                std::vector<std::pair<uint64_t, uint64_t>> solutions;
+            } element_solution_type;
+            std::vector<element_solution_type> solutions_l;
+
+            //RPQ1: var_s_to_const_o
+            //RPQ1: Mark the NFA states that are reachable
+            std::unordered_map<uint64_t, uint64_t> m = A_l.getB();
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
+            }
+            for (const auto &e : elements) {
+                _rpq_const_s_to_var_o(A_l, predicates_map, B_array, e, output_l, false, start);
+                if (output_l.empty()) continue; //There is no solution
+                solutions_l.push_back({e, output_l});
+                output_l.clear();
+            }
+            //RPQ1: Unmark the NFA states
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.unmark<word_t>(it->first, B_array);
+            }
+
+            //RPQ2: const_s_to_var_o
+            //RPQ2: Mark the NFA states that are reachable
+            m = A_r.getB();
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
+            }
+            //Check the solutions from RPQ1
+            std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
+            for (const auto &s_l : solutions_l) {
+                _rpq_const_s_to_var_o(A_r, predicates_map, B_array, s_l.element, output_r, true, start);
+                if (output_r.empty()) continue; //There is no solution
+                //Adding results to solution
+                for (const auto &o_l : s_l.solutions) {
+                    for (const auto &o_r : output_r) {
+                        //Check duplicates
+                        auto it_set = sol_set.insert({o_l.first, o_r.second});
+                        if (it_set.second) {
+                            solution.emplace_back(o_l.first, o_r.second);
+                        }
+                    }
+                }
+                output_r.clear();
+            }
+            //RPQ2: Unmark the NFA states
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.unmark<word_t>(it->first, B_array);
+            }
+        }else if(rpq_l.empty()){
+            int64_t p = rpq_r.size()-1;
+            std::string q_r = parse_reverse(rpq_r, p, predicates_map, real_max_P);
+            RpqAutomata A_r = RpqAutomata(q_r, predicates_map);
+
+            high_resolution_clock::time_point start;
+            double total_time = 0.0;
+            duration<double> time_span;
+            start = high_resolution_clock::now();
+
+            //RPQ2: Mark the NFA states
+            std::unordered_map<uint64_t, uint64_t> m = A_r.getB();
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
+            }
+
+            //Check the solutions from RPQ2
+            std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
+            for (const auto &e : elements) {
+                _rpq_const_s_to_var_o(A_r, predicates_map, B_array, e,
+                                      solution, true, start);
+            }
+            //RPQ2: Unmark the NFA states
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.unmark<word_t>(it->first, B_array);
+            }
+        }else{ //rpq_r.empty()
+            int64_t p = 0;
+            std::string q_l = parse(rpq_l, p, predicates_map, real_max_P);
+            RpqAutomata A_l = RpqAutomata(q_l, predicates_map);
+
+            high_resolution_clock::time_point start;
+            double total_time = 0.0;
+            duration<double> time_span;
+            start = high_resolution_clock::now();
+
+            //RPQ1: Mark the NFA states
+            std::unordered_map<uint64_t, uint64_t> m = A_l.getB();
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
+            }
+
+            //Check the solutions from RPQ1
+            std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
+            for (const auto &e : elements) {
+                _rpq_const_s_to_var_o(A_l, predicates_map, B_array, e, solution, false, start);
+            }
+            //RPQ1: Unmark the NFA states
+            for (auto it = m.begin(); it != m.end(); it++) {
+                L_P.unmark<word_t>(it->first, B_array);
+            }
+        }
+    };
+
 
     void rpq_var_s_to_const_o(const std::string &rpq,
                               unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
