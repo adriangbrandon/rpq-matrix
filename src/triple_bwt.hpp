@@ -2122,13 +2122,14 @@ public:
         start = high_resolution_clock::now();
 
         rpq_var_to_var_obtain_o(A, object_vector_1, B_array, start);
+
+        for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
+            L_P.unmark<word_t>(it->first, B_array);
+
 #if ELEMENTS
         std::cout << "Number of elements: " << object_vector_1.size() << std::endl;
         return;
 #endif
-
-        for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
-            L_P.unmark<word_t>(it->first, B_array);
 
         str_aux.clear();
 
@@ -2275,13 +2276,15 @@ public:
         std::vector<uint64_t> object_vector_2;
 
         rpq_var_to_var_obtain_o(A2, object_vector_2, B_array, start);
+
+        for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
+            L_P.unmark<word_t>(it->first, B_array);
+
 #if ELEMENTS
         std::cout << "Number of elements: " << object_vector_2.size() << std::endl;
         return;
 #endif
 
-        for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
-            L_P.unmark<word_t>(it->first, B_array);
 
         m = A.getB();
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
