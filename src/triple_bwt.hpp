@@ -1498,7 +1498,7 @@ public:
         }
     };
 
-    void rpq_const_s_to_var_o_split(const std::string &rpq,
+   /* void rpq_const_s_to_var_o_split(const std::string &rpq,
                               unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
                               std::vector<word_t> &B_array,
                               uint64_t initial_object,
@@ -1632,7 +1632,7 @@ public:
                 L_P.unmark<word_t>(it->first, B_array);
             }
         }
-    };
+    };*/
 
 
     void rpq_var_s_to_const_o(const std::string &rpq,
