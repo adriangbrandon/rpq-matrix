@@ -37,6 +37,8 @@
 #include "parse_query.cpp"
 #include "wt_intersection.hpp"
 
+#define ELEMENTS 1
+
 
 using namespace std::chrono;
 
@@ -2120,7 +2122,10 @@ public:
         start = high_resolution_clock::now();
 
         rpq_var_to_var_obtain_o(A, object_vector_1, B_array, start);
+#if ELEMENTS
         std::cout << "Number of elements: " << object_vector_1.size() << std::endl;
+        return;
+#endif
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.unmark<word_t>(it->first, B_array);
@@ -2270,7 +2275,10 @@ public:
         std::vector<uint64_t> object_vector_2;
 
         rpq_var_to_var_obtain_o(A2, object_vector_2, B_array, start);
+#if ELEMENTS
         std::cout << "Number of elements: " << object_vector_2.size() << std::endl;
+        return;
+#endif
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.unmark<word_t>(it->first, B_array);
@@ -2445,7 +2453,10 @@ public:
         std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
         std::cout << "rpq_l: " << rpq_l << std::endl;
         std::cout << "rpq_r: " << rpq_r << std::endl;
+#if ELEMENTS
         std::cout << "Number of elements: " << elements.size() << std::endl;
+        return;
+#endif
 
         //TODO: deberiamos evitar que aquelas a cortar polas esquinas entren nesta función (eso creo)
         //TODO: por eso penso que deberiamos facer o de mandatory antes.
