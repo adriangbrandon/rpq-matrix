@@ -2861,13 +2861,17 @@ public:
         std::cout << "src1-pred1->TGT1/SRC2-pred2->tgt2" << std::endl;
         std::cout << "---------------------" << std::endl;
         for(uint64_t i = 0; i < mandData.pos_pred.size()-1; ++i) {
-            std::cout << "Splitting " << i << "-th mandatory pred by intersecting" << std::endl;
-            auto pred_rev = pred_reverse(pos_pred_vec[i+1].id_pred);
-            auto pred = pos_pred_vec[i].id_pred;
-            get_elements_intersection(pred_rev, pred, elements);
-            std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-            _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map, B_array, solution, n_predicates,
-                                        is_negated_pred, n_operators, is_a_path);
+            if(i+1 < pos_pred_vec.size()
+               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
+                std::cout << "Splitting " << i << "-th mandatory pred by intersecting" << std::endl;
+                auto pred_rev = pred_reverse(pos_pred_vec[i+1].id_pred);
+                auto pred = pos_pred_vec[i].id_pred;
+                get_elements_intersection(pred_rev, pred, elements);
+                std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
+                _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map, B_array, solution, n_predicates,
+                                            is_negated_pred, n_operators, is_a_path);
+            }
+
         }
         std::cout << "---------------------" << std::endl;
     }
