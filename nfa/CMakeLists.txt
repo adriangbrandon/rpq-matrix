@@ -20,7 +20,7 @@ set (SOURCES
         include/regular.hpp
         src/RpqAutomata.cpp
         include/RpqAutomata.hpp
-        include/RpqTree.hpp
+        ../src/RpqTree.hpp
         src/RpqTree.cpp
         )
 

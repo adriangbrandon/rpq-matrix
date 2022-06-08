@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Created by Adrián on 26/5/22.
 //
 
-#include <RpqTree.hpp>
+#include "../../src/RpqTree.hpp"
 
 
 PatternData rpqToPatternData(const std::string &rpq,
