@@ -67,8 +67,8 @@ namespace selectivity {
             auto e_r = L_S.get_C(rev_id + 1)-1;
             auto b_r = L_S.get_C(rev_id);
             info res;
-            auto v_source = distinct_values(b_d, e_d, wt_pred_s);
-            auto v_target = distinct_values(b_r, e_r, wt_pred_s);
+            auto v_target = distinct_values(b_d, e_d, wt_pred_s);
+            auto v_source = distinct_values(b_r, e_r, wt_pred_s);
             if(v_source > v_target){
                 res.split = target;
                 res.weight = v_target / (double) sigma;
