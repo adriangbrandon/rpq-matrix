@@ -210,7 +210,7 @@ int main(int argc, char **argv) {
             if (!skip_flag) {
                 if (!flag_s and !flag_o) {
                     std::cout << "<--------> Query: " << q << " <-------->" << std::endl;
-                    graph.rpq_var_to_var_split_all(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                    graph.rpq_var_to_var_split_all(query, pred_map, B_array, n_predicates, is_negated_pred,
                                             n_operators, false);
                 } else {    
                     if (flag_s) {
