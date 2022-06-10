@@ -212,7 +212,7 @@ int main(int argc, char **argv) {
                     std::cout << "<--------> Query: " << q << " <-------->" << std::endl;
                     graph.rpq_var_to_var_split_all(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
                                             n_operators, false);
-                } else {
+                } else {    
                     if (flag_s) {
                         graph.rpq_const_s_to_var_o(query, pred_map, B_array, s_id, query_output, n_predicates,
                                                    is_negated_pred, n_operators, is_a_path, bound);

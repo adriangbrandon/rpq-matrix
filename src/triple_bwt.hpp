@@ -2813,7 +2813,6 @@ public:
     void rpq_var_to_var_split_all(const std::string &rpq,
                               unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
                               std::vector<word_t> &B_array,
-                              std::vector<std::pair<uint64_t, uint64_t>> &solution,
                               uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path){
 
         RpqTree rpqTree(rpq, predicates_map, real_max_P);
@@ -2835,26 +2834,34 @@ public:
         std::cout << "---------------------" << std::endl;
         const auto& pos_pred_vec = mandData.pos_pred;
         for(uint64_t i = 0; i < pos_pred_vec.size(); ++i) {
+            std::vector<std::pair<uint64_t, uint64_t>> solution;
             std::cout << "Splitting " << i << "-th mandatory pred by source" << std::endl;
             auto pred = pos_pred_vec[i].id_pred;
             auto pred_rev = pred_reverse(pred);
             get_elements(pred_rev, elements);
             std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos-1);
-            _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map, B_array, solution, n_predicates,
+            _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
+                                        B_array, solution, n_predicates,
                                         is_negated_pred, n_operators, is_a_path);
+            std::cout << "Elements: " << elements.size() << std::endl;
+            std::cout << "Solutions: " << solution.size() << std::endl;
         }
         std::cout << "---------------------" << std::endl;
 
         std::cout << "src-pred->TGT" << std::endl;
         std::cout << "---------------------" << std::endl;
         for(uint64_t i = 0; i < mandData.pos_pred.size(); ++i) {
+            std::vector<std::pair<uint64_t, uint64_t>> solution;
             std::cout << "Splitting " << i << "-th mandatory pred by target" << std::endl;
             auto pred = pos_pred_vec[i].id_pred;
-            auto pred_rev = pred_reverse(pred);
-            get_elements(pred_rev, elements);
+            get_elements(pred, elements);
+            std::cout << "elements: " << elements.size()<< std::endl;
             std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-            _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map, B_array, solution, n_predicates,
+            _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
+                                        B_array, solution, n_predicates,
                                         is_negated_pred, n_operators, is_a_path);
+            std::cout << "Elements: " << elements.size() << std::endl;
+            std::cout << "Solutions: " << solution.size() << std::endl;
         }
         std::cout << "---------------------" << std::endl;
 
@@ -2863,15 +2870,19 @@ public:
         for(uint64_t i = 0; i < mandData.pos_pred.size()-1; ++i) {
             if(i+1 < pos_pred_vec.size()
                && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
+                std::vector<std::pair<uint64_t, uint64_t>> solution;
                 std::cout << "Splitting " << i << "-th mandatory pred by intersecting" << std::endl;
                 auto pred_rev = pred_reverse(pos_pred_vec[i+1].id_pred);
                 auto pred = pos_pred_vec[i].id_pred;
                 get_elements_intersection(pred_rev, pred, elements);
+                std::cout << "elements: " << elements.size()<< std::endl;
                 std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-                _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map, B_array, solution, n_predicates,
+                _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
+                                            B_array, solution, n_predicates,
                                             is_negated_pred, n_operators, is_a_path);
+                std::cout << "Elements: " << elements.size() << std::endl;
+                std::cout << "Solutions: " << solution.size() << std::endl;
             }
-
         }
         std::cout << "---------------------" << std::endl;
     }
