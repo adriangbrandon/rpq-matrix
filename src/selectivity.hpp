@@ -68,7 +68,9 @@ namespace selectivity {
             auto b_r = L_S.get_C(rev_id);
             info res;
             auto v_target = distinct_values(b_d, e_d, wt_pred_s);
+            std::cout << "V_target: " << v_target << std::endl;
             auto v_source = distinct_values(b_r, e_r, wt_pred_s);
+            std::cout << "V_source: " << v_source << std::endl;
             if(v_source > v_target){
                 res.split = target;
                 res.weight = v_target / (double) sigma;
