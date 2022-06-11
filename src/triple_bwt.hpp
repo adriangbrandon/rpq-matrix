@@ -844,9 +844,9 @@ private:
             //2. Intersection
             if(i+1 < pos_pred_vec.size()
                && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
-                sel_info = h.intersection(pos_pred_vec[i].id_pred, pos_pred_vec[i+1].id_pred, L_S, wt_pred_s, max_P, sigma);
+                sel_info = h.intersection(pos_pred_vec[i].id_pred, pos_pred_vec[i+1].id_pred, L_S, wt_pred_s, real_max_P, sigma);
             }else{
-                sel_info = h.simple(pos_pred_vec[i].id_pred, L_S, wt_pred_s, max_P, sigma);
+                sel_info = h.simple(pos_pred_vec[i].id_pred, L_S, wt_pred_s, real_max_P, sigma);
             }
             //3. Taking info with the smallest selectivity
             if(sel_info.weight < sel_min.weight){
