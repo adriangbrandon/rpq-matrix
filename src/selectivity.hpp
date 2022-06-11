@@ -66,6 +66,10 @@ namespace selectivity {
             auto rev_id = reverse(id, maxP);
             auto e_r = L_S.get_C(rev_id + 1)-1;
             auto b_r = L_S.get_C(rev_id);
+            std::cout << "rev_id: " << rev_id << std::endl;
+            std::cout << "id: " << id << std::endl;
+            std::cout << "e_r: " << e_r << std::endl;
+            std::cout << "b_r: " << b_r << std::endl;
             info res;
             auto v_target = distinct_values(b_d, e_d, wt_pred_s);
             std::cout << "V_target: " << v_target << std::endl;
