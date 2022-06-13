@@ -725,7 +725,7 @@ private:
     }*/
 
 
-    std::pair<std::string, std::string> split_rpq(const std::string &rpq,
+   /* std::pair<std::string, std::string> split_rpq(const std::string &rpq,
                                                   unordered_map<std::string, uint64_t> &predicates_map,
                                                   std::vector<uint64_t> &elements){
 
@@ -763,8 +763,7 @@ private:
             auto position = mandData.pos_pred[i_split].pos;
             //pred : s->o (right) -> parse_reverse
             //^pred: o->s (left) -> parse
-            if(/*position == 1 || (position < rpqTree.patternPredicates()
-                &&*/ pred_distinct_values(pred_rev) < pred_distinct_values(pred)/*)*/){
+            if(pred_distinct_values(pred_rev) < pred_distinct_values(pred)){
                 //x-pred->y
                 //x<-^pred-y
                 //apunta a menos x que a y -> quere decir
@@ -777,10 +776,10 @@ private:
             }
             return rpqTree.splitRpq(position);
         }
-    }
+    }*/
 
     template<class heuristic = selectivity::h_distinct>
-    std::pair<std::string, std::string> split_rpq_v2(const std::string &rpq,
+    std::pair<std::string, std::string> split_rpq(const std::string &rpq,
                                                   unordered_map<std::string, uint64_t> &predicates_map,
                                                   std::vector<uint64_t> &elements, heuristic &h){
 
@@ -823,8 +822,7 @@ private:
         }else{
             //Target of i_split is the splitting node
             auto pred = pos_pred_vec[i_split].id_pred;
-            auto pred_rev = pred_reverse(pred);
-            get_elements(pred_rev, elements);
+            get_elements(pred, elements);
             return rpqTree.splitRpq(pos_pred_vec[i_split].pos);
         }
     }
@@ -2532,7 +2530,8 @@ public:
 
         std::string rpq_l, rpq_r;
         std::vector<uint64_t> elements;
-        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
+        selectivity::h_distinct heuristic;
+        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements, heuristic);
         std::cout << "rpq_l: " << rpq_l << std::endl;
         std::cout << "rpq_r: " << rpq_r << std::endl;
 #if ELEMENTS
