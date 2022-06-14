@@ -2385,7 +2385,8 @@ public:
 
         std::string rpq_l, rpq_r;
         std::vector<uint64_t> elements;
-        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
+        selectivity::h_distinct heuristic;
+        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements, heuristic);
         std::cout << "split" << std::endl;
         std::cout << "rpq_l: " << rpq_l << std::endl;
         std::cout << "rpq_r: " << rpq_r << std::endl;

@@ -73,3 +73,6 @@ target_link_libraries(intersection_or sdsl divsufsort divsufsort64 nfa)
 
 add_executable(pre-query src/pre-query.cpp)
 target_link_libraries(pre-query sdsl divsufsort divsufsort64 nfa)
+
+add_executable(prepare-yago2s src/prepare-yago2s.cpp)
+target_link_libraries(prepare-yago2s sdsl divsufsort divsufsort64 nfa)
