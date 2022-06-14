@@ -109,11 +109,15 @@ int main(int argc, char **argv){
             std::istringstream iss(line);
             std::string s, p, o, point;
             uint64_t s_id, p_id, o_id;
-            iss >> s >> p >> o >> point;
+            std::getline( iss, s, '\t' );
+            std::getline( iss, p, '\t' );
+            std::getline( iss, o, '\t' );
+            std::getline( iss, point, '\t' );
+            //iss >> s >> p >> o >> point;
             fix_data(s);
             fix_data(p);
             fix_data(o);
-            //std::cout << s << " " << p << " " << o << std::endl;
+            std::cout << s << " " << p << " " << o << std::endl;
             auto it_so = so_map.find(s);
             if(it_so != so_map.end()){
                 s_id = it_so->second;
@@ -136,7 +140,6 @@ int main(int argc, char **argv){
                 so_map.insert({o, o_id});
             }
             D.emplace_back(spo_triple{s_id, p_id, o_id});
-           // out << s_id << " " << p_id << " " << o_id << std::endl;
         }
     }
     in.close();
