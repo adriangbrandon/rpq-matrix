@@ -102,7 +102,6 @@ int main(int argc, char **argv)
 
     std::cout << "Reading file... " << std::flush;
     vector<spo_triple> D;
-    unordered_map<uint64_t, uint64_t> so_hashtable;
     std::ifstream data_ifs(data_file);
     uint64_t s, p , o;
     do {
@@ -231,11 +230,13 @@ int main(int argc, char **argv)
     std::ifstream so_ifs(so_file);
     std::ofstream so_ofs(out_so);
     uint64_t id;
-    std::string url;
-    do{
-        so_ifs >> id >> url;
+    std::string url, data;
+    while (std::getline(so_ifs, data)) {
+        auto space = data.find(' ');
+        id = std::stoull(data.substr(0, space));
+        url = data.substr(space+1);
         so_ofs << hash_table[id] << " " << url  << std::endl;
-    }while(!so_ifs.eof());
+    }
     so_ifs.close();
     so_ofs.close();
 
