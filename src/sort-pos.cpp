@@ -171,11 +171,13 @@ int main(int argc, char **argv)
     std::ifstream so_ifs(so_file);
     std::ofstream so_ofs(out_so);
     uint64_t id;
-    std::string url;
-    do{
-        so_ifs >> id >> url;
+    std::string url, data;
+    while (std::getline(so_ifs, data)) {
+        auto space = data.find(' ');
+        id = std::stoull(data.substr(0, space));
+        url = data.substr(space+1);
         so_ofs << so_hashtable[id] << " " << url  << std::endl;
-    }while(!so_ifs.eof());
+    }
     so_ifs.close();
     so_ofs.close();
 
