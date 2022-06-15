@@ -25,6 +25,7 @@
 #include <unordered_map>
 #include <stdio.h>
 #include <stdlib.h>
+#include <algorithm>
 
 
 std::string parse(const std::string& rpq, int64_t& i,
