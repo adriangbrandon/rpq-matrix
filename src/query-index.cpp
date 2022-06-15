@@ -33,21 +33,19 @@ int main(int argc, char **argv) {
     uint64_t id;
     string s_aux, data;
 
-    do {
-        std::getline(ifs_SO, data);
+    while (std::getline(ifs_SO, data)) {
         auto space = data.find(' ');
         id = std::stoull(data.substr(0, space));
         s_aux = data.substr(space+1);
         map_SO[s_aux] = id;
-    } while (!ifs_SO.eof());
+    }
 
-    do {
-        std::getline(ifs_P, data);
+    while (std::getline(ifs_P, data)) {
         auto space = data.find(' ');
         id = std::stoull(data.substr(0, space));
         s_aux = data.substr(space+1);
         map_P[s_aux] = id;
-    } while (!ifs_P.eof());
+    }
 
 
     typedef struct {
