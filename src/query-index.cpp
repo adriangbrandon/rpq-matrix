@@ -31,17 +31,21 @@ int main(int argc, char **argv) {
     std::unordered_map<string, uint64_t> map_P;
 
     uint64_t id;
-    string s_aux;
+    string s_aux, data;
 
     do {
-        ifs_SO >> id;
-        ifs_SO >> s_aux;
+        std::getline(ifs_SO, data);
+        auto space = data.find(' ');
+        id = std::stoull(data.substr(0, space));
+        s_aux = data.substr(space+1);
         map_SO[s_aux] = id;
     } while (!ifs_SO.eof());
 
     do {
-        ifs_P >> id;
-        ifs_P >> s_aux;
+        std::getline(ifs_P, data);
+        auto space = data.find(' ');
+        id = std::stoull(data.substr(0, space));
+        s_aux = data.substr(space+1);
         map_P[s_aux] = id;
     } while (!ifs_P.eof());
 
