@@ -76,3 +76,6 @@ target_link_libraries(pre-query sdsl divsufsort divsufsort64 nfa)
 
 add_executable(prepare-yago2s src/prepare-yago2s.cpp)
 target_link_libraries(prepare-yago2s sdsl divsufsort divsufsort64 nfa)
+
+add_executable(prepare-queries-yago2s src/prepare-queries-yago2s.cpp)
+target_link_libraries(prepare-queries-yago2s sdsl divsufsort divsufsort64 nfa)
