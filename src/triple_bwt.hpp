@@ -2860,6 +2860,7 @@ public:
             stop = high_resolution_clock::now();
             time_span = duration_cast<microseconds>(stop - start);
             total_time = time_span.count();
+            //Format: split; n_solutions; n_elements; time (ns)
             cout << i << ";" << solution.size() << ";" << elements.size() << ";" << (uint64_t) (total_time * 1000000000ULL) << endl;
 
         }
@@ -2891,6 +2892,7 @@ public:
                 stop = high_resolution_clock::now();
                 time_span = duration_cast<microseconds>(stop - start);
                 total_time = time_span.count();
+                //Format: split; n_solutions; n_elements; time (ns)
                 cout << i << ";" << solution.size() << ";" << elements.size() << ";" << (uint64_t) (total_time * 1000000000ULL) << endl;
 
             }
