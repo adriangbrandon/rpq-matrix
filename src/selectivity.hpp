@@ -69,6 +69,8 @@ namespace selectivity {
             info res;
             auto v_target = distinct_values(b_d, e_d, wt_pred_s);
             auto v_source = distinct_values(b_r, e_r, wt_pred_s);
+            std::cout << "Dist-source: " << v_source << std::endl;
+            std::cout << "Dist-target: " << v_target << std::endl;
             if(v_source > v_target){
                 res.split = target;
                 res.weight = v_target / (double) sigma;
@@ -89,6 +91,8 @@ namespace selectivity {
             auto b_r = L_S.get_C(rev_id2);
             double v_l = distinct_values(b_l, e_l, wt_pred_s);
             double v_r = distinct_values(b_r, e_r, wt_pred_s);
+            std::cout << "Dist-left: " << v_l << std::endl;
+            std::cout << "Dist-right: " << v_r << std::endl;
             info res;
             res.weight = (v_l * v_r) / (double) (sigma * sigma);
             res.split = intersect;
