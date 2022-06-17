@@ -66,15 +66,9 @@ namespace selectivity {
             auto rev_id = reverse(id, maxP);
             auto e_r = L_S.get_C(rev_id + 1)-1;
             auto b_r = L_S.get_C(rev_id);
-            std::cout << "rev_id: " << rev_id << std::endl;
-            std::cout << "id: " << id << std::endl;
-            std::cout << "e_r: " << e_r << std::endl;
-            std::cout << "b_r: " << b_r << std::endl;
             info res;
             auto v_target = distinct_values(b_d, e_d, wt_pred_s);
-            std::cout << "V_target: " << v_target << std::endl;
             auto v_source = distinct_values(b_r, e_r, wt_pred_s);
-            std::cout << "V_source: " << v_source << std::endl;
             if(v_source > v_target){
                 res.split = target;
                 res.weight = v_target / (double) sigma;
@@ -93,8 +87,8 @@ namespace selectivity {
             auto rev_id2 = reverse(id2, maxP);
             auto e_r = L_S.get_C(rev_id2 + 1)-1;
             auto b_r = L_S.get_C(rev_id2);
-            auto v_l = distinct_values(b_l, e_l, wt_pred_s);
-            auto v_r = distinct_values(b_r, e_r, wt_pred_s);
+            double v_l = distinct_values(b_l, e_l, wt_pred_s);
+            double v_r = distinct_values(b_r, e_r, wt_pred_s);
             info res;
             res.weight = (v_l * v_r) / (double) (sigma * sigma);
             res.split = intersect;

@@ -843,6 +843,7 @@ private:
             //1. Simple
             sel_info = h.simple(pos_pred_vec[i].id_pred, L_S, wt_pred_s, real_max_P, sigma);
             //1.a) Taking info with the smallest selectivity
+            std::cout << "Simple: weight=" << sel_info.weight << " split=" << sel_info.split << std::endl;
             if(sel_info.weight < sel_min.weight){
                 sel_min = sel_info;
                 i_split = i;
@@ -852,6 +853,7 @@ private:
                && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
                 sel_info = h.intersection(pos_pred_vec[i].id_pred, pos_pred_vec[i+1].id_pred,
                                           L_S, wt_pred_s, real_max_P, sigma);
+                std::cout << "Intersect: weight=" << sel_info.weight << " split=" << sel_info.split << std::endl;
                 //2.a) Taking info with the smallest selectivity
                 if(sel_info.weight < sel_min.weight){
                     sel_min = sel_info;
