@@ -47,7 +47,7 @@ namespace selectivity {
     }
 
     inline uint64_t distinct_values(const uint64_t l, const uint64_t r, const bwt_type &wt_pred_s){
-        auto p =  wt_pred_s.range_search_2d(l, r, 0, l, false);
+        auto p =  wt_pred_s.range_search_2d(l, r, 0, l-1, false);
         return p.first;
     }
 
