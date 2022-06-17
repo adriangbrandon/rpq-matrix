@@ -39,6 +39,7 @@
 #include "selectivity.hpp"
 
 #define ELEMENTS 0
+#define RUN_QUERY 0
 
 
 using namespace std::chrono;
@@ -839,18 +840,25 @@ private:
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size();++i){
             selectivity::info sel_info;
-            //2. Intersection
-            if(i+1 < pos_pred_vec.size()
-               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
-                sel_info = h.intersection(pos_pred_vec[i].id_pred, pos_pred_vec[i+1].id_pred, L_S, wt_pred_s, real_max_P, sigma);
-            }else{
-                sel_info = h.simple(pos_pred_vec[i].id_pred, L_S, wt_pred_s, real_max_P, sigma);
-            }
-            //3. Taking info with the smallest selectivity
+            //1. Simple
+            sel_info = h.simple(pos_pred_vec[i].id_pred, L_S, wt_pred_s, real_max_P, sigma);
+            //1.a) Taking info with the smallest selectivity
             if(sel_info.weight < sel_min.weight){
                 sel_min = sel_info;
                 i_split = i;
             }
+            //2. Intersection
+            if(i+1 < pos_pred_vec.size()
+               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
+                sel_info = h.intersection(pos_pred_vec[i].id_pred, pos_pred_vec[i+1].id_pred,
+                                          L_S, wt_pred_s, real_max_P, sigma);
+                //2.a) Taking info with the smallest selectivity
+                if(sel_info.weight < sel_min.weight){
+                    sel_min = sel_info;
+                    i_split = i;
+                }
+            }
+
         }
         return {i_split, sel_min};
     }
@@ -1073,8 +1081,10 @@ private:
         }
 
         bool time_out = false;
-
+        uint64_t iter = 1;
         while (input_for_step_1.size() > 0 ) {
+            std::cout << "Number of ranges to step 1 in iteration " << iter
+                      << ": " << input_for_step_1.size() << std::endl;
             // STEP 1
             input_for_step_2.clear();
             for (uint64_t i = 0; !time_out and i < input_for_step_1.size(); i++) {
@@ -1087,10 +1097,10 @@ private:
             }
 
             if (time_out) break;
-
             // STEP 2 (includes step 3 from the paper)
             input_for_step_1.clear(); // clears it as they have been processed
-
+            std::cout << "Number of ranges to step 2 in iteration " << iter
+                      << ": " << input_for_step_2.size() << std::endl;
             for (uint64_t i = 0; !time_out and i < input_for_step_2.size(); i++) {
                 stop = high_resolution_clock::now();
                 time_span = duration_cast<microseconds>(stop - start);
@@ -1101,7 +1111,7 @@ private:
                 step_2_merge_interval(A, D_array, current_D, input_for_step_2[i].first, input_for_step_1, initial_object,
                                       output_subjects, const_to_var);
             }
-
+            ++iter;
             if (time_out) break;
         }
     };
@@ -2808,6 +2818,7 @@ public:
             std::cout << "Selectivity: " << a.first << "-th mandatory pred by source" << std::endl;
         }
 
+#if RUN_QUERY
         std::string rpq_l, rpq_r;
         std::vector<uint64_t> elements;
         std::cout << "SRC-pred->tgt" << std::endl;
@@ -2898,7 +2909,9 @@ public:
             }
         }
         std::cout << "---------------------" << std::endl;
+#endif
     }
+
 
 };
 
