@@ -53,7 +53,7 @@ namespace selectivity {
     }
 
     struct info {
-        double  weight;
+        uint64_t weight;
         split_type  split;
     };
 
@@ -115,8 +115,8 @@ namespace selectivity {
     private:
         std::vector<uint64_t> m_s;
         std::vector<uint64_t> m_t;
-        std::vector<double> m_r;
-        std::vector<double> m_l;
+        std::vector<uint64_t> m_r;
+        std::vector<uint64_t> m_l;
         uint64_t m_max_p;
         uint64_t m_sigma;
 
@@ -149,10 +149,9 @@ namespace selectivity {
             m_l.resize(s);
             m_l[0]=1;
             for(uint64_t i = 1; i < s; ++i){
-                m_r[s-i-1] = m_r[s-i] * (m_t[s-i]/ (double) m_sigma);
-                m_l[i] = m_l[i-1] * (m_s[i-1] / (double) m_sigma);
+                m_r[s-i-1] = m_r[s-i] * m_t[s-i];
+                m_l[i] = m_l[i-1] * m_s[i-1];
             }
-
             std::cout << "-----T-----" << std::endl;
             printVector(m_t);
             std::cout << "-----S-----" << std::endl;
@@ -170,20 +169,31 @@ namespace selectivity {
             double a;
             if(m_s[ith] < m_t[ith]){
                 res.split = source;
-                a = (m_s[ith] / (double) m_sigma);
+                if(ith == 0){
+                    res.weight = m_s[ith] * m_r[ith+1];
+                }else{
+                    res.weight = m_s[ith] * m_r[ith+1] + m_s[ith] * m_l[ith];
+                }
             }else{
                 res.split = target;
-                a = (m_t[ith] / (double) m_sigma);
+                if(ith == m_t.size()-1){
+                    res.weight = m_t[ith] * m_l[ith-1];
+                }else{
+                    res.weight = m_t[ith] * m_l[ith-1] + m_t[ith] * m_r[ith];
+                }
+
             }
-            res.weight = a * m_l[ith-1] + a * m_r[ith+1];
             return res;
         }
 
         info intersection(const uint64_t ith) {
             info res;
-            double a = (m_s[ith] / (double) m_sigma) * (m_t[ith] / (double) m_sigma);
-            res.weight = a * m_l[ith-1] + a * m_r[ith+1];
             res.split = intersect;
+            if(m_s[ith] < m_t[ith]){
+                res.weight = m_s[ith] * m_r[ith+1] + m_s[ith] * m_l[ith-1];
+            }else{
+                res.weight = m_t[ith] * m_r[ith+1] + m_t[ith] * m_l[ith-1];
+            }
             return res;
         }
         /*info simple(const uint64_t id,
