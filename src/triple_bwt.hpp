@@ -800,6 +800,7 @@ private:
             }else{
                 sel_info = h.simple(pos_pred_vec[i].id_pred, L_S, wt_pred_s, real_max_P, sigma);
             }
+            std::cout << "Weight of i=" << i << ": " << sel_info.weight << std::endl;
             //3. Taking info with the smallest selectivity
             if(sel_info.weight < sel_min.weight){
                 sel_min = sel_info;
@@ -877,6 +878,7 @@ private:
             }else{
                 sel_info = h_dp.simple(i);
             }
+            std::cout << "Weight of i=" << i << ": " << sel_info.weight << std::endl;
             //3. Taking info with the smallest selectivity
             if(sel_info.weight < sel_min.weight){
                 sel_min = sel_info;
