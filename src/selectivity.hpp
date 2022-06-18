@@ -128,33 +128,28 @@ namespace selectivity {
 
             m_max_p = maxP;
             m_sigma = sigma;
-            uint64_t i = 0;
+            m_t.push_back(-1ULL);
             for(const auto &pair : preds){
-                if(i > 0){
-                    auto e_d = L_S.get_C(pair.id_pred + 1)-1;
-                    auto b_d = L_S.get_C(pair.id_pred);
-                    auto v_target = distinct_values(b_d, e_d, wt_pred_s);
-                    m_t.push_back(v_target);
-                }else{
-                    m_t.push_back(-1ULL);
-                }
-                if(i < preds.size()-1){
-                    auto rev_id = reverse(pair.id_pred, m_max_p);
-                    auto e_r = L_S.get_C(rev_id + 1)-1;
-                    auto b_r = L_S.get_C(rev_id);
-                    auto v_source = distinct_values(b_r, e_r, wt_pred_s);
-                    m_s.push_back(v_source);
-                }else{
-                    m_s.push_back(-1ULL);
-                }
-                ++i;
+
+                auto e_d = L_S.get_C(pair.id_pred + 1)-1;
+                auto b_d = L_S.get_C(pair.id_pred);
+                auto v_target = distinct_values(b_d, e_d, wt_pred_s);
+                m_t.push_back(v_target);
+
+                auto rev_id = reverse(pair.id_pred, m_max_p);
+                auto e_r = L_S.get_C(rev_id + 1)-1;
+                auto b_r = L_S.get_C(rev_id);
+                auto v_source = distinct_values(b_r, e_r, wt_pred_s);
+                m_s.push_back(v_source);
             }
-            m_r.resize(i);
-            m_r[i-1]=1;
-            m_l.resize(i);
+            m_s.push_back(-1ULL);
+            auto s = m_s.size();
+            m_r.resize(s);
+            m_r[s-1]=1;
+            m_l.resize(s);
             m_l[0]=1;
-            for(i = 1; i < m_r.size(); ++i){
-                m_r[m_r.size()-i-1] = m_r[m_r.size()-i] * (m_t[m_r.size()-i]/ (double) m_sigma);
+            for(uint64_t i = 1; i < s; ++i){
+                m_r[s-i-1] = m_r[s-i] * (m_t[s-i]/ (double) m_sigma);
                 m_l[i] = m_l[i-1] * (m_s[i-1] / (double) m_sigma);
             }
 
