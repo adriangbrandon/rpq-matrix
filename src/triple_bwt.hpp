@@ -796,9 +796,9 @@ private:
             //2. Intersection
             if(i+1 < pos_pred_vec.size()
                 && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
-                sel_info = h.intersection(pos_pred_vec[i].id_pred, pos_pred_vec[i+1].id_pred, L_S, wt_pred_s, max_P, sigma);
+                sel_info = h.intersection(pos_pred_vec[i].id_pred, pos_pred_vec[i+1].id_pred, L_S, wt_pred_s, real_max_P, sigma);
             }else{
-                sel_info = h.simple(pos_pred_vec[i].id_pred, L_S, wt_pred_s, max_P, sigma);
+                sel_info = h.simple(pos_pred_vec[i].id_pred, L_S, wt_pred_s, real_max_P, sigma);
             }
             //3. Taking info with the smallest selectivity
             if(sel_info.weight < sel_min.weight){
@@ -828,7 +828,7 @@ private:
         }
     }
 
-    template<class heuristic = selectivity::h_distinct>
+    /*template<class heuristic = selectivity::h_distinct>
     std::pair<uint64_t, selectivity::info> pos_split_rpq(const MandatoryData &mandData,
                                                      unordered_map<std::string, uint64_t> &predicates_map,
                                                      heuristic &h){
@@ -840,25 +840,47 @@ private:
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size();++i){
             selectivity::info sel_info;
-            //1. Simple
-            sel_info = h.simple(pos_pred_vec[i].id_pred, L_S, wt_pred_s, real_max_P, sigma);
-            //1.a) Taking info with the smallest selectivity
-            std::cout << "Simple: weight=" << sel_info.weight << " split=" << sel_info.split << std::endl;
+            //2. Intersection
+            if(i+1 < pos_pred_vec.size()
+               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
+                sel_info = h.intersection(pos_pred_vec[i].id_pred, pos_pred_vec[i+1].id_pred, L_S, wt_pred_s, real_max_P, sigma);
+            }else{
+                sel_info = h.simple(pos_pred_vec[i].id_pred, L_S, wt_pred_s, real_max_P, sigma);
+            }
+            //3. Taking info with the smallest selectivity
             if(sel_info.weight < sel_min.weight){
                 sel_min = sel_info;
                 i_split = i;
             }
+
+        }
+        return {i_split, sel_min};
+    }*/
+
+
+    std::pair<uint64_t, selectivity::info> pos_split_rpq(const MandatoryData &mandData,
+                                                     unordered_map<std::string, uint64_t> &predicates_map){
+
+
+        selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source};
+        uint64_t i_split = 0;
+        uint64_t sigma = (max_O > max_S) ? max_O : max_S;
+        const auto& pos_pred_vec = mandData.pos_pred;
+        selectivity::h_distinct_path h_dp(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
+        //1. Checking mandatory data
+        for(uint64_t i = 0; i < pos_pred_vec.size();++i){
+            selectivity::info sel_info;
             //2. Intersection
             if(i+1 < pos_pred_vec.size()
                && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
-                sel_info = h.intersection(pos_pred_vec[i].id_pred, pos_pred_vec[i+1].id_pred,
-                                          L_S, wt_pred_s, real_max_P, sigma);
-                std::cout << "Intersect: weight=" << sel_info.weight << " split=" << sel_info.split << std::endl;
-                //2.a) Taking info with the smallest selectivity
-                if(sel_info.weight < sel_min.weight){
-                    sel_min = sel_info;
-                    i_split = i;
-                }
+                sel_info = h_dp.intersection(i);
+            }else{
+                sel_info = h_dp.simple(i);
+            }
+            //3. Taking info with the smallest selectivity
+            if(sel_info.weight < sel_min.weight){
+                sel_min = sel_info;
+                i_split = i;
             }
 
         }
@@ -2809,8 +2831,8 @@ public:
 
         RpqTree rpqTree(rpq, predicates_map, real_max_P);
         auto mandData = rpqTree.getMandatoryData();
-        selectivity::h_distinct h_d;
-        auto a = pos_split_rpq(mandData, predicates_map, h_d);
+
+        auto a = pos_split_rpq(mandData, predicates_map);
 
         if(a.second.split == selectivity::intersect){
             std::cout << "Selectivity: " << a.first << "-th mandatory pred by intersecting" << std::endl;
