@@ -101,6 +101,13 @@ namespace selectivity {
         }
     };
 
+    template<class Type>
+    void printVector(std::vector<Type> &v){
+        for(const auto &a : v){
+            std::cout << a << ", ";
+        }
+        std::cout << std::endl;
+    }
 
     class h_distinct_path {
 
@@ -150,6 +157,16 @@ namespace selectivity {
                 m_r[m_r.size()-i-1] = m_r[m_r.size()-i] * (m_t[m_r.size()-i]/ (double) m_sigma);
                 m_l[i] = m_l[i-1] * (m_s[i-1] / (double) m_sigma);
             }
+
+            std::cout << "-----T-----" << std::endl;
+            printVector(m_t);
+            std::cout << "-----S-----" << std::endl;
+            printVector(m_s);
+            std::cout << "-----L-----" << std::endl;
+            printVector(m_l);
+            std::cout << "-----R-----" << std::endl;
+            printVector(m_r);
+
 
         }
 
