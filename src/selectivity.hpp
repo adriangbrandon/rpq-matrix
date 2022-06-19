@@ -53,7 +53,7 @@ namespace selectivity {
     }
 
     struct info {
-        uint64_t weight;
+        double weight;
         split_type  split;
     };
 
@@ -113,10 +113,10 @@ namespace selectivity {
 
 
     private:
-        std::vector<uint64_t> m_s;
-        std::vector<uint64_t> m_t;
-        std::vector<uint64_t> m_r;
-        std::vector<uint64_t> m_l;
+        std::vector<double> m_s;
+        std::vector<double> m_t;
+        std::vector<double> m_r;
+        std::vector<double> m_l;
         uint64_t m_max_p;
         uint64_t m_sigma;
 
@@ -134,13 +134,13 @@ namespace selectivity {
                 auto e_d = L_S.get_C(pair.id_pred + 1)-1;
                 auto b_d = L_S.get_C(pair.id_pred);
                 auto v_target = distinct_values(b_d, e_d, wt_pred_s);
-                m_t.push_back(v_target);
+                m_t.push_back(v_target / (double) m_sigma);
 
                 auto rev_id = reverse(pair.id_pred, m_max_p);
                 auto e_r = L_S.get_C(rev_id + 1)-1;
                 auto b_r = L_S.get_C(rev_id);
                 auto v_source = distinct_values(b_r, e_r, wt_pred_s);
-                m_s.push_back(v_source);
+                m_s.push_back(v_source / (double) m_sigma);
             }
            // m_s.push_back(-1ULL);
             auto s = m_s.size()+1;
@@ -189,12 +189,13 @@ namespace selectivity {
         info intersection(const uint64_t ith) {
             info res;
             res.split = intersect;
-            uint64_t base, right, left;
-            if(m_s[ith+1] < m_t[ith]){
+            double base, right, left;
+            /*if(m_s[ith+1] < m_t[ith]){
                 base = m_s[ith+1];
             }else{
                 base = m_t[ith];
-            }
+            }*/
+            base = m_t[ith] * m_s[ith+1];
             right = m_r[ith+2];
             left = m_l[ith];
             res.weight = left * base + base * right;
