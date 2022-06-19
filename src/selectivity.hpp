@@ -143,7 +143,7 @@ namespace selectivity {
                 m_s.push_back(v_source);
             }
            // m_s.push_back(-1ULL);
-            auto s = m_s.size();
+            auto s = m_s.size()+1;
             m_r.resize(s);
             m_r[s-1]=1;
             m_l.resize(s);
