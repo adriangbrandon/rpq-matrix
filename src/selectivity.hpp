@@ -128,7 +128,7 @@ namespace selectivity {
 
             m_max_p = maxP;
             m_sigma = sigma;
-            m_t.push_back(-1ULL);
+            //m_t.push_back(-1ULL);
             for(const auto &pair : preds){
 
                 auto e_d = L_S.get_C(pair.id_pred + 1)-1;
@@ -142,7 +142,7 @@ namespace selectivity {
                 auto v_source = distinct_values(b_r, e_r, wt_pred_s);
                 m_s.push_back(v_source);
             }
-            m_s.push_back(-1ULL);
+           // m_s.push_back(-1ULL);
             auto s = m_s.size();
             m_r.resize(s);
             m_r[s-1]=1;
@@ -166,20 +166,20 @@ namespace selectivity {
 
         info simple(const uint64_t ith){
             info res;
-            double a;
+            //double a;
             if(m_s[ith] < m_t[ith]){
                 res.split = source;
                 if(ith == 0){
                     res.weight = m_s[ith] * m_r[ith+1];
                 }else{
-                    res.weight = m_s[ith] * m_r[ith+1] + m_s[ith] * m_l[ith];
+                    res.weight = m_s[ith] * m_r[ith+1] + m_s[ith] * m_l[ith-1];
                 }
             }else{
                 res.split = target;
                 if(ith == m_t.size()-1){
                     res.weight = m_t[ith] * m_l[ith-1];
                 }else{
-                    res.weight = m_t[ith] * m_l[ith-1] + m_t[ith] * m_r[ith];
+                    res.weight = m_t[ith] * m_l[ith-1] + m_t[ith] * m_r[ith+1];
                 }
 
             }
@@ -189,11 +189,18 @@ namespace selectivity {
         info intersection(const uint64_t ith) {
             info res;
             res.split = intersect;
-            if(m_s[ith] < m_t[ith]){
-                res.weight = m_s[ith] * m_r[ith+1] + m_s[ith] * m_l[ith-1];
+            uint64_t base, right, left;
+            if(m_s[ith+1] < m_t[ith]){
+                base = m_s[ith+1];
             }else{
-                res.weight = m_t[ith] * m_r[ith+1] + m_t[ith] * m_l[ith-1];
+                base = m_t[ith];
             }
+            right = m_r[ith+2];
+            left = m_l[ith];
+            res.weight = left * base + base * right;
+
+
+            res.weight = m_s[ith+1] * m_r[ith+1] + m_s[ith+1] * m_l[ith-1];
             return res;
         }
         /*info simple(const uint64_t id,

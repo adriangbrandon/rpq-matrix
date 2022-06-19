@@ -869,7 +869,7 @@ private:
         const auto& pos_pred_vec = mandData.pos_pred;
         selectivity::h_distinct_path h_dp(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
         //1. Checking mandatory data
-        for(uint64_t i = 0; i < pos_pred_vec.size();++i){
+        for(uint64_t i = 0; i <= pos_pred_vec.size(); ++i){ //<= because the empty right rpq
             selectivity::info sel_info;
             //2. Intersection
             if(i+1 < pos_pred_vec.size()
