@@ -198,9 +198,6 @@ namespace selectivity {
             right = m_r[ith+2];
             left = m_l[ith];
             res.weight = left * base + base * right;
-
-
-            res.weight = m_s[ith+1] * m_r[ith+1] + m_s[ith+1] * m_l[ith-1];
             return res;
         }
         /*info simple(const uint64_t id,
