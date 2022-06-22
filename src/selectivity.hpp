@@ -243,8 +243,8 @@ namespace selectivity {
             m_l.resize(s);
             m_l[0]=1;
             for(uint64_t i = 1; i < s; ++i){
-                m_r[s-i-1] = m_r[s-i] * m_t[m_t.size()-i];
-                m_l[i] = m_l[i-1] * m_s[i-1];
+                m_r[s-i-1] = m_r[s-i] + m_t[m_t.size()-i];
+                m_l[i] = m_l[i-1] + m_s[i-1];
             }
             std::cout << "-----T-----" << std::endl;
             printVector(m_t);
