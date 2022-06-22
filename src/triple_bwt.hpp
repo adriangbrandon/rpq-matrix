@@ -786,7 +786,7 @@ private:
 
         RpqTree rpqTree(rpq, predicates_map, real_max_P);
         auto mandData = rpqTree.getMandatoryData();
-        selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source};
+        selectivity::info sel_min{std::numeric_limits<uint64_t>::max(), selectivity::source};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
         const auto& pos_pred_vec = mandData.pos_pred;
@@ -863,11 +863,11 @@ private:
                                                      unordered_map<std::string, uint64_t> &predicates_map){
 
 
-        selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source};
+        selectivity::info sel_min{std::numeric_limits<uint64_t>::max(), selectivity::source};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
         const auto& pos_pred_vec = mandData.pos_pred;
-        selectivity::h_distsigma_path h_dp(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
+        selectivity::h_distinct_path h_dp(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size(); ++i){ //<= because the empty right rpq
             selectivity::info sel_info;

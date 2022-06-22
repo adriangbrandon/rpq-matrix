@@ -53,7 +53,7 @@ namespace selectivity {
     }
 
     struct info {
-        double weight;
+        uint64_t weight;
         split_type  split;
     };
 
@@ -203,7 +203,7 @@ namespace selectivity {
 
     };
 
-    class h_distsigma_path {
+    /*class h_distsigma_path {
 
 
     private:
@@ -295,7 +295,7 @@ namespace selectivity {
             return res;
         }
 
-    };
+    };*/
 
     struct h_ratio {
 
