@@ -284,7 +284,11 @@ namespace selectivity {
             info res;
             res.split = intersect;
             double base, right, left;
-            base = m_s[ith+1] * m_t[ith];
+            if(m_s[ith+1] < m_t[ith]){
+                base = m_s[ith+1];
+            }else{
+                base = m_t[ith];
+            }
             right = m_r[ith+2];
             left = m_l[ith];
             res.weight = left * base + base * right;
