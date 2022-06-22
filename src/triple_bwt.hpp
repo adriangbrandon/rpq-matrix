@@ -39,7 +39,7 @@
 #include "selectivity.hpp"
 
 #define ELEMENTS 0
-#define RUN_QUERY 0
+#define RUN_QUERY 1
 
 
 using namespace std::chrono;
@@ -2733,6 +2733,7 @@ public:
             } element_solution_type;
             std::vector<element_solution_type> solutions_l;
 
+            std::cout << "RPQ_l: " << rpq_l << std::endl;
             //RPQ1: var_s_to_const_o
             //RPQ1: Mark the NFA states that are reachable
             std::unordered_map<uint64_t, uint64_t> m = A_l.getB();
@@ -2750,6 +2751,7 @@ public:
                 L_P.unmark<word_t>(it->first, B_array);
             }
 
+            std::cout << "RPQ_r: " << rpq_r << std::endl;
             //RPQ2: const_s_to_var_o
             //RPQ2: Mark the NFA states that are reachable
             m = A_r.getB();
@@ -2847,10 +2849,10 @@ public:
 #if RUN_QUERY
         std::string rpq_l, rpq_r;
         std::vector<uint64_t> elements;
-        std::cout << "SRC-pred->tgt" << std::endl;
-        std::cout << "---------------------" << std::endl;
         const auto& pos_pred_vec = mandData.pos_pred;
-        for(uint64_t i = 0; i < pos_pred_vec.size(); ++i) {
+        //std::cout << "SRC-pred->tgt" << std::endl;
+        //std::cout << "---------------------" << std::endl;
+       /* for(uint64_t i = 0; i < pos_pred_vec.size(); ++i) {
             std::vector<std::pair<uint64_t, uint64_t>> solution;
             //std::cout << "Splitting " << i << "-th mandatory pred by source" << std::endl;
 
@@ -2901,7 +2903,7 @@ public:
             cout << i << ";" << solution.size() << ";" << elements.size() << ";" << (uint64_t) (total_time * 1000000000ULL) << endl;
 
         }
-        std::cout << "---------------------" << std::endl;
+        std::cout << "---------------------" << std::endl;*/
 
         std::cout << "src1-pred1->TGT1/SRC2-pred2->tgt2" << std::endl;
         std::cout << "---------------------" << std::endl;
