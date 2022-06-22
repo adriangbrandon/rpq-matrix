@@ -53,7 +53,7 @@ namespace selectivity {
     }
 
     struct info {
-        uint64_t weight;
+        double weight;
         split_type  split;
     };
 
@@ -151,6 +151,100 @@ namespace selectivity {
             for(uint64_t i = 1; i < s; ++i){
                 m_r[s-i-1] = m_r[s-i] * m_t[m_t.size()-i];
                 m_l[i] = m_l[i-1] * m_s[i-1];
+            }
+            std::cout << "-----T-----" << std::endl;
+            printVector(m_t);
+            std::cout << "-----S-----" << std::endl;
+            printVector(m_s);
+            std::cout << "-----L-----" << std::endl;
+            printVector(m_l);
+            std::cout << "-----R-----" << std::endl;
+            printVector(m_r);
+
+
+        }
+
+        info simple(const uint64_t ith){
+            info res;
+            //double a;
+            if(m_s[ith] < m_t[ith]){
+                res.split = source;
+                if(ith == 0){
+                    res.weight = m_s[ith] * m_r[ith+1];
+                }else{
+                    res.weight = m_s[ith] * m_r[ith+1] + m_s[ith] * m_l[ith-1];
+                }
+            }else{
+                res.split = target;
+                if(ith == m_t.size()-1){
+                    res.weight = m_t[ith] * m_l[ith-1];
+                }else{
+                    res.weight = m_t[ith] * m_l[ith-1] + m_t[ith] * m_r[ith+1];
+                }
+
+            }
+            return res;
+        }
+
+        info intersection(const uint64_t ith) {
+            info res;
+            res.split = intersect;
+            double base, right, left;
+            if(m_s[ith+1] < m_t[ith]){
+                base = m_s[ith+1];
+            }else{
+                base = m_t[ith];
+            }
+            right = m_r[ith+2];
+            left = m_l[ith];
+            res.weight = left * base + base * right;
+            return res;
+        }
+
+    };
+
+    class h_probability_path {
+
+
+    private:
+        std::vector<uint64_t> m_s;
+        std::vector<uint64_t> m_t;
+        std::vector<double> m_r;
+        std::vector<double> m_l;
+        uint64_t m_max_p;
+        uint64_t m_sigma;
+
+
+    public:
+        h_probability_path(const std::vector<PairPredPos> &preds,
+                        const bwt_nose &L_S, const bwt_type &wt_pred_s,
+                        uint64_t maxP, uint64_t sigma){
+
+            m_max_p = maxP;
+            m_sigma = sigma;
+            //m_t.push_back(-1ULL);
+            for(const auto &pair : preds){
+
+                auto e_d = L_S.get_C(pair.id_pred + 1)-1;
+                auto b_d = L_S.get_C(pair.id_pred);
+                auto v_target = distinct_values(b_d, e_d, wt_pred_s);
+                m_t.push_back(v_target);
+
+                auto rev_id = reverse(pair.id_pred, m_max_p);
+                auto e_r = L_S.get_C(rev_id + 1)-1;
+                auto b_r = L_S.get_C(rev_id);
+                auto v_source = distinct_values(b_r, e_r, wt_pred_s);
+                m_s.push_back(v_source);
+            }
+            // m_s.push_back(-1ULL);
+            auto s = m_s.size()+1;
+            m_r.resize(s);
+            m_r[s-1]=1;
+            m_l.resize(s);
+            m_l[0]=1;
+            for(uint64_t i = 1; i < s; ++i){
+                m_r[s-i-1] = m_r[s-i] * (m_t[m_t.size()-i] * (m_s[m_s.size()-i] / (double) m_sigma));
+                m_l[i] = m_l[i-1] * (m_s[i-1] * (m_t[i-1] / (double) m_sigma));
             }
             std::cout << "-----T-----" << std::endl;
             printVector(m_t);
