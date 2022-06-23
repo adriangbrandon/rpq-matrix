@@ -209,8 +209,7 @@ namespace selectivity {
     private:
         std::vector<uint64_t> m_s;
         std::vector<uint64_t> m_t;
-        std::vector<double> m_r;
-        std::vector<double> m_l;
+        std::vector<double> m_inc;
         uint64_t m_max_p;
         uint64_t m_sigma;
 
@@ -237,24 +236,16 @@ namespace selectivity {
                 m_s.push_back(v_source);
             }
             // m_s.push_back(-1ULL);
-            auto s = m_s.size();
-            m_r.resize(s);
-            //m_r[s-1]=1;
-            m_l.resize(s);
-           // m_l[0]=1;
-            for(uint64_t i = 0; i < s; ++i){
-                m_r[i] = (m_t[i] * (m_s[i] / (double) m_sigma));
-                m_l[i] = (m_s[i] * (m_t[i] / (double) m_sigma));
+            m_inc.resize(m_s.size());
+            for(uint64_t i = 0; i < m_inc.size(); ++i){
+                m_inc[i] = 1 + (m_t[i] * (m_s[i] / (double) m_sigma));
             }
             std::cout << "-----T-----" << std::endl;
             printVector(m_t);
             std::cout << "-----S-----" << std::endl;
             printVector(m_s);
-            std::cout << "-----L-----" << std::endl;
-            printVector(m_l);
-            std::cout << "-----R-----" << std::endl;
-            printVector(m_r);
-
+            std::cout << "-----INC-----" << std::endl;
+            printVector(m_inc);
 
         }
 
@@ -267,31 +258,31 @@ namespace selectivity {
                 b_l = b_r = m_s[ith];
                 //Right part
                 res.weight = b_r; //Jump from source to target
-                for(uint64_t i = ith+1; i < m_r.size(); ++i){
-                    b_r = b_r * m_r[i];
+                for(uint64_t i = ith+1; i < m_inc.size(); ++i){
+                    b_r = b_r * m_inc[i];
                     res.weight += b_r;
                 }
                 //Left part
-                b_l = b_l * m_l[ith];
+                b_l = b_l * m_inc[ith];
                 res.weight += b_l;
                 for(int64_t i = ith-1; i >= 0; --i){
-                    b_l = b_l * m_l[i];
+                    b_l = b_l * m_inc[i];
                     res.weight += b_l;
                 }
             }else{
                 res.split = target;
                 b_l = b_r = m_t[ith];
                 //Right part
-                b_r = b_r * m_r[ith];
+                b_r = b_r * m_inc[ith];
                 res.weight = b_r;
-                for(uint64_t i = ith+1; i < m_r.size(); ++i){
-                    b_r = b_r * m_r[i];
+                for(uint64_t i = ith+1; i < m_inc.size(); ++i){
+                    b_r = b_r * m_inc[i];
                     res.weight += b_r;
                 }
                 //Left part
                 res.weight += b_l; //Jump from target to source
                 for(int64_t i = ith-1; i >= 0; --i){
-                    b_l = b_l * m_l[i];
+                    b_l = b_l * m_inc[i];
                     res.weight += b_l;
                 }
             }
@@ -311,14 +302,14 @@ namespace selectivity {
             b_l = b_r = (double) (m_s[ith+1] * m_t[ith]) / (double) (m_sigma * m_sigma);
             //Right part
             res.weight = b_r; //Jump from source to target
-            for(uint64_t i = ith+1; i < m_r.size(); ++i){
-                b_r = b_r * m_r[i];
+            for(uint64_t i = ith+1; i < m_inc.size(); ++i){
+                b_r = b_r * m_inc[i];
                 res.weight += b_r;
             }
             //Left part
             res.weight += b_l; //Jump from target to source
             for(int64_t i = ith-1; i >= 0; --i){
-                b_l = b_l * m_l[i];
+                b_l = b_l * m_inc[i];
                 res.weight += b_l;
             }
             return res;
