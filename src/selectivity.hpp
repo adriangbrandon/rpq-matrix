@@ -303,11 +303,12 @@ namespace selectivity {
             info res;
             res.split = intersect;
             double b_l, b_r;
-            if(m_s[ith+1] < m_t[ith]){
+            /*if(m_s[ith+1] < m_t[ith]){
                 b_l = b_r = m_s[ith+1];
             }else{
                 b_l = b_r = m_t[ith];
-            }
+            }*/
+            b_l = b_r = (double) (m_s[ith+1] * m_t[ith]) / (double) (m_sigma * m_sigma);
             //Right part
             res.weight = b_r; //Jump from source to target
             for(uint64_t i = ith+1; i < m_r.size(); ++i){
