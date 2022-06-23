@@ -57,46 +57,55 @@ namespace selectivity {
         split_type  split;
     };
 
-    struct h_distinct {
+    class h_distinct {
+        std::vector<uint64_t> m_s;
+        std::vector<uint64_t> m_t;
+        uint64_t m_max_p;
+        uint64_t m_sigma;
 
-        info simple(const uint64_t id,
-                    const bwt_nose &L_S, const bwt_type &wt_pred_s,
-                    uint64_t maxP, uint64_t sigma){
-            auto e_d = L_S.get_C(id + 1)-1;
-            auto b_d = L_S.get_C(id);
-            auto rev_id = reverse(id, maxP);
-            auto e_r = L_S.get_C(rev_id + 1)-1;
-            auto b_r = L_S.get_C(rev_id);
+    public:
+
+
+
+        h_distinct(const std::vector<PairPredPos> &preds,
+                        const bwt_nose &L_S, const bwt_type &wt_pred_s,
+                        uint64_t maxP, uint64_t sigma) {
+
+            m_max_p = maxP;
+            m_sigma = sigma;
+            //m_t.push_back(-1ULL);
+            for (const auto &pair : preds) {
+
+                auto e_d = L_S.get_C(pair.id_pred + 1) - 1;
+                auto b_d = L_S.get_C(pair.id_pred);
+                auto v_target = distinct_values(b_d, e_d, wt_pred_s);
+                m_t.push_back(v_target);
+
+                auto rev_id = reverse(pair.id_pred, m_max_p);
+                auto e_r = L_S.get_C(rev_id + 1) - 1;
+                auto b_r = L_S.get_C(rev_id);
+                auto v_source = distinct_values(b_r, e_r, wt_pred_s);
+                m_s.push_back(v_source);
+            }
+        }
+
+        info simple(const uint64_t ith){
             info res;
-            auto v_target = distinct_values(b_d, e_d, wt_pred_s);
-            auto v_source = distinct_values(b_r, e_r, wt_pred_s);
-            std::cout << "Dist-source: " << v_source << " Length-source: " << (e_d-b_d)+1 << std::endl;
-            std::cout << "Dist-target: " << v_target << " Length-source: " << (e_r-b_r)+1 << std::endl;
-            if(v_source > v_target){
-                res.split = target;
-                res.weight = v_target / (double) sigma;
-            }else{
+            //double a;
+            if(m_s[ith] < m_t[ith]){
                 res.split = source;
-                res.weight = v_source / (double) sigma;
+                res.weight = m_s[ith] / (double) (m_sigma);
+            }else{
+                res.split = target;
+                res.weight = m_t[ith] / (double) (m_sigma);
             }
             return res;
         }
 
-        info intersection(const uint64_t id1, const uint64_t id2,
-                              const bwt_nose &L_S, const bwt_type &wt_pred_s,
-                              uint64_t maxP, uint64_t sigma){
-            auto e_l = L_S.get_C(id1 + 1)-1;
-            auto b_l = L_S.get_C(id1);
-            auto rev_id2 = reverse(id2, maxP);
-            auto e_r = L_S.get_C(rev_id2 + 1)-1;
-            auto b_r = L_S.get_C(rev_id2);
-            double v_l = distinct_values(b_l, e_l, wt_pred_s);
-            double v_r = distinct_values(b_r, e_r, wt_pred_s);
-            std::cout << "Dist-left: " << v_l << " Length-left: " << (e_l-b_l)+1 << std::endl;
-            std::cout << "Dist-right: " << v_r << " Length-right: " << (e_r-b_r)+1 << std::endl;
+        info intersection(const uint64_t ith){
             info res;
-            res.weight = (v_l * v_r) / (double) (sigma * sigma);
             res.split = intersect;
+            res.weight = (double) (m_s[ith+1] * m_t[ith]) / (double) (m_sigma * m_sigma);
             return res;
         }
     };
@@ -170,16 +179,18 @@ namespace selectivity {
             if(m_s[ith] < m_t[ith]){
                 res.split = source;
                 if(ith == 0){
-                    res.weight = m_s[ith] * m_r[ith+1];
+                    res.weight = (m_s[ith]/ (double) (m_sigma)) * m_r[ith];
                 }else{
-                    res.weight = m_s[ith] * m_r[ith+1] + m_s[ith] * m_l[ith-1];
+                    res.weight = (m_s[ith]/ (double) (m_sigma)) * m_r[ith]
+                                 + (m_s[ith]/ (double) (m_sigma)) * m_l[ith];
                 }
             }else{
                 res.split = target;
                 if(ith == m_t.size()-1){
-                    res.weight = m_t[ith] * m_l[ith-1];
+                    res.weight = (m_t[ith]/ (double) (m_sigma)) * m_l[ith];
                 }else{
-                    res.weight = m_t[ith] * m_l[ith-1] + m_t[ith] * m_r[ith+1];
+                    res.weight = (m_t[ith]/ (double) (m_sigma)) * m_l[ith]
+                                 + (m_t[ith]/ (double) (m_sigma)) * m_r[ith];
                 }
 
             }
@@ -189,21 +200,14 @@ namespace selectivity {
         info intersection(const uint64_t ith) {
             info res;
             res.split = intersect;
-            double base, right, left;
-            if(m_s[ith+1] < m_t[ith]){
-                base = m_s[ith+1];
-            }else{
-                base = m_t[ith];
-            }
-            right = m_r[ith+2];
-            left = m_l[ith];
-            res.weight = left * base + base * right;
+            double base = (double) (m_s[ith+1] * m_t[ith]) / (double) (m_sigma * m_sigma);
+            res.weight = m_l[ith] * base + base * m_r[ith];
             return res;
         }
 
     };
 
-    class h_probability_path {
+    class h_growup_path {
 
 
     private:
@@ -216,7 +220,7 @@ namespace selectivity {
 
 
     public:
-        h_probability_path(const std::vector<PairPredPos> &preds,
+        h_growup_path(const std::vector<PairPredPos> &preds,
                         const bwt_nose &L_S, const bwt_type &wt_pred_s,
                         uint64_t maxP, uint64_t sigma){
 
@@ -261,48 +265,46 @@ namespace selectivity {
         info simple(const uint64_t ith){
             info res;
             //double a;
-            double b_l, b_r;
+            double b_l, b_r, w_l, w_r;
             if(m_s[ith] < m_t[ith]){
                 res.split = source;
                 b_l = b_r = m_s[ith];
                 //Right part
-                res.weight = b_r; //Jump from source to target
-                for(uint64_t i = ith+1; i < m_r.size(); ++i){
+                w_r = b_r; //Jump from source to target
+                for(uint64_t i = ith; i < m_r.size(); ++i){
                     b_r = b_r * m_r[i];
-                    res.weight += b_r;
+                    w_r *= b_r;
                 }
                 //Left part
-                b_l = b_l * m_l[ith];
-                res.weight += b_l;
-                for(int64_t i = ith-1; i >= 0; --i){
+                w_l = b_l;
+                for(int64_t i = ith; i >= 0; --i){
                     b_l = b_l * m_l[i];
-                    res.weight += b_l;
+                    w_l *= b_l;
                 }
             }else{
                 res.split = target;
                 b_l = b_r = m_t[ith];
                 //Right part
-                b_r = b_r * m_r[ith];
-                res.weight = b_r;
-                for(uint64_t i = ith+1; i < m_r.size(); ++i){
+                w_r = b_r;
+                for(uint64_t i = ith; i < m_r.size(); ++i){
                     b_r = b_r * m_r[i];
-                    res.weight += b_r;
+                    w_r *= b_r;
                 }
                 //Left part
-                res.weight += b_l; //Jump from target to source
-                for(int64_t i = ith-1; i >= 0; --i){
+                w_l = b_l; //Jump from target to source
+                for(int64_t i = ith; i >= 0; --i){
                     b_l = b_l * m_l[i];
-                    res.weight += b_l;
+                    w_l *= b_l;
                 }
             }
-
+            res.weight = w_l + w_r;
             return res;
         }
 
         info intersection(const uint64_t ith) {
             info res;
             res.split = intersect;
-            double b_l, b_r;
+            double b_l, b_r, w_l, w_r;
             /*if(m_s[ith+1] < m_t[ith]){
                 b_l = b_r = m_s[ith+1];
             }else{
@@ -310,17 +312,18 @@ namespace selectivity {
             }*/
             b_l = b_r = (double) (m_s[ith+1] * m_t[ith]) / (double) (m_sigma * m_sigma);
             //Right part
-            res.weight = b_r; //Jump from source to target
-            for(uint64_t i = ith+1; i < m_r.size(); ++i){
+            w_r = b_r; //Jump from source to target
+            for(uint64_t i = ith; i < m_r.size(); ++i){
                 b_r = b_r * m_r[i];
-                res.weight += b_r;
+                w_r *= b_r;
             }
             //Left part
-            res.weight += b_l; //Jump from target to source
-            for(int64_t i = ith-1; i >= 0; --i){
+            w_l = b_l; //Jump from target to source
+            for(int64_t i = ith; i >= 0; --i){
                 b_l = b_l * m_l[i];
-                res.weight += b_l;
+                w_l *= b_l;
             }
+            res.weight = w_l + w_r;
             return res;
         }
 
