@@ -779,26 +779,26 @@ private:
         }
     }*/
 
-    template<class heuristic = selectivity::h_distinct>
     std::pair<std::string, std::string> split_rpq(const std::string &rpq,
                                                   unordered_map<std::string, uint64_t> &predicates_map,
-                                                  std::vector<uint64_t> &elements, heuristic &h){
+                                                  std::vector<uint64_t> &elements){
 
         RpqTree rpqTree(rpq, predicates_map, real_max_P);
         auto mandData = rpqTree.getMandatoryData();
         selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source};
         uint64_t i_split = 0;
-        uint64_t sigma = (max_O > max_S) ? max_O : max_S;
-        const auto& pos_pred_vec = mandData.pos_pred;
-        //1. Checking mandatory data
+       uint64_t sigma = (max_O > max_S) ? max_O : max_S;
+       const auto& pos_pred_vec = mandData.pos_pred;
+       selectivity::h_distinct h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
+       //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size();++i){
             selectivity::info sel_info;
             //2. Intersection
             if(i+1 < pos_pred_vec.size()
                 && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
-                sel_info = h.intersection(pos_pred_vec[i].id_pred, pos_pred_vec[i+1].id_pred, L_S, wt_pred_s, real_max_P, sigma);
+                sel_info = h.intersection(i);
             }else{
-                sel_info = h.simple(pos_pred_vec[i].id_pred, L_S, wt_pred_s, real_max_P, sigma);
+                sel_info = h.simple(i);
             }
             std::cout << "Weight of i=" << i << ": " << sel_info.weight << std::endl;
             //3. Taking info with the smallest selectivity
@@ -867,16 +867,16 @@ private:
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
         const auto& pos_pred_vec = mandData.pos_pred;
-        selectivity::h_probability_path h_dp(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
+        selectivity::h_distinct h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size(); ++i){
             selectivity::info sel_info;
             //2. Intersection
             if(i+1 < pos_pred_vec.size()
                && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
-                sel_info = h_dp.intersection(i);
+                sel_info = h.intersection(i);
             }else{
-                sel_info = h_dp.simple(i);
+                sel_info = h.simple(i);
             }
             std::cout << "Weight of i=" << i << ": " << sel_info.weight << std::endl;
             //3. Taking info with the smallest selectivity
@@ -2421,8 +2421,7 @@ public:
 
         std::string rpq_l, rpq_r;
         std::vector<uint64_t> elements;
-        selectivity::h_distinct heuristic;
-        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements, heuristic);
+        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
         std::cout << "split" << std::endl;
         std::cout << "rpq_l: " << rpq_l << std::endl;
         std::cout << "rpq_r: " << rpq_r << std::endl;
@@ -2567,8 +2566,7 @@ public:
 
         std::string rpq_l, rpq_r;
         std::vector<uint64_t> elements;
-        selectivity::h_distinct heuristic;
-        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements, heuristic);
+        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
         std::cout << "rpq_l: " << rpq_l << std::endl;
         std::cout << "rpq_r: " << rpq_r << std::endl;
 #if ELEMENTS
