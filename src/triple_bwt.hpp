@@ -2731,17 +2731,17 @@ public:
             } element_solution_type;
             std::vector<element_solution_type> solutions_l;
 
-            std::cout << "RPQ_l: " << rpq_l << std::endl;
+            //std::cout << "RPQ_l: " << rpq_l << std::endl;
             //RPQ1: var_s_to_const_o
             //RPQ1: Mark the NFA states that are reachable
             std::unordered_map<uint64_t, uint64_t> m = A_l.getB();
             for (auto it = m.begin(); it != m.end(); it++) {
                 L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
             }
-            std::cout << "Elements: " << elements.size() << std::endl;
-            uint64_t cnt = 0;
+            //std::cout << "Elements: " << elements.size() << std::endl;
+            //uint64_t cnt = 0;
             for (const auto &e : elements) {
-                std::cout << "E: " << ++cnt << std::endl;
+                //std::cout << "E: " << ++cnt << std::endl;
                 _rpq_const_s_to_var_o(A_l, predicates_map, B_array, e, output_l, false, start);
                 if (output_l.empty()) continue; //There is no solution
                 solutions_l.push_back({e, output_l});
@@ -2752,7 +2752,7 @@ public:
                 L_P.unmark<word_t>(it->first, B_array);
             }
 
-            std::cout << "RPQ_r: " << rpq_r << std::endl;
+            //std::cout << "RPQ_r: " << rpq_r << std::endl;
             //RPQ2: const_s_to_var_o
             //RPQ2: Mark the NFA states that are reachable
             m = A_r.getB();
@@ -2761,10 +2761,10 @@ public:
             }
             //Check the solutions from RPQ1
             std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
-            std::cout << "Solutions_l: " << solutions_l.size() << std::endl;
-            cnt = 0;
+            //std::cout << "Solutions_l: " << solutions_l.size() << std::endl;
+            //cnt = 0;
             for (const auto &s_l : solutions_l) {
-                std::cout << "S: " << ++cnt << std::endl;
+                //std::cout << "S: " << ++cnt << std::endl;
                 _rpq_const_s_to_var_o(A_r, predicates_map, B_array, s_l.element, output_r, true, start);
                 if (output_r.empty()) continue; //There is no solution
                 //Adding results to solution
