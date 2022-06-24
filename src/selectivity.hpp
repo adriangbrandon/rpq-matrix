@@ -310,7 +310,8 @@ namespace selectivity {
             }else{
                 b_l = b_r = m_t[ith];
             }*/
-            b_l = b_r = (double) (m_s[ith+1] * m_t[ith]) / (double) (m_sigma * m_sigma);
+            double total = (double) (m_s[ith+1]+m_t[ith]);
+            b_l = b_r = ((double) (m_s[ith+1] * m_t[ith]) / (double) (m_sigma * m_sigma)) * total;
             //Right part
             w_r = b_r; //Jump from source to target
             for(uint64_t i = ith; i < m_r.size(); ++i){
