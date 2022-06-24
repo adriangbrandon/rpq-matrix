@@ -1109,8 +1109,8 @@ private:
         bool time_out = false;
         uint64_t iter = 1;
         while (input_for_step_1.size() > 0 ) {
-            std::cout << "Number of ranges to step 1 in iteration " << iter
-                      << ": " << input_for_step_1.size() << std::endl;
+            //std::cout << "Number of ranges to step 1 in iteration " << iter
+             //         << ": " << input_for_step_1.size() << std::endl;
             // STEP 1
             input_for_step_2.clear();
             for (uint64_t i = 0; !time_out and i < input_for_step_1.size(); i++) {
@@ -1125,8 +1125,8 @@ private:
             if (time_out) break;
             // STEP 2 (includes step 3 from the paper)
             input_for_step_1.clear(); // clears it as they have been processed
-            std::cout << "Number of ranges to step 2 in iteration " << iter
-                      << ": " << input_for_step_2.size() << std::endl;
+            //std::cout << "Number of ranges to step 2 in iteration " << iter
+            //          << ": " << input_for_step_2.size() << std::endl;
             for (uint64_t i = 0; !time_out and i < input_for_step_2.size(); i++) {
                 stop = high_resolution_clock::now();
                 time_span = duration_cast<microseconds>(stop - start);
@@ -2854,9 +2854,9 @@ public:
         std::string rpq_l, rpq_r;
         std::vector<uint64_t> elements;
         const auto& pos_pred_vec = mandData.pos_pred;
-        //std::cout << "SRC-pred->tgt" << std::endl;
-        //std::cout << "---------------------" << std::endl;
-       /* for(uint64_t i = 0; i < pos_pred_vec.size(); ++i) {
+        std::cout << "SRC-pred->tgt" << std::endl;
+        std::cout << "---------------------" << std::endl;
+        for(uint64_t i = 0; i < pos_pred_vec.size(); ++i) {
             std::vector<std::pair<uint64_t, uint64_t>> solution;
             //std::cout << "Splitting " << i << "-th mandatory pred by source" << std::endl;
 
@@ -2907,7 +2907,7 @@ public:
             cout << i << ";" << solution.size() << ";" << elements.size() << ";" << (uint64_t) (total_time * 1000000000ULL) << endl;
 
         }
-        std::cout << "---------------------" << std::endl;*/
+        std::cout << "---------------------" << std::endl;
 
         std::cout << "src1-pred1->TGT1/SRC2-pred2->tgt2" << std::endl;
         std::cout << "---------------------" << std::endl;
