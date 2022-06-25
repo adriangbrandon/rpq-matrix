@@ -39,7 +39,7 @@
 #include "selectivity.hpp"
 
 #define ELEMENTS 0
-#define RUN_QUERY 1
+#define RUN_QUERY 0
 
 
 using namespace std::chrono;
