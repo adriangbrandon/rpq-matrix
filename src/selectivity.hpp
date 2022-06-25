@@ -273,13 +273,13 @@ namespace selectivity {
                 w_r = b_r; //Jump from source to target
                 for(uint64_t i = ith; i < m_r.size(); ++i){
                     b_r = b_r * m_r[i];
-                    w_r += b_r;
+                    w_r *= b_r;
                 }
                 //Left part
                 w_l = b_l;
                 for(int64_t i = ith; i >= 0; --i){
                     b_l = b_l * m_l[i];
-                    w_l += b_l;
+                    w_l *= b_l;
                 }
             }else{
                 res.split = target;
@@ -288,13 +288,13 @@ namespace selectivity {
                 w_r = b_r;
                 for(uint64_t i = ith; i < m_r.size(); ++i){
                     b_r = b_r * m_r[i];
-                    w_r += b_r;
+                    w_r *= b_r;
                 }
                 //Left part
                 w_l = b_l; //Jump from target to source
                 for(int64_t i = ith; i >= 0; --i){
                     b_l = b_l * m_l[i];
-                    w_l += b_l;
+                    w_l *= b_l;
                 }
             }
             res.weight = w_l + w_r;
@@ -310,25 +310,27 @@ namespace selectivity {
             }else{
                 b_l = b_r = m_t[ith];
             }*/
-            double total = (double) (m_s[ith+1]+m_t[ith]);
+            double total = (double) std::min(m_s[ith+1], m_t[ith]);
             b_l = b_r = ((double) (m_s[ith+1] * m_t[ith]) / (double) (m_sigma * m_sigma)) * total;
             //Right part
             w_r = b_r; //Jump from source to target
             for(uint64_t i = ith; i < m_r.size(); ++i){
                 b_r = b_r * m_r[i];
-                w_r += b_r;
+                w_r *= b_r;
             }
             //Left part
             w_l = b_l; //Jump from target to source
             for(int64_t i = ith; i >= 0; --i){
                 b_l = b_l * m_l[i];
-                w_l += b_l;
+                w_l *= b_l;
             }
             res.weight = w_l + w_r;
             return res;
         }
 
     };
+
+
 
     /*class h_distsigma_path {
 
