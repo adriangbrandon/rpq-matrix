@@ -129,7 +129,10 @@ pair<regularData *, unordered_map<uint64_t, char>> build(const string &pattern, 
     return {regularData, map};
 }
 
-RpqAutomata::RpqAutomata() {};
+RpqAutomata::RpqAutomata() {
+    _nfaData = NULL;
+    _isValid = false;
+};
 
 RpqAutomata::RpqAutomata(const string &rpq, const unordered_map<string, uint64_t> &predicates)
 {

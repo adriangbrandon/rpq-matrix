@@ -2716,16 +2716,19 @@ public:
             int64_t p_rev = rpq_r.size() - 1;
             std::string q_r = parse_reverse(rpq_r, p_rev, predicates_map, real_max_P);
             std::string q_l = parse(rpq_l, p, predicates_map, real_max_P);
-            RpqAutomata A_l = RpqAutomata(q_l, predicates_map);
-            RpqAutomata A_r = RpqAutomata(q_r, predicates_map);
+            RpqAutomata A_1;
+            RpqAutomata A_2;
             bool const_to_var1 = false;
             bool const_to_var2 = true;
-            /*if(first_left){
-
+            if(first_left){
+                A_1 = RpqAutomata(q_l, predicates_map);
+                A_2 = RpqAutomata(q_r, predicates_map);
             }else{
+                A_2 = RpqAutomata(q_l, predicates_map);
+                A_1 = RpqAutomata(q_r, predicates_map);
                 const_to_var1 = true;
                 const_to_var2 = false;
-            }*/
+            }
 
             /*high_resolution_clock::time_point start, stop;
             double total_time = 0.0;
@@ -2742,7 +2745,7 @@ public:
             //std::cout << "RPQ_l: " << rpq_l << std::endl;
             //RPQ1: var_s_to_const_o
             //RPQ1: Mark the NFA states that are reachable
-            std::unordered_map<uint64_t, uint64_t> m = A_l.getB();
+            std::unordered_map<uint64_t, uint64_t> m = A_1.getB();
             for (auto it = m.begin(); it != m.end(); it++) {
                 L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
             }
@@ -2750,7 +2753,7 @@ public:
             //uint64_t cnt = 0;
             for (const auto &e : elements) {
                 //std::cout << "E: " << ++cnt << std::endl;
-                _rpq_const_s_to_var_o(A_l, predicates_map, B_array, e, output_1, const_to_var1, start);
+                _rpq_const_s_to_var_o(A_1, predicates_map, B_array, e, output_1, const_to_var1, start);
                 if (output_1.empty()) continue; //There is no solution
                 partial_solutions.push_back({e, output_1});
                 output_1.clear();
@@ -2763,7 +2766,7 @@ public:
             //std::cout << "RPQ_r: " << rpq_r << std::endl;
             //RPQ2: const_s_to_var_o
             //RPQ2: Mark the NFA states that are reachable
-            m = A_r.getB();
+            m = A_2.getB();
             for (auto it = m.begin(); it != m.end(); it++) {
                 L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
             }
@@ -2773,7 +2776,7 @@ public:
             //cnt = 0;
             for (const auto &p_s : partial_solutions) {
                 //std::cout << "S: " << ++cnt << std::endl;
-                _rpq_const_s_to_var_o(A_r, predicates_map, B_array, p_s.element, output_2, const_to_var2, start);
+                _rpq_const_s_to_var_o(A_2, predicates_map, B_array, p_s.element, output_2, const_to_var2, start);
                 if (output_2.empty()) continue; //There is no solution
                 //Adding results to solution
                 for (const auto &o_l : p_s.solutions) {
