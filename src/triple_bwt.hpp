@@ -2781,7 +2781,6 @@ public:
                     L_P.unmark<word_t>(it->first, B_array);
                 }
             }else{
-
                 RpqAutomata A_1 = RpqAutomata(q_r, predicates_map);
                 RpqAutomata A_2 = RpqAutomata(q_l, predicates_map);
                 bool const_to_var1 = true;
@@ -2820,11 +2819,12 @@ public:
                 //cnt = 0;
                 for (const auto &p_s : partial_solutions) {
                     //std::cout << "S: " << ++cnt << std::endl;
-                    _rpq_const_s_to_var_o(A_2, predicates_map, B_array, p_s.element, output_2, const_to_var2, start);
+                    _rpq_const_s_to_var_o(A_2, predicates_map, B_array, p_s.element, output_2,
+                                          const_to_var2, start);
                     if (output_2.empty()) continue; //There is no solution
                     //Adding results to solution
-                    for (const auto &o_l : p_s.solutions) {
-                        for (const auto &o_r : output_2) {
+                    for (const auto &o_r : p_s.solutions) {
+                        for (const auto &o_l : output_2) {
                             //Check duplicates
                             auto it_set = sol_set.insert({o_l.first, o_r.second});
                             if (it_set.second) {
