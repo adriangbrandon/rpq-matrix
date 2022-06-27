@@ -55,6 +55,7 @@ namespace selectivity {
     struct info {
         double weight;
         split_type  split;
+        bool first_left;
     };
 
     class h_distinct {
@@ -298,7 +299,7 @@ namespace selectivity {
                     w_l += b_l;
                 }
             }
-
+            if(w_l > w_r) res.first_left = false;
             res.weight = w_l + w_r;
             return res;
         }
@@ -326,6 +327,7 @@ namespace selectivity {
                 b_l = b_l * m_l[i];
                 w_l += b_l;
             }
+            if(w_l > w_r) res.first_left = false;
             res.weight = w_l + w_r;
             return res;
         }
