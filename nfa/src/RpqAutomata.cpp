@@ -174,7 +174,7 @@ unordered_map<uint64_t, uint64_t> RpqAutomata::getB()
 
 RpqAutomata::~RpqAutomata()
 {
-    if (_nfaData)
+    if (_nfaData != NULL)
     {
         regularFree(_nfaData);
         _nfaData = NULL;
