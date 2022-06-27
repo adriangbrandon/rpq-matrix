@@ -2716,8 +2716,8 @@ public:
             int64_t p_rev = rpq_r.size() - 1;
             std::string q_r = parse_reverse(rpq_r, p_rev, predicates_map, real_max_P);
             std::string q_l = parse(rpq_l, p, predicates_map, real_max_P);
-            RpqAutomata A_1;
-            RpqAutomata A_2;
+            RpqAutomata A_1 = RpqAutomata();
+            RpqAutomata A_2 = RpqAutomata();
             bool const_to_var1 = false;
             bool const_to_var2 = true;
             if(first_left){
