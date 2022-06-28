@@ -471,11 +471,11 @@ namespace selectivity {
             res.split = intersect;
             double b1_l, b1_r, b2_l, b2_r, w1_l, w1_r, w2_l, w2_r;
             if(m_s[ith+1] < m_t[ith]){
-                double p = m_t[ith] / (double) (m_sigma);
-                b1_l = b1_r = p * m_s[ith+1];
+                //double p = m_t[ith] / (double) (m_sigma);
+                b1_l = b1_r = m_s[ith+1];
             }else{
-                double p = m_s[ith+1] / (double) (m_sigma);
-                b1_l = b1_r = p * m_t[ith];
+                //double p = m_s[ith+1] / (double) (m_sigma);
+                b1_l = b1_r = m_t[ith];
             }
             //Right part as first option
             w1_r = b1_r; //Jump from source to target
