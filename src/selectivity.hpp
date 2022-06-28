@@ -61,6 +61,8 @@ namespace selectivity {
     class h_distinct {
         std::vector<uint64_t> m_s;
         std::vector<uint64_t> m_t;
+        std::vector<double> m_l;
+        std::vector<double> m_r;
         uint64_t m_max_p;
         uint64_t m_sigma;
 
@@ -88,6 +90,15 @@ namespace selectivity {
                 auto v_source = distinct_values(b_r, e_r, wt_pred_s);
                 m_s.push_back(v_source);
             }
+            auto s = m_s.size();
+            m_r.resize(s);
+            //m_r[s-1]=1;
+            m_l.resize(s);
+            // m_l[0]=1;
+            for(uint64_t i = 0; i < s; ++i){
+                m_r[i] = m_t[i] / (double) m_s[i];
+                m_l[i] = m_s[i] / (double) m_t[i];
+            }
         }
 
         info simple(const uint64_t ith){
@@ -96,10 +107,28 @@ namespace selectivity {
             if(m_s[ith] < m_t[ith]){
                 res.split = source;
                 res.weight = m_s[ith] / (double) (m_sigma);
+                double w_r = 1, w_l = 1;
+                for(uint64_t i = ith; i < m_r.size(); ++i){
+                    w_r *= m_r[i];
+                }
+                for(int64_t i = ith-1; i >= 0; --i){
+                    w_l *= m_l[i];
+                }
+                res.first_left = (w_r >= w_l);
             }else{
                 res.split = target;
                 res.weight = m_t[ith] / (double) (m_sigma);
+                double w_r = 1, w_l = 1;
+                for(uint64_t i = ith+1; i < m_r.size(); ++i){
+                    w_r *= m_r[i];
+                }
+                for(int64_t i = ith; i >= 0; --i){
+                    w_l *= m_l[i];
+                }
+                res.first_left = (w_r >= w_l);
             }
+
+
             return res;
         }
 
@@ -107,6 +136,14 @@ namespace selectivity {
             info res;
             res.split = intersect;
             res.weight = (double) (m_s[ith+1] * m_t[ith]) / (double) (m_sigma * m_sigma);
+            double w_r = 1, w_l = 1;
+            for(uint64_t i = ith+1; i < m_r.size(); ++i){
+                w_r *= m_r[i];
+            }
+            for(int64_t i = ith; i >= 0; --i){
+                w_l *= m_l[i];
+            }
+            res.first_left = (w_r >= w_l);
             return res;
         }
     };
