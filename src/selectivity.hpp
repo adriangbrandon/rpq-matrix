@@ -335,6 +335,187 @@ namespace selectivity {
     };
 
 
+    class h_growup_path2 {
+
+
+    private:
+        std::vector<uint64_t> m_s;
+        std::vector<uint64_t> m_t;
+        std::vector<double> m_r;
+        std::vector<double> m_l;
+        uint64_t m_max_p;
+        uint64_t m_sigma;
+
+
+    public:
+        h_growup_path2(const std::vector<PairPredPos> &preds,
+                      const bwt_nose &L_S, const bwt_type &wt_pred_s,
+                      uint64_t maxP, uint64_t sigma){
+
+            m_max_p = maxP;
+            m_sigma = sigma;
+            //m_t.push_back(-1ULL);
+            for(const auto &pair : preds){
+
+                auto e_d = L_S.get_C(pair.id_pred + 1)-1;
+                auto b_d = L_S.get_C(pair.id_pred);
+                auto v_target = distinct_values(b_d, e_d, wt_pred_s);
+                m_t.push_back(v_target);
+
+                auto rev_id = reverse(pair.id_pred, m_max_p);
+                auto e_r = L_S.get_C(rev_id + 1)-1;
+                auto b_r = L_S.get_C(rev_id);
+                auto v_source = distinct_values(b_r, e_r, wt_pred_s);
+                m_s.push_back(v_source);
+            }
+            // m_s.push_back(-1ULL);
+            auto s = m_s.size();
+            m_r.resize(s);
+            //m_r[s-1]=1;
+            m_l.resize(s);
+            // m_l[0]=1;
+            for(uint64_t i = 0; i < s; ++i){
+                m_r[i] = m_t[i] / (double) m_s[i];
+                m_l[i] = m_s[i] / (double) m_t[i];
+            }
+            std::cout << "-----T-----" << std::endl;
+            printVector(m_t);
+            std::cout << "-----S-----" << std::endl;
+            printVector(m_s);
+            std::cout << "-----L-----" << std::endl;
+            printVector(m_l);
+            std::cout << "-----R-----" << std::endl;
+            printVector(m_r);
+
+
+        }
+
+        info simple(const uint64_t ith){
+            info res;
+            //double a;
+            double b1_l, b1_r, b2_l, b2_r, w1_l, w2_l, w1_r, w2_r;
+            if(m_s[ith] < m_t[ith]){
+                res.split = source;
+                b1_l = b1_r = m_s[ith];
+                //Right part as first option
+                w1_r = b1_r;
+                for(uint64_t i = ith; i < m_r.size(); ++i){
+                    b1_r = b1_r * m_r[i];
+                    w1_r += b1_r;
+                }
+                //Left part as first option
+                w1_l = b1_l; //Jump from target to source
+                for(int64_t i = ith-1; i >= 0; --i){
+                    b1_l = b1_l * m_l[i];
+                    w1_l += b1_l;
+                }
+                //Left part as second option
+                b2_l = b1_r;
+                w2_l = b2_l; //Jump from target to source
+                for(int64_t i = ith-1; i >= 0; --i){
+                    b2_l = b2_l * m_l[i];
+                    w2_l += b2_l;
+                }
+                //Right part as second option
+                b2_r = b1_l;
+                w2_r = b2_r;
+                for(uint64_t i = ith; i < m_r.size(); ++i){
+                    b2_r = b2_r * m_r[i];
+                    w2_r += b2_r;
+                }
+
+            }else{
+                res.split = target;
+                b1_l = b1_r = m_t[ith];
+                //Right part as first option
+                w1_r = b1_r;
+                for(uint64_t i = ith+1; i < m_r.size(); ++i){
+                    b1_r = b1_r * m_r[i];
+                    w1_r += b1_r;
+                }
+                //Left part as first option
+                w1_l = b1_l; //Jump from target to source
+                for(int64_t i = ith; i >= 0; --i){
+                    b1_l = b1_l * m_l[i];
+                    w1_l += b1_l;
+                }
+                //Left part as second option
+                b2_l = b1_r;
+                w2_l = b2_l; //Jump from target to source
+                for(int64_t i = ith; i >= 0; --i){
+                    b2_l = b2_l * m_l[i];
+                    w2_l += b2_l;
+                }
+                //Right part as second option
+                b2_r = b1_l;
+                w2_r = b2_r;
+                for(uint64_t i = ith+1; i < m_r.size(); ++i){
+                    b2_r = b2_r * m_r[i];
+                    w2_r += b2_r;
+                }
+            }
+            auto first_left = w1_l + w2_r;
+            auto first_right = w1_r + w2_l;
+            if(first_left <= first_right){
+                res.weight = first_left;
+                res.first_left = true;
+            }else{
+                res.weight = first_right;
+                res.first_left = false;
+            }
+            return res;
+        }
+
+        info intersection(const uint64_t ith) {
+            info res;
+            res.split = intersect;
+            double b1_l, b1_r, b2_l, b2_r, w1_l, w1_r, w2_l, w2_r;
+            if(m_s[ith+1] < m_t[ith]){
+                double p = m_t[ith] / (double) (m_sigma);
+                b1_l = b1_r = p * m_s[ith+1];
+            }else{
+                double p = m_s[ith+1] / (double) (m_sigma);
+                b1_l = b1_r = p * m_t[ith];
+            }
+            //Right part as first option
+            w1_r = b1_r; //Jump from source to target
+            for(uint64_t i = ith+1; i < m_r.size(); ++i){
+                b1_r = b1_r * m_r[i];
+                w1_r += b1_r;
+            }
+            //Left part as first option
+            w1_l = b1_l; //Jump from target to source
+            for(int64_t i = ith; i >= 0; --i){
+                b1_l = b1_l * m_l[i];
+                w1_l += b1_l;
+            }
+            //Left part as second option
+            b2_l = b1_r;
+            w2_l = b2_l; //Jump from target to source
+            for(int64_t i = ith; i >= 0; --i){
+                b2_l = b2_l * m_l[i];
+                w2_l += b2_l;
+            }
+            //Right part as second option
+            b2_r = b1_l;
+            w2_r = b2_r; //Jump from source to target
+            for(uint64_t i = ith+1; i < m_r.size(); ++i){
+                b2_r = b2_r * m_r[i];
+                w2_r += b2_r;
+            }
+            auto first_left = w1_l + w2_r;
+            auto first_right = w1_r + w2_l;
+            if(first_left <= first_right){
+                res.weight = first_left;
+                res.first_left = true;
+            }else{
+                res.weight = first_right;
+                res.first_left = false;
+            }
+            return res;
+        }
+
+    };
 
     /*class h_distsigma_path {
 
