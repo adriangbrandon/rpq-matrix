@@ -554,6 +554,165 @@ namespace selectivity {
 
     };
 
+    class h_growup_path2_opt {
+
+
+    private:
+        std::vector<uint64_t> m_s;
+        std::vector<uint64_t> m_t;
+        std::vector<double> m_r;
+        std::vector<double> m_sol_r;
+        std::vector<double> m_l;
+        std::vector<double> m_sol_l;
+        uint64_t m_max_p;
+        uint64_t m_sigma;
+
+
+    public:
+        h_growup_path2_opt(const std::vector<PairPredPos> &preds,
+                       const bwt_nose &L_S, const bwt_type &wt_pred_s,
+                       uint64_t maxP, uint64_t sigma){
+
+            m_max_p = maxP;
+            m_sigma = sigma;
+            //m_t.push_back(-1ULL);
+            for(const auto &pair : preds){
+
+                auto e_d = L_S.get_C(pair.id_pred + 1)-1;
+                auto b_d = L_S.get_C(pair.id_pred);
+                auto v_target = distinct_values(b_d, e_d, wt_pred_s);
+                m_t.push_back(v_target);
+
+                auto rev_id = reverse(pair.id_pred, m_max_p);
+                auto e_r = L_S.get_C(rev_id + 1)-1;
+                auto b_r = L_S.get_C(rev_id);
+                auto v_source = distinct_values(b_r, e_r, wt_pred_s);
+                m_s.push_back(v_source);
+            }
+            // m_s.push_back(-1ULL);
+            auto s = m_s.size();
+            std::vector<double> m_d(s), m_i(s);
+            m_r.resize(s);
+
+            m_sol_l.resize(s);
+            for(uint64_t i = 0; i < s; ++i){
+                m_d[i] = m_t[i] / (double) m_s[i];
+                m_i[i] = m_s[i] / (double) m_t[i];
+            }
+            m_sol_r.resize(s);
+            m_l.resize(s);
+            m_sol_r[s-1] = m_d[s-1];
+            m_sol_l[0] = m_i[0];
+            //Solutions:
+            // m_sol_r[i]: multiplicity ratio of solutions from i to s-1
+            // m_sol_l[i]: multiplicity ratio of solutions from 0 to i
+            for(uint64_t i = 1; i < s; ++i){
+                m_sol_r[s-1-i] = m_sol_r[s-i] * m_d[s-1-i];
+                m_sol_l[i] = m_sol_l[i-1] * m_i[i];
+            }
+            //Paths:
+            //m_r: multiplicity ratio of paths from i to s-1
+            //m_l: multiplicity ratio of paths from 0 to i
+            for(uint64_t i = 0; i < s; ++i){
+                m_r[0] += m_sol_r[i];
+                m_l[s-1] += m_sol_l[i];
+            }
+            for(uint64_t i = 1; i < s; ++i){
+                m_r[i] = m_r[i-1] / m_d[i] - 1;
+                m_l[s-1-i] = m_l[s-i] / m_i[i] - 1;
+            }
+            std::cout << "-----T-----" << std::endl;
+            printVector(m_t);
+            std::cout << "-----S-----" << std::endl;
+            printVector(m_s);
+            std::cout << "-----L-----" << std::endl;
+            printVector(m_l);
+            std::cout << "-----R-----" << std::endl;
+            printVector(m_r);
+
+
+        }
+
+        info simple(const uint64_t ith){
+            info res;
+            //double a;
+            double b1_l, b1_r, b2_l, b2_r, w1_l, w2_l, w1_r, w2_r;
+            if(m_s[ith] < m_t[ith]){
+                res.split = source;
+                if(ith == 0){
+                    b1_r = m_s[ith];
+                    w1_r = b1_r * m_r[ith];
+                    res.weight = w1_r;
+                    res.first_left = false;
+                    return res;
+                }
+                b1_l = b1_r = m_s[ith]; //Seed
+                w1_r = b1_r * m_r[ith]; //Right part as first option (include ith)
+                w1_l = b1_l * m_l[ith-1]; //Left part as first option (exclude ith)
+                b2_l = b1_r * m_sol_r[ith]; //Solutions right part (include ith)
+                w2_l = b2_l * m_l[ith-1]; //Left part as second option (exclude ith)
+                b2_r = b1_l * m_sol_l[ith-1]; //Solutions left part (exclude ith)
+                w2_r = b2_r * m_r[ith]; //Right part as second option (include ith)
+            }else{
+                res.split = target;
+                if(ith == m_t.size()-1){
+                    b1_l = m_t[ith];
+                    w1_l = b1_l * m_l[ith];
+                    res.weight = w1_l;
+                    res.first_left = true;
+                    return res;
+                }
+                b1_l = b1_r = m_t[ith]; //Seed
+                w1_r = b1_r * m_r[ith+1];  //Right part as first option (exclude ith)
+                w1_l = b1_l * m_l[ith]; //Left part as first option (include ith)
+                b2_l = b1_r * m_sol_r[ith+1]; //Solutions right part (exclude ith)
+                w2_l = b2_l * m_l[ith]; //Left part as second option (include ith)
+                b2_r = b1_l * m_sol_l[ith]; //Solutions left part (include ith)
+                w2_r = b2_r * m_r[ith+1]; //Right part as second option (exclude ith)
+            }
+            auto first_left = w1_l + w2_r;
+            auto first_right = w1_r + w2_l;
+            if(first_left <= first_right){
+                res.weight = first_left;
+                res.first_left = true;
+            }else{
+                res.weight = first_right;
+                res.first_left = false;
+            }
+            return res;
+        }
+
+        info intersection(const uint64_t ith) {
+            info res;
+            res.split = intersect;
+            double b1_l, b1_r, b2_l, b2_r, w1_l, w1_r, w2_l, w2_r;
+            if(m_s[ith+1] < m_t[ith]){
+                //double p = m_t[ith] / (double) (m_sigma);
+                b1_l = b1_r = m_s[ith+1]; //Seed
+            }else{
+                //double p = m_s[ith+1] / (double) (m_sigma);
+                b1_l = b1_r = m_t[ith]; //Seed
+            }
+            w1_r = b1_r * m_r[ith+1];  //Right part as first option (exclude ith)
+            w1_l = b1_l * m_l[ith]; //Left part as first option (include ith)
+            b2_l = b1_r * m_sol_r[ith+1]; //Solutions right part (exclude ith)
+            w2_l = b2_l * m_l[ith]; //Left part as second option (include ith)
+            b2_r = b1_l * m_sol_l[ith]; //Solutions left part (include ith)
+            w2_r = b2_r * m_r[ith+1]; //Right part as second option (exclude ith)
+            auto first_left = w1_l + w2_r;
+            auto first_right = w1_r + w2_l;
+            if(first_left <= first_right){
+                res.weight = first_left;
+                res.first_left = true;
+            }else{
+                res.weight = first_right;
+                res.first_left = false;
+            }
+            return res;
+        }
+
+    };
+
     /*class h_distsigma_path {
 
 
