@@ -649,12 +649,12 @@ namespace selectivity {
                     return res;
                 }
                 b1_l = b1_r = m_s[ith]; //Seed
-                w1_r = b1_r * m_r[ith]; //Right part as first option (include ith)
-                w1_l = b1_l * m_l[ith-1]; //Left part as first option (exclude ith)
+                w1_r = b1_r * (1+m_r[ith]); //Right part as first option (include ith)
+                w1_l = b1_l * (1+m_l[ith-1]); //Left part as first option (exclude ith)
                 b2_l = b1_r * m_sol_r[ith]; //Solutions right part (include ith)
-                w2_l = b2_l * m_l[ith-1]; //Left part as second option (exclude ith)
+                w2_l = b2_l * (1+m_l[ith-1]); //Left part as second option (exclude ith)
                 b2_r = b1_l * m_sol_l[ith-1]; //Solutions left part (exclude ith)
-                w2_r = b2_r * m_r[ith]; //Right part as second option (include ith)
+                w2_r = b2_r * (1+m_r[ith]); //Right part as second option (include ith)
             }else{
                 res.split = target;
                 if(ith == m_t.size()-1){
@@ -665,12 +665,12 @@ namespace selectivity {
                     return res;
                 }
                 b1_l = b1_r = m_t[ith]; //Seed
-                w1_r = b1_r * m_r[ith+1];  //Right part as first option (exclude ith)
-                w1_l = b1_l * m_l[ith]; //Left part as first option (include ith)
+                w1_r = b1_r * (1+m_r[ith+1]);  //Right part as first option (exclude ith)
+                w1_l = b1_l * (1+m_l[ith]); //Left part as first option (include ith)
                 b2_l = b1_r * m_sol_r[ith+1]; //Solutions right part (exclude ith)
-                w2_l = b2_l * m_l[ith]; //Left part as second option (include ith)
+                w2_l = b2_l * (1+m_l[ith]); //Left part as second option (include ith)
                 b2_r = b1_l * m_sol_l[ith]; //Solutions left part (include ith)
-                w2_r = b2_r * m_r[ith+1]; //Right part as second option (exclude ith)
+                w2_r = b2_r * (1+m_r[ith+1]); //Right part as second option (exclude ith)
             }
             auto first_left = w1_l + w2_r;
             auto first_right = w1_r + w2_l;
@@ -695,12 +695,12 @@ namespace selectivity {
                 //double p = m_s[ith+1] / (double) (m_sigma);
                 b1_l = b1_r = m_t[ith]; //Seed
             }
-            w1_r = b1_r * m_r[ith+1];  //Right part as first option (exclude ith)
-            w1_l = b1_l * m_l[ith]; //Left part as first option (include ith)
+            w1_r = b1_r * (1+m_r[ith+1]);  //Right part as first option (exclude ith)
+            w1_l = b1_l * (1+m_l[ith]); //Left part as first option (include ith)
             b2_l = b1_r * m_sol_r[ith+1]; //Solutions right part (exclude ith)
-            w2_l = b2_l * m_l[ith]; //Left part as second option (include ith)
+            w2_l = b2_l * (1+m_l[ith]); //Left part as second option (include ith)
             b2_r = b1_l * m_sol_l[ith]; //Solutions left part (include ith)
-            w2_r = b2_r * m_r[ith+1]; //Right part as second option (exclude ith)
+            w2_r = b2_r * (1+m_r[ith+1]); //Right part as second option (exclude ith)
             auto first_left = w1_l + w2_r;
             auto first_right = w1_r + w2_l;
             if(first_left <= first_right){
