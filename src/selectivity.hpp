@@ -592,15 +592,15 @@ namespace selectivity {
             // m_s.push_back(-1ULL);
             auto s = m_s.size();
             std::vector<double> m_d(s), m_i(s);
-            m_r.resize(s);
 
-            m_sol_l.resize(s);
             for(uint64_t i = 0; i < s; ++i){
                 m_d[i] = m_t[i] / (double) m_s[i];
                 m_i[i] = m_s[i] / (double) m_t[i];
             }
-            m_sol_r.resize(s);
             m_l.resize(s);
+            m_r.resize(s);
+            m_sol_l.resize(s);
+            m_sol_r.resize(s);
             m_sol_r[s-1] = m_d[s-1];
             m_sol_l[0] = m_i[0];
             //Solutions:
@@ -618,8 +618,8 @@ namespace selectivity {
                 m_l[s-1] += m_sol_l[i];
             }
             for(uint64_t i = 1; i < s; ++i){
-                m_r[i] = m_r[i-1] / m_d[i] - 1;
-                m_l[s-1-i] = m_l[s-i] / m_i[i] - 1;
+                m_r[i] = m_r[i-1] / m_d[i-1] - 1;
+                m_l[s-1-i] = m_l[s-i] / m_i[i-1] - 1;
             }
             std::cout << "-----T-----" << std::endl;
             printVector(m_t);
