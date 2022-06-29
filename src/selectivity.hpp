@@ -613,14 +613,16 @@ namespace selectivity {
             //Paths:
             //m_r: multiplicity ratio of paths from i to s-1
             //m_l: multiplicity ratio of paths from 0 to i
-            for(uint64_t i = 0; i < s; ++i){
-                m_r[0] += m_sol_r[i];
-                m_l[s-1] += m_sol_l[i];
-            }
+            m_r[s-1] = m_d[s-1];
+            m_l[0] = m_i[0];
             for(uint64_t i = 1; i < s; ++i){
-                m_r[i] = m_r[i-1] / m_d[i-1] - 1;
-                m_l[s-1-i] = m_l[s-i] / m_i[i-1] - 1;
+                m_r[s-1-i] = (1+m_r[s-i])*m_d[s-1-i];
+                m_l[i] = (1+m_l[i-1])*m_i[i];
             }
+            /*for(uint64_t i = 1; i < s; ++i){
+                m_r[i] = m_r[i-1] / m_d[i-1] - 1;
+                m_l[s-1-i] = m_l[s-i] / m_i[s-1-i] - 1;
+            }*/
             std::cout << "-----T-----" << std::endl;
             printVector(m_t);
             std::cout << "-----S-----" << std::endl;
