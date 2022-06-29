@@ -643,7 +643,7 @@ namespace selectivity {
                 res.split = source;
                 if(ith == 0){
                     b1_r = m_s[ith];
-                    w1_r = b1_r * m_r[ith];
+                    w1_r = b1_r * (1+m_r[ith]);
                     res.weight = w1_r;
                     res.first_left = false;
                     return res;
@@ -659,7 +659,7 @@ namespace selectivity {
                 res.split = target;
                 if(ith == m_t.size()-1){
                     b1_l = m_t[ith];
-                    w1_l = b1_l * m_l[ith];
+                    w1_l = b1_l * (1+m_l[ith]);
                     res.weight = w1_l;
                     res.first_left = true;
                     return res;
