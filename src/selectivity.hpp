@@ -979,13 +979,14 @@ namespace selectivity {
             info res;
             res.split = intersect;
             double seed, first_right, first_left;
-            if (m_s[ith + 1] < m_t[ith]) {
+            /*if (m_s[ith + 1] < m_t[ith]) {
                 //double p = m_t[ith] / (double) (m_sigma);
                 seed = m_s[ith + 1]; //Seed
             } else {
                 //double p = m_s[ith+1] / (double) (m_sigma);
                 seed = m_t[ith]; //Seed
-            }
+            }*/
+            seed = m_intersection[ith];
             //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
             first_right = seed * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
             //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))

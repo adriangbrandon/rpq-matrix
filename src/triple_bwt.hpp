@@ -866,7 +866,7 @@ private:
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
         const auto& pos_pred_vec = mandData.pos_pred;
-        selectivity::h_growup_path3 h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
+        selectivity::h_growup_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size(); ++i){
             selectivity::info sel_info;
