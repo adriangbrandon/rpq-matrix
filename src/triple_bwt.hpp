@@ -866,7 +866,7 @@ private:
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
         const auto& pos_pred_vec = mandData.pos_pred;
-        selectivity::h_growup_path2_opt h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
+        selectivity::h_growup_path3 h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size(); ++i){
             selectivity::info sel_info;
@@ -1015,8 +1015,7 @@ private:
                                std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
                                bool const_to_var,
                                high_resolution_clock::time_point start,
-                               uint64_t bound
-    ) {
+                               uint64_t bound) {
         high_resolution_clock::time_point stop;
         double total_time = 0.0;
         duration<double> time_span;
