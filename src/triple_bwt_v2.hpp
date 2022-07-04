@@ -912,7 +912,7 @@ private:
     void _rpq_const_s_to_var_o(RpqAutomata &A,
                                           std::unordered_map<std::string, uint64_t> &predicates_map,
                                           std::vector<word_t> &B_array,
-                                          std::vector<uint64_t> &objects,
+                                          const std::vector<uint64_t> &objects,
                                           std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
                                           bool const_to_var,
                                           high_resolution_clock::time_point start) {
@@ -1087,7 +1087,7 @@ private:
     void _rpq_const_s_to_var_o_split1(RpqAutomata &A,
                                std::unordered_map<std::string, uint64_t> &predicates_map,
                                std::vector<word_t> &B_array,
-                               std::vector<uint64_t> &objects,
+                               const std::vector<uint64_t> &objects,
                                std::unordered_map<uint64_t, std::vector<uint64_t>> &partial_solutions,
                                high_resolution_clock::time_point start) {
 
@@ -1122,7 +1122,7 @@ private:
             time_span = duration_cast<microseconds>(stop - start);
             total_time = time_span.count();
             if (total_time > TIME_OUT) time_out = true;
-            const auto ist_top = ist_container.top();
+            auto ist_top = ist_container.top();
             ist_container.pop();
             step_1(A, B_array, ist_top, input_for_step_2);
             for (uint64_t i = 0; !time_out and i < input_for_step_2.size(); i++) {
