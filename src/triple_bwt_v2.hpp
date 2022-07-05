@@ -763,7 +763,7 @@ private:
 
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
-        D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
+        D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
 
         // Set of intervals for each step. Each interval includes bwt_interval, nfa_state, node_id, index_D in D_arrays
         ContainerType ist_container;
@@ -811,7 +811,7 @@ private:
 
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
-        D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
+        D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
 
         // Set of intervals for each step. Each interval includes bwt_interval, nfa_state, node_id, index_D in D_arrays
         ContainerType ist_container;
@@ -863,7 +863,7 @@ private:
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
         for(uint64_t i = 0; i < objects.size(); ++i){
-            D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
+            D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
         }
 
 
@@ -923,7 +923,7 @@ private:
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
         for(uint64_t i = 0; i < objects.size(); ++i){
-            D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
+            D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
         }
 
 
@@ -935,7 +935,7 @@ private:
             interval_state_type ist{bwt_interval(L_P.get_C(objects[i]), L_P.get_C(objects[i] + 1) - 1),
                                     (word_t) A.getFinalStates(), objects[i], i};
             if (A.atFinal(ist.current_D, BWD)) {
-                output_subjects.push_back(std::pair<uint64_t, uint64_t>(objects[i], objects[i]));
+                output_subjects.emplace_back(objects[i], objects[i]);
             }
             ist_container.push(ist);
         }
@@ -984,7 +984,7 @@ private:
 
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
-        D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
+        D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
 
 
         // Set of intervals for each step. Each interval includes bwt_interval, nfa_state, node_id, index_D in D_arrays
@@ -994,7 +994,7 @@ private:
         interval_state_type ist{bwt_interval(L_P.get_C(object), L_P.get_C(object + 1) - 1),
                                 (word_t) A.getFinalStates(), object, 0};
         if (A.atFinal(ist.current_D, BWD)) {
-            output_subjects.push_back(std::pair<uint64_t, uint64_t>(object, object));
+            output_subjects.emplace_back(object, object);
         }
         ist_container.push(ist);
 
@@ -1040,7 +1040,7 @@ private:
 
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
-        D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
+        D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
 
 
         // Set of intervals for each step. Each interval includes bwt_interval, nfa_state, node_id, index_D in D_arrays
@@ -1098,7 +1098,7 @@ private:
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
         for(uint64_t i = 0; i < objects.size(); ++i){
-            D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
+            D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
             std::vector<uint64_t> aux = {objects[i]};
             partial_solutions.insert({objects[i], aux});
         }
@@ -1132,7 +1132,7 @@ private:
                 if (total_time > TIME_OUT) time_out = true;
                 word_t current_D = input_for_step_2[i].second;
                 step_2_merge_interval_split1(A, D_arrays[ist_top.index_D], current_D, input_for_step_2[i].first,
-                                      ist_top, ist_container, partial_solutions[objects[i]]);
+                                      ist_top, ist_container, partial_solutions[ist_top.id]);
             }
             if (time_out) break;
         }
@@ -1166,7 +1166,7 @@ private:
 
         for(const auto &pair : partial_solutions){
             if(pair.second.empty()) continue;
-            D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
+            D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
             interval_state_type ist{bwt_interval(L_P.get_C(pair.first), L_P.get_C(pair.first + 1) - 1),
                                     (word_t) A.getFinalStates(), pair.first, index};
             if (A.atFinal(ist.current_D, BWD)) {
@@ -1229,6 +1229,7 @@ private:
         high_resolution_clock::time_point stop;
         double total_time = 0.0;
         duration<double> time_span;
+
 
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
