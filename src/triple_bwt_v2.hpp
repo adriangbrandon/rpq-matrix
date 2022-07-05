@@ -1099,8 +1099,7 @@ private:
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
         for(uint64_t i = 0; i < objects.size(); ++i){
             D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
-            std::vector<uint64_t> aux = {objects[i]};
-            partial_solutions.insert({objects[i], aux});
+            partial_solutions.insert({objects[i], std::vector<uint64_t>()});
         }
         // Set of intervals for each step. Each interval includes bwt_interval, nfa_state, node_id, index_D in D_arrays
         ContainerType ist_container;
