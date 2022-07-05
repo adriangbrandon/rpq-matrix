@@ -480,12 +480,12 @@ private:
     }
 
     void step_2_merge_interval_bound(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D,
-                               bwt_interval &I_s,
-                               const interval_state_type &ist_top,
-                               ContainerType &ist_container,
-                               std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
-                               uint64_t bound,
-                               bool const_to_var = true){
+                                     bwt_interval &I_s,
+                                     const interval_state_type &ist_top,
+                                     ContainerType &ist_container,
+                                     std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                                     uint64_t bound,
+                                     bool const_to_var = true){
 
         std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> values_in_I_s_test;
         L_S.all_active_s_values_in_range_test<word_t>(I_s.left(), I_s.right(), D_array, current_D, values_in_I_s_test);
@@ -535,10 +535,10 @@ private:
     }
 
     void step_2_merge_interval_split1(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D,
-                               bwt_interval &I_s,
-                               const interval_state_type &ist_top,
-                               ContainerType &ist_container,
-                               std::vector<uint64_t> &output){
+                                      bwt_interval &I_s,
+                                      const interval_state_type &ist_top,
+                                      ContainerType &ist_container,
+                                      std::vector<uint64_t> &output){
 
         std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> values_in_I_s_test;
         L_S.all_active_s_values_in_range_test<word_t>(I_s.left(), I_s.right(), D_array, current_D, values_in_I_s_test);
@@ -594,11 +594,11 @@ private:
 
 
     bool step_2_check_merge_interval_bound(RpqAutomata &A, initializable_array<word_t> &D_array,
-                                     word_t current_D, bwt_interval &I_s,
-                                     const interval_state_type &ist_top,
-                                     ContainerType &ist_container,
-                                     std::vector<uint64_t> &object_vector,
-                                     uint64_t bound
+                                           word_t current_D, bwt_interval &I_s,
+                                           const interval_state_type &ist_top,
+                                           ContainerType &ist_container,
+                                           std::vector<uint64_t> &object_vector,
+                                           uint64_t bound
     ) {
         std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> values_in_I_s_test;
 
@@ -646,7 +646,7 @@ private:
 
 
     inline void get_elements_intersection(const uint64_t pred_1, const uint64_t pred_2,
-                                    std::vector<uint64_t> &elements){
+                                          std::vector<uint64_t> &elements){
 
         std::vector<std::array<uint64_t, 2ul>> ranges;
 
@@ -675,7 +675,7 @@ private:
             selectivity::info sel_info;
             //2. Intersection
             if(i+1 < pos_pred_vec.size()
-                && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
+               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
                 sel_info = h.intersection(i);
             }else{
                 sel_info = h.simple(i);
@@ -713,7 +713,7 @@ private:
 
 
     std::pair<uint64_t, selectivity::info> pos_split_rpq(const MandatoryData &mandData,
-                                                     unordered_map<std::string, uint64_t> &predicates_map){
+                                                         unordered_map<std::string, uint64_t> &predicates_map){
 
 
         selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source, true};
@@ -752,10 +752,10 @@ private:
      */
 
     bool rpq_var_to_var_obtain_o_with_bound(RpqAutomata &A,
-                                 std::vector<uint64_t> &object_vector,
-                                 std::vector<word_t> &B_array,
-                                 high_resolution_clock::time_point start,
-                                 uint64_t bound
+                                            std::vector<uint64_t> &object_vector,
+                                            std::vector<word_t> &B_array,
+                                            high_resolution_clock::time_point start,
+                                            uint64_t bound
     ) {
         high_resolution_clock::time_point stop;
         double total_time = 0.0;
@@ -763,7 +763,7 @@ private:
 
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
-        D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
+        D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
 
         // Set of intervals for each step. Each interval includes bwt_interval, nfa_state, node_id, index_D in D_arrays
         ContainerType ist_container;
@@ -788,7 +788,7 @@ private:
                 if (total_time > TIME_OUT) time_out = true;
                 word_t current_D = input_for_step_2[i].second;
                 step_2_check_merge_interval_bound(A, D_arrays[ist_top.index_D], current_D, input_for_step_2[i].first,
-                                            ist_top, ist_container, object_vector);
+                                                  ist_top, ist_container, object_vector);
             }
             if (time_out) break;
         }
@@ -811,7 +811,7 @@ private:
 
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
-        D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
+        D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
 
         // Set of intervals for each step. Each interval includes bwt_interval, nfa_state, node_id, index_D in D_arrays
         ContainerType ist_container;
@@ -849,13 +849,13 @@ private:
      */
 
     void _rpq_const_s_to_var_o_with_bound(RpqAutomata &A,
-                               std::unordered_map<std::string, uint64_t> &predicates_map,
-                               std::vector<word_t> &B_array,
-                               std::vector<uint64_t> &objects,
-                               std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
-                               bool const_to_var,
-                               high_resolution_clock::time_point start,
-                               uint64_t bound) {
+                                          std::unordered_map<std::string, uint64_t> &predicates_map,
+                                          std::vector<word_t> &B_array,
+                                          std::vector<uint64_t> &objects,
+                                          std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                                          bool const_to_var,
+                                          high_resolution_clock::time_point start,
+                                          uint64_t bound) {
         high_resolution_clock::time_point stop;
         double total_time = 0.0;
         duration<double> time_span;
@@ -863,7 +863,7 @@ private:
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
         for(uint64_t i = 0; i < objects.size(); ++i){
-            D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
+            D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
         }
 
 
@@ -910,12 +910,12 @@ private:
      */
 
     void _rpq_const_s_to_var_o(RpqAutomata &A,
-                                          std::unordered_map<std::string, uint64_t> &predicates_map,
-                                          std::vector<word_t> &B_array,
-                                          const std::vector<uint64_t> &objects,
-                                          std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
-                                          bool const_to_var,
-                                          high_resolution_clock::time_point start) {
+                               std::unordered_map<std::string, uint64_t> &predicates_map,
+                               std::vector<word_t> &B_array,
+                               const std::vector<uint64_t> &objects,
+                               std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                               bool const_to_var,
+                               high_resolution_clock::time_point start) {
         high_resolution_clock::time_point stop;
         double total_time = 0.0;
         duration<double> time_span;
@@ -923,7 +923,7 @@ private:
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
         for(uint64_t i = 0; i < objects.size(); ++i){
-            D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
+            D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
         }
 
 
@@ -935,7 +935,7 @@ private:
             interval_state_type ist{bwt_interval(L_P.get_C(objects[i]), L_P.get_C(objects[i] + 1) - 1),
                                     (word_t) A.getFinalStates(), objects[i], i};
             if (A.atFinal(ist.current_D, BWD)) {
-                output_subjects.emplace_back(objects[i], objects[i]);
+                output_subjects.push_back(std::pair<uint64_t, uint64_t>(objects[i], objects[i]));
             }
             ist_container.push(ist);
         }
@@ -957,7 +957,7 @@ private:
                 if (total_time > TIME_OUT) time_out = true;
                 word_t current_D = input_for_step_2[i].second;
                 step_2_merge_interval(A, D_arrays[ist_top.index_D], current_D, input_for_step_2[i].first,
-                                                  ist_top, ist_container, output_subjects, const_to_var);
+                                      ist_top, ist_container, output_subjects, const_to_var);
             }
             if (time_out) break;
         }
@@ -971,20 +971,20 @@ private:
     */
 
     void _rpq_const_s_to_var_o_with_bound(RpqAutomata &A,
-                               std::unordered_map<std::string, uint64_t> &predicates_map,
-                               std::vector<word_t> &B_array,
-                               uint64_t object,
-                               std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
-                               bool const_to_var,
-                               high_resolution_clock::time_point start,
-                               uint64_t bound) {
+                                          std::unordered_map<std::string, uint64_t> &predicates_map,
+                                          std::vector<word_t> &B_array,
+                                          uint64_t object,
+                                          std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                                          bool const_to_var,
+                                          high_resolution_clock::time_point start,
+                                          uint64_t bound) {
         high_resolution_clock::time_point stop;
         double total_time = 0.0;
         duration<double> time_span;
 
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
-        D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
+        D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
 
 
         // Set of intervals for each step. Each interval includes bwt_interval, nfa_state, node_id, index_D in D_arrays
@@ -994,7 +994,7 @@ private:
         interval_state_type ist{bwt_interval(L_P.get_C(object), L_P.get_C(object + 1) - 1),
                                 (word_t) A.getFinalStates(), object, 0};
         if (A.atFinal(ist.current_D, BWD)) {
-            output_subjects.emplace_back(object, object);
+            output_subjects.push_back(std::pair<uint64_t, uint64_t>(object, object));
         }
         ist_container.push(ist);
 
@@ -1015,7 +1015,7 @@ private:
                 if (total_time > TIME_OUT) time_out = true;
                 word_t current_D = input_for_step_2[i].second;
                 step_2_merge_interval_bound(A, D_arrays[ist_top.index_D], current_D, input_for_step_2[i].first,
-                                      ist_top, ist_container, output_subjects, bound, const_to_var);
+                                            ist_top, ist_container, output_subjects, bound, const_to_var);
             }
             if (time_out) break;
         }
@@ -1040,7 +1040,7 @@ private:
 
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
-        D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
+        D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
 
 
         // Set of intervals for each step. Each interval includes bwt_interval, nfa_state, node_id, index_D in D_arrays
@@ -1085,11 +1085,11 @@ private:
      */
 
     void _rpq_const_s_to_var_o_split1(RpqAutomata &A,
-                               std::unordered_map<std::string, uint64_t> &predicates_map,
-                               std::vector<word_t> &B_array,
-                               const std::vector<uint64_t> &objects,
-                               std::unordered_map<uint64_t, std::vector<uint64_t>> &partial_solutions,
-                               high_resolution_clock::time_point start) {
+                                      std::unordered_map<std::string, uint64_t> &predicates_map,
+                                      std::vector<word_t> &B_array,
+                                      const std::vector<uint64_t> &objects,
+                                      std::unordered_map<uint64_t, std::vector<uint64_t>> &partial_solutions,
+                                      high_resolution_clock::time_point start) {
 
         high_resolution_clock::time_point stop;
         double total_time = 0.0;
@@ -1098,7 +1098,7 @@ private:
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
         for(uint64_t i = 0; i < objects.size(); ++i){
-            D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
+            D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
             std::vector<uint64_t> aux = {objects[i]};
             partial_solutions.insert({objects[i], aux});
         }
@@ -1132,7 +1132,7 @@ private:
                 if (total_time > TIME_OUT) time_out = true;
                 word_t current_D = input_for_step_2[i].second;
                 step_2_merge_interval_split1(A, D_arrays[ist_top.index_D], current_D, input_for_step_2[i].first,
-                                      ist_top, ist_container, partial_solutions[ist_top.id]);
+                                             ist_top, ist_container, partial_solutions[ist_top.id]);
             }
             if (time_out) break;
         }
@@ -1166,7 +1166,7 @@ private:
 
         for(const auto &pair : partial_solutions){
             if(pair.second.empty()) continue;
-            D_arrays.push_back(initializable_array<word_t>(4 * (max_O + 1),0));
+            D_arrays.emplace_back(initializable_array<word_t>(4 * (max_O + 1),0));
             interval_state_type ist{bwt_interval(L_P.get_C(pair.first), L_P.get_C(pair.first + 1) - 1),
                                     (word_t) A.getFinalStates(), pair.first, index};
             if (A.atFinal(ist.current_D, BWD)) {
@@ -1229,7 +1229,6 @@ private:
         high_resolution_clock::time_point stop;
         double total_time = 0.0;
         duration<double> time_span;
-
 
 
         std::vector<initializable_array<word_t>> D_arrays; //Array of D_arrays
@@ -1804,12 +1803,12 @@ public:
     };
 
     void rpq_const_s_to_const_o(const std::string &rpq,
-                              unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
-                              std::vector<word_t> &B_array,
-                              uint64_t initial_object,
-                              std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
-                              uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path,
-                              uint64_t bound) {
+                                unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
+                                std::vector<word_t> &B_array,
+                                uint64_t initial_object,
+                                std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                                uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path,
+                                uint64_t bound) {
         std::string query, str_aux;
 
         if (n_predicates == 1 and n_operators == 0) {
@@ -2066,14 +2065,14 @@ public:
             m = A2.getB();
             for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
                 L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
-                _rpq_const_s_to_var_o_with_bound(A2, predicates_map, B_array, object_vector_1, output_subjects, true, start,
-                                      bound);
+            _rpq_const_s_to_var_o_with_bound(A2, predicates_map, B_array, object_vector_1, output_subjects, true, start,
+                                             bound);
         } else {
             m = A.getB();
             for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
                 L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
-                _rpq_const_s_to_var_o_with_bound(A, predicates_map, B_array, object_vector_2, output_subjects, true, start,
-                                      bound);
+            _rpq_const_s_to_var_o_with_bound(A, predicates_map, B_array, object_vector_2, output_subjects, true, start,
+                                             bound);
         }
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
@@ -2151,14 +2150,14 @@ public:
             m = A2.getB();
             for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
                 L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
-                _rpq_const_s_to_var_o(A2, predicates_map, B_array, object_vector_1, output_subjects,
-                                      true, start);
+            _rpq_const_s_to_var_o(A2, predicates_map, B_array, object_vector_1, output_subjects,
+                                  true, start);
         } else {
             m = A.getB();
             for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
                 L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
-                _rpq_const_s_to_var_o(A, predicates_map, B_array, object_vector_2, output_subjects,
-                                      true, start);
+            _rpq_const_s_to_var_o(A, predicates_map, B_array, object_vector_2, output_subjects,
+                                  true, start);
         }
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
@@ -2228,8 +2227,8 @@ public:
         m = A2.getB();
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
-            _rpq_const_s_to_var_o_with_bound(A2, predicates_map, B_array, object_vector_1[i],
-                                             output_subjects, true, start, bound);
+        _rpq_const_s_to_var_o_with_bound(A2, predicates_map, B_array, object_vector_1[i],
+                                         output_subjects, true, start, bound);
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.unmark<word_t>(it->first, B_array);
@@ -2302,8 +2301,8 @@ public:
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
 
-            _rpq_const_s_to_var_o(A2, predicates_map, B_array, object_vector_1,
-                                  output_subjects, true, start);
+        _rpq_const_s_to_var_o(A2, predicates_map, B_array, object_vector_1,
+                              output_subjects, true, start);
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.unmark<word_t>(it->first, B_array);
@@ -2372,7 +2371,7 @@ public:
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
 
-            _rpq_const_s_to_var_o_with_bound(A, predicates_map, B_array, object_vector_2, output_subjects, true, start, bound);
+        _rpq_const_s_to_var_o_with_bound(A, predicates_map, B_array, object_vector_2, output_subjects, true, start, bound);
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.unmark<word_t>(it->first, B_array);
@@ -2446,8 +2445,8 @@ public:
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
 
-            _rpq_const_s_to_var_o(A, predicates_map, B_array, object_vector_2,
-                                  output_subjects, true, start);
+        _rpq_const_s_to_var_o(A, predicates_map, B_array, object_vector_2,
+                              output_subjects, true, start);
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.unmark<word_t>(it->first, B_array);
@@ -2635,8 +2634,8 @@ public:
                                      uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators,
                                      bool is_a_path, high_resolution_clock::time_point start ){
 
-       // std::cout << "rpq_l: " << rpq_l << std::endl;
-       // std::cout << "rpq_r: " << rpq_r << std::endl;
+        // std::cout << "rpq_l: " << rpq_l << std::endl;
+        // std::cout << "rpq_r: " << rpq_r << std::endl;
         if (!rpq_l.empty() && !rpq_r.empty()) {
 
             //3.Solve RPQ1 and RPQ2 by using the selected ranges of objects (RPQ1 and RPQ2 exist)
@@ -2769,9 +2768,9 @@ public:
 
 
     void rpq_var_to_var_split_all(const std::string &rpq,
-                              unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
-                              std::vector<word_t> &B_array,
-                              uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path){
+                                  unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
+                                  std::vector<word_t> &B_array,
+                                  uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path){
 
         RpqTree rpqTree(rpq, predicates_map, real_max_P);
         auto mandData = rpqTree.getMandatoryData();
@@ -2883,17 +2882,17 @@ public:
                 duration<double> time_span;
                 start = high_resolution_clock::now();
 
-               // std::cout << "Splitting " << i << "-th mandatory pred by intersecting" << std::endl;
+                // std::cout << "Splitting " << i << "-th mandatory pred by intersecting" << std::endl;
                 auto pred_rev = pred_reverse(pos_pred_vec[i+1].id_pred);
                 auto pred = pos_pred_vec[i].id_pred;
                 get_elements_intersection(pred_rev, pred, elements);
-               // std::cout << "elements: " << elements.size()<< std::endl;
+                // std::cout << "elements: " << elements.size()<< std::endl;
                 std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
                 _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
                                             B_array, true, solution, n_predicates,
                                             is_negated_pred, n_operators, is_a_path, start);
-               // std::cout << "Elements: " << elements.size() << std::endl;
-               // std::cout << "Solutions: " << solution.size() << std::endl;
+                // std::cout << "Elements: " << elements.size() << std::endl;
+                // std::cout << "Solutions: " << solution.size() << std::endl;
                 stop = high_resolution_clock::now();
                 time_span = duration_cast<microseconds>(stop - start);
                 total_time = time_span.count();
