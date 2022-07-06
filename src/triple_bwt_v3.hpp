@@ -404,38 +404,168 @@ private:
         return queue.front();
     }
 
-    void step_1(RpqAutomata &A, std::vector<word_t> &B_array,
-                word_t current_D, bwt_interval &I_p,
-                vector <std::pair<bwt_interval, word_t>> &input_for_step_2)
-    // I_p is an interval in L_P
-    {
-        // first, search for all elements in I_p that lead to an active state
-        std::vector<std::pair<uint64_t, std::pair<uint64_t, uint64_t>>>
-                values_in_I_P_test;
-        L_P.all_active_p_values_in_range_test<word_t>(I_p.left(), I_p.right(), B_array, current_D, values_in_I_P_test);
 
-        // A continuación, por cada valor en el vector anterior, debo aplicar un backward step para obtener un intervalo
-        // en L_S. Esos se agregan al vector "input_for_step_2".
-        std::pair<uint64_t, uint64_t> interval_aux, interval_aux_test;
+
+    void next_step_objects(RpqAutomata &A, std::vector<word_t> &B_array,
+                           initializable_array<word_t> &D_array,
+                           word_t current_D, bwt_interval &I_p,
+                           Container &ist_container,
+                           std::vector<uint64_t> &objects){
+
+        //PART1: Finding predicates from the object whose range in L_p is I_p
+        std::vector<std::pair<uint64_t, std::pair<uint64_t, uint64_t>>> pred_vec;
+        L_P.all_active_p_values_in_range_test<word_t>(I_p.left(), I_p.right(), B_array, current_D, pred_vec);
+
+        std::pair<uint64_t, uint64_t> interval;
         uint64_t c;
-        for (uint64_t i = 0; i < values_in_I_P_test.size(); i++) {
-            interval_aux = L_P.backward_step_test(I_p.left(), I_p.right(), values_in_I_P_test[i].first,
-                                                  values_in_I_P_test[i].second.first,
-                                                  values_in_I_P_test[i].second.second);
+        //PART2: For each predicate, the values in L_S are obtained by using a backward step
+        for (uint64_t i = 0; i < pred_vec.size(); i++) {
+            interval = L_P.backward_step_test(I_p.left(), I_p.right(), pred_vec[i].first,
+                                              pred_vec[i].second.first,
+                                              pred_vec[i].second.second);
+            c = L_S.get_C(pred_vec[i].first);
+            std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> subj_vec;
+            L_S.all_active_s_values_in_range_test<word_t>(c + interval.first, c + interval.second,
+                                                          D_array,
+                                                          (word_t) A.next(current_D, pred_vec[i].first, BWD),
+                                                          subj_vec);
 
-            c = L_S.get_C(values_in_I_P_test[i].first);
-            input_for_step_2.push_back(
-                    std::pair<bwt_interval, word_t>(bwt_interval(c + interval_aux.first, c + interval_aux.second),
-                                                    (word_t) A.next(current_D, values_in_I_P_test[i].first,
-                                                                    BWD)) // actualiza el estado para ese intervalo
-            );
+            //PART3: Map the range of each subject to the range of objects
+            for (uint64_t j = 0; j < subj_vec.size(); i++) {
+
+                if (A.atFinal(get<1>(subj_vec[i]), BWD))
+                    objects.push_back(get<0>(subj_vec[i]));
+
+                push_merge_interval(ist_container, subj_vec[i]);
+            }
         }
+
+    }
+
+    void next_step_objects_with_bound(RpqAutomata &A, std::vector<word_t> &B_array,
+                           initializable_array<word_t> &D_array,
+                           word_t current_D, bwt_interval &I_p,
+                           Container &ist_container,
+                           std::vector<uint64_t> &objects,
+                           uint64_t bound){
+
+        //PART1: Finding predicates from the object whose range in L_p is I_p
+        std::vector<std::pair<uint64_t, std::pair<uint64_t, uint64_t>>> pred_vec;
+        L_P.all_active_p_values_in_range_test<word_t>(I_p.left(), I_p.right(), B_array, current_D, pred_vec);
+
+        std::pair<uint64_t, uint64_t> interval;
+        uint64_t c;
+        //PART2: For each predicate, the values in L_S are obtained by using a backward step
+        for (uint64_t i = 0; i < pred_vec.size(); i++) {
+            interval = L_P.backward_step_test(I_p.left(), I_p.right(), pred_vec[i].first,
+                                              pred_vec[i].second.first,
+                                              pred_vec[i].second.second);
+            c = L_S.get_C(pred_vec[i].first);
+            std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> subj_vec;
+            L_S.all_active_s_values_in_range_test<word_t>(c + interval.first, c + interval.second,
+                                                          D_array,
+                                                          (word_t) A.next(current_D, pred_vec[i].first, BWD),
+                                                          subj_vec);
+
+            //PART3: Map the range of each subject to the range of objects
+            for (uint64_t j = 0; j < subj_vec.size() and objects.size() < bound; i++) {
+
+                if (A.atFinal(get<1>(subj_vec[i]), BWD))
+                    objects.push_back(get<0>(subj_vec[i]));
+
+                push_merge_interval(ist_container, subj_vec[i]);
+            }
+        }
+
+    }
+
+    void next_step_solutions(RpqAutomata &A, std::vector<word_t> &B_array,
+                             initializable_array<word_t> &D_array,
+                             word_t current_D, bwt_interval &I_p,
+                             uint64_t initial_object,
+                             Container &ist_container,
+                             std::vector<std::pair<uint64_t, uint64_t>> &solutions,
+                             bool const_to_var = true){
+
+        //PART1: Finding predicates from the object whose range in L_p is I_p
+        std::vector<std::pair<uint64_t, std::pair<uint64_t, uint64_t>>> pred_vec;
+        L_P.all_active_p_values_in_range_test<word_t>(I_p.left(), I_p.right(), B_array, current_D, pred_vec);
+
+        std::pair<uint64_t, uint64_t> interval;
+        uint64_t c;
+        //PART2: For each predicate, the values in L_S are obtained by using a backward step
+        for (uint64_t i = 0; i < pred_vec.size(); i++) {
+            interval = L_P.backward_step_test(I_p.left(), I_p.right(), pred_vec[i].first,
+                                              pred_vec[i].second.first,
+                                              pred_vec[i].second.second);
+            c = L_S.get_C(pred_vec[i].first);
+            std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> subj_vec;
+            L_S.all_active_s_values_in_range_test<word_t>(c + interval.first, c + interval.second,
+                                                          D_array,
+                                                          (word_t) A.next(current_D, pred_vec[i].first, BWD),
+                                                          subj_vec);
+
+            //PART3: Map the range of each subject to the range of objects
+            for (uint64_t j = 0; j < subj_vec.size(); i++) {
+                push_merge_interval(ist_container, subj_vec[i]);
+
+                if (A.atFinal(get<1>(subj_vec[i]), BWD)) {
+                    if (const_to_var) {
+                        solutions.emplace_back(initial_object, get<0>(subj_vec[i]));
+                    } else {
+                        solutions.emplace_back(get<0>(subj_vec[i]), initial_object);
+                    }
+                }
+            }
+        }
+
+    }
+
+    void next_step_solutions_with_bound(RpqAutomata &A, std::vector<word_t> &B_array,
+                             initializable_array<word_t> &D_array,
+                             word_t current_D, bwt_interval &I_p,
+                             uint64_t initial_object,
+                             Container &ist_container,
+                             std::vector<std::pair<uint64_t, uint64_t>> &solutions,
+                             uint64_t bound,
+                             bool const_to_var = true){
+
+        //PART1: Finding predicates from the object whose range in L_p is I_p
+        std::vector<std::pair<uint64_t, std::pair<uint64_t, uint64_t>>> pred_vec;
+        L_P.all_active_p_values_in_range_test<word_t>(I_p.left(), I_p.right(), B_array, current_D, pred_vec);
+
+        std::pair<uint64_t, uint64_t> interval;
+        uint64_t c;
+        //PART2: For each predicate, the values in L_S are obtained by using a backward step
+        for (uint64_t i = 0; i < pred_vec.size(); i++) {
+            interval = L_P.backward_step_test(I_p.left(), I_p.right(), pred_vec[i].first,
+                                              pred_vec[i].second.first,
+                                              pred_vec[i].second.second);
+            c = L_S.get_C(pred_vec[i].first);
+            std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> subj_vec;
+            L_S.all_active_s_values_in_range_test<word_t>(c + interval.first, c + interval.second,
+                                                          D_array,
+                                                          (word_t) A.next(current_D, pred_vec[i].first, BWD),
+                                                          subj_vec);
+
+            //PART3: Map the range of each subject to the range of objects
+            for (uint64_t j = 0; j < subj_vec.size() and solutions.size() < bound; i++) {
+                push_merge_interval(ist_container, subj_vec[i]);
+
+                if (A.atFinal(get<1>(subj_vec[i]), BWD)) {
+                    if (const_to_var) {
+                        solutions.emplace_back(initial_object, get<0>(subj_vec[i]));
+                    } else {
+                        solutions.emplace_back(get<0>(subj_vec[i]), initial_object);
+                    }
+                }
+            }
+        }
+
     }
 
 
-
-
-    void push_merge_interval(Container& input_for_step_1,
+    void push_merge_interval(Container& ist_container,
                              const std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>> &element){
 
         /**
@@ -447,115 +577,18 @@ private:
         const auto lb = L_P.get_C(get<0>(element));
         const auto rb = L_P.get_C(get<0>(element) + 1) - 1;
 
-        if(input_for_step_1.empty()){
-            input_for_step_1.push(interval_state_type{bwt_interval(lb, rb),get<1>(element)});
+        if(ist_container.empty()){
+            ist_container.push(interval_state_type{bwt_interval(lb, rb),get<1>(element)});
             return;
         }
         //The previous interval is contiguous to element's interval and
         //both have equal NFA state
-        auto& last = last_element(input_for_step_1);
+        auto& last = last_element(ist_container);
         if(last.interval.right()+1 == lb && last.current_D == get<1>(element)){
             last.interval.set_right(rb);
         }else{
-            input_for_step_1.push(interval_state_type{bwt_interval(lb, rb),get<1>(element)});
+            ist_container.push(interval_state_type{bwt_interval(lb, rb),get<1>(element)});
         }
-    }
-
-    void step_2_merge_interval_bound(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D,
-                               bwt_interval &I_s,
-                               Container &input_for_step_1,
-                               uint64_t starting_o,
-                               std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
-                               uint64_t bound,
-                               bool const_to_var = true){
-
-        std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> values_in_I_s_test;
-        L_S.all_active_s_values_in_range_test<word_t>(I_s.left(), I_s.right(), D_array, current_D, values_in_I_s_test);
-
-
-        // Por cada elemento s reportado en el paso anterior, tengo que hacer un backward step para irme a un intervalo en L_o.
-        // Ver como hago esto, si conviene hacerlo aqui o en el paso 3
-        for (uint64_t i = 0; i < values_in_I_s_test.size() and output_subjects.size() < bound; i++) {
-
-            push_merge_interval(input_for_step_1, values_in_I_s_test[i]);
-
-            if (A.atFinal(get<1>(values_in_I_s_test[i]), BWD)) {
-                if (const_to_var)
-                    output_subjects.emplace_back(std::pair<uint64_t, uint64_t>(starting_o, get<0>(values_in_I_s_test[i])));
-                else
-                    output_subjects.emplace_back(std::pair<uint64_t, uint64_t>(get<0>(values_in_I_s_test[i]), starting_o));
-
-                //if(is_const_to_const) return true;
-            }
-        }
-    }
-
-    void step_2_merge_interval(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D,
-                               bwt_interval &I_s,
-                               Container &input_for_step_1,
-                               uint64_t starting_o,
-                               std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
-                               bool const_to_var = true){
-
-        std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> values_in_I_s_test;
-        L_S.all_active_s_values_in_range_test<word_t>(I_s.left(), I_s.right(), D_array, current_D, values_in_I_s_test);
-
-
-        // Por cada elemento s reportado en el paso anterior, tengo que hacer un backward step para irme a un intervalo en L_o.
-        // Ver como hago esto, si conviene hacerlo aqui o en el paso 3
-        for (uint64_t i = 0; i < values_in_I_s_test.size(); i++) {
-
-            push_merge_interval(input_for_step_1, values_in_I_s_test[i]);
-
-            if (A.atFinal(get<1>(values_in_I_s_test[i]), BWD)) {
-                if (const_to_var)
-                    output_subjects.emplace_back(std::pair<uint64_t, uint64_t>(starting_o, get<0>(values_in_I_s_test[i])));
-                else
-                    output_subjects.emplace_back(std::pair<uint64_t, uint64_t>(get<0>(values_in_I_s_test[i]), starting_o));
-            }
-        }
-    }
-
-    bool step_2_check_merge_interval(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D, bwt_interval &I_s,
-                      Container &input_for_step_1,
-                      std::vector<uint64_t> &object_vector, uint64_t bound
-    ) {
-        std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> values_in_I_s_test;
-
-        L_S.all_active_s_values_in_range_test<word_t>(I_s.left(), I_s.right(), D_array, current_D, values_in_I_s_test);
-
-        // Por cada elemento s reportado en el paso anterior, tengo que hacer un backward step para irme a un intervalo en L_o.
-        // Ver como hago esto, si conviene hacerlo aqui o en el paso 3
-        for (uint64_t i = 0; i < values_in_I_s_test.size() and object_vector.size() < bound; i++) {
-
-            if (A.atFinal(get<1>(values_in_I_s_test[i]), BWD))
-                object_vector.push_back(get<0>(values_in_I_s_test[i]));
-
-            push_merge_interval(input_for_step_1, values_in_I_s_test[i]);
-        }
-
-        return false;
-    }
-
-    bool step_2_check_merge_interval(RpqAutomata &A, initializable_array<word_t> &D_array, word_t current_D, bwt_interval &I_s,
-                                     Container &input_for_step_1,
-                                     std::vector<uint64_t> &object_vector
-    ) {
-        std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> values_in_I_s_test;
-
-        L_S.all_active_s_values_in_range_test<word_t>(I_s.left(), I_s.right(), D_array, current_D, values_in_I_s_test);
-
-        // Por cada elemento s reportado en el paso anterior, tengo que hacer un backward step para irme a un intervalo en L_o.
-        // Ver como hago esto, si conviene hacerlo aqui o en el paso 3
-        for (uint64_t i = 0; i < values_in_I_s_test.size(); i++) {
-
-            if (A.atFinal(get<1>(values_in_I_s_test[i]), BWD))
-                object_vector.push_back(get<0>(values_in_I_s_test[i]));
-
-            push_merge_interval(input_for_step_1, values_in_I_s_test[i]);
-        }
-
-        return false;
     }
 
 
@@ -624,34 +657,6 @@ private:
         }
     }
 
-    /*template<class heuristic = selectivity::h_distinct>
-    std::pair<uint64_t, selectivity::info> pos_split_rpq(const MandatoryData &mandData,
-                                                     unordered_map<std::string, uint64_t> &predicates_map,
-                                                     heuristic &h){
-
-        selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source};
-        uint64_t i_split = 0;
-        uint64_t sigma = (max_O > max_S) ? max_O : max_S;
-        const auto& pos_pred_vec = mandData.pos_pred;
-        //1. Checking mandatory data
-        for(uint64_t i = 0; i < pos_pred_vec.size();++i){
-            selectivity::info sel_info;
-            //2. Intersection
-            if(i+1 < pos_pred_vec.size()
-               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
-                sel_info = h.intersection(pos_pred_vec[i].id_pred, pos_pred_vec[i+1].id_pred, L_S, wt_pred_s, real_max_P, sigma);
-            }else{
-                sel_info = h.simple(pos_pred_vec[i].id_pred, L_S, wt_pred_s, real_max_P, sigma);
-            }
-            //3. Taking info with the smallest selectivity
-            if(sel_info.weight < sel_min.weight){
-                sel_min = sel_info;
-                i_split = i;
-            }
-
-        }
-        return {i_split, sel_min};
-    }*/
 
 
     std::pair<uint64_t, selectivity::info> pos_split_rpq(const MandatoryData &mandData,
@@ -694,41 +699,19 @@ private:
         double total_time = 0.0;
         duration<double> time_span;
 
-        word_t current_D;  // palabra de maquina D, con los estados activos
         initializable_array<word_t> D_array(4 * (max_O + 1), 0);
 
-//            cout << "D_array " << ((float)D_array.size_in_bytes())/(nTriples/2) << " bytes per triple" << endl;
-
-        // Conjuntos de intervalos para cada paso del algoritmo.
-        // Cada intervalo está acompañado del correspondiente conjunto de estados activos del NFA A
-        Container ist_container;
-        std::vector<std::pair<bwt_interval, word_t>> input_for_step_2;
-
-        current_D = (word_t) A.getFinalStates();
-        ist_container.push(interval_state_type{bwt_interval(1, nTriples), current_D});
-
         bool time_out = false;
-        while (!ist_container.empty() and object_vector.size() < bound) {
-            input_for_step_2.clear();
+        Container ist_container; //contains intervals with NFA states
+        ist_container.push(interval_state_type{bwt_interval(1, nTriples), (word_t) A.getFinalStates()});
+        while (!time_out && object_vector.size() < bound && !ist_container.empty()) {
             auto ist_top = ist_container.top();
             ist_container.pop();
+            next_step_objects_with_bound(A, B_array, D_array, ist_top.current_D, ist_top.interval,
+                                         ist_container, object_vector, bound);
             stop = high_resolution_clock::now();
-            time_span = duration_cast<microseconds>(stop - start);
-            total_time = time_span.count();
+            total_time = duration_cast<microseconds>(stop - start).count();
             if (total_time > TIME_OUT) time_out = true;
-            //Step 1
-            step_1(A, B_array, ist_top.current_D, ist_top.interval, input_for_step_2);
-            for (uint64_t i = 0; !time_out and i < input_for_step_2.size() and object_vector.size() < bound; i++) {
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                if (total_time > TIME_OUT) time_out = true;
-                current_D = input_for_step_2[i].second;
-                //Step 2 and 3
-                step_2_check_merge_interval(A, D_array, current_D, input_for_step_2[i].first,
-                                            ist_container, object_vector, bound);
-            }
-            if (time_out) break;
         }
     };
 
@@ -741,41 +724,19 @@ private:
         double total_time = 0.0;
         duration<double> time_span;
 
-        word_t current_D;  // palabra de maquina D, con los estados activos
         initializable_array<word_t> D_array(4 * (max_O + 1), 0);
 
-//            cout << "D_array " << ((float)D_array.size_in_bytes())/(nTriples/2) << " bytes per triple" << endl;
-
-        // Conjuntos de intervalos para cada paso del algoritmo.
-        // Cada intervalo está acompañado del correspondiente conjunto de estados activos del NFA A
-        Container ist_container;
-        std::vector<std::pair<bwt_interval, word_t>> input_for_step_2;
-
-        current_D = (word_t) A.getFinalStates();
-        ist_container.push(interval_state_type{bwt_interval(1, nTriples), current_D});
-
         bool time_out = false;
-        while (!ist_container.empty()) {
-            input_for_step_2.clear();
+        Container ist_container; //contains intervals with NFA states
+        ist_container.push(interval_state_type{bwt_interval(1, nTriples), (word_t) A.getFinalStates()});
+        while (!time_out && !ist_container.empty()) {
             auto ist_top = ist_container.top();
             ist_container.pop();
+            next_step_objects(A, B_array, D_array, ist_top.current_D,
+                              ist_top.interval,ist_container, object_vector);
             stop = high_resolution_clock::now();
-            time_span = duration_cast<microseconds>(stop - start);
-            total_time = time_span.count();
+            total_time = duration_cast<microseconds>(stop - start).count();
             if (total_time > TIME_OUT) time_out = true;
-            //Step 1
-            step_1(A, B_array, ist_top.current_D, ist_top.interval, input_for_step_2);
-            for (uint64_t i = 0; !time_out and i < input_for_step_2.size(); i++) {
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                if (total_time > TIME_OUT) time_out = true;
-                current_D = input_for_step_2[i].second;
-                //Step 2 and 3
-                step_2_check_merge_interval(A, D_array, current_D, input_for_step_2[i].first,
-                                            ist_container, object_vector);
-            }
-            if (time_out) break;
         }
     };
 
@@ -784,10 +745,11 @@ private:
                                std::unordered_map<std::string, uint64_t> &predicates_map,
                                std::vector<word_t> &B_array,
                                uint64_t initial_object,
-                               std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                               std::vector<std::pair<uint64_t, uint64_t>> &solutions,
                                bool const_to_var,
                                high_resolution_clock::time_point start,
                                uint64_t bound) {
+
         high_resolution_clock::time_point stop;
         double total_time = 0.0;
         duration<double> time_span;
@@ -795,42 +757,24 @@ private:
         word_t current_D;  // palabra de maquina D, con los estados activos
         initializable_array<word_t> D_array(4 * (max_O + 1), 0);
 
-        // Conjuntos de intervalos para cada paso del algoritmo.
-        // Cada intervalo está acompañado del correspondiente conjunto de estados activos del NFA A
-        Container ist_container;
-        std::vector<std::pair<bwt_interval, word_t>> input_for_step_2;
-
+        Container ist_container; //contains intervals with NFA states
         current_D = (word_t) A.getFinalStates();
-        //push_merge_interval(input_for_step_1, initial_object, current_D);
-        ist_container.push(interval_state_type{bwt_interval(L_P.get_C(initial_object),
-                                                            L_P.get_C(initial_object + 1) - 1), current_D});
 
         if (A.atFinal(current_D, BWD)) {
-            output_subjects.push_back(std::pair<uint64_t, uint64_t>(initial_object, initial_object));
+            solutions.emplace_back(initial_object, initial_object);
         }
 
         bool time_out = false;
-        while (!ist_container.empty() and output_subjects.size() < bound) {
-            input_for_step_2.clear();
+        ist_container.push(interval_state_type{bwt_interval(L_P.get_C(initial_object),
+                                                            L_P.get_C(initial_object + 1) - 1), current_D});
+        while (!time_out && solutions.size() < bound && !ist_container.empty()) {
             auto ist_top = ist_container.top();
             ist_container.pop();
+            next_step_solutions_with_bound(A, B_array, D_array, ist_top.current_D, ist_top.interval,
+                                         initial_object, ist_container, solutions, bound, const_to_var);
             stop = high_resolution_clock::now();
-            time_span = duration_cast<microseconds>(stop - start);
-            total_time = time_span.count();
+            total_time = duration_cast<microseconds>(stop - start).count();
             if (total_time > TIME_OUT) time_out = true;
-            //Step 1
-            step_1(A, B_array, ist_top.current_D, ist_top.interval, input_for_step_2);
-            for (uint64_t i = 0; !time_out and i < input_for_step_2.size() and output_subjects.size() < bound; i++) {
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                if (total_time > TIME_OUT) time_out = true;
-                current_D = input_for_step_2[i].second;
-                //Step 2 and 3
-                step_2_merge_interval_bound(A, D_array, current_D, input_for_step_2[i].first, 
-                                            ist_container, initial_object, output_subjects, bound, const_to_var);
-            }
-            if (time_out) break;
         }
     };
 
@@ -838,10 +782,10 @@ private:
                                std::unordered_map<std::string, uint64_t> &predicates_map,
                                std::vector<word_t> &B_array,
                                uint64_t initial_object,
-                               std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                               std::vector<std::pair<uint64_t, uint64_t>> &solutions,
                                bool const_to_var,
-                               high_resolution_clock::time_point start
-    ) {
+                               high_resolution_clock::time_point start) {
+
         high_resolution_clock::time_point stop;
         double total_time = 0.0;
         duration<double> time_span;
@@ -849,112 +793,26 @@ private:
         word_t current_D;  // palabra de maquina D, con los estados activos
         initializable_array<word_t> D_array(4 * (max_O + 1), 0);
 
-        // Conjuntos de intervalos para cada paso del algoritmo.
-        // Cada intervalo está acompañado del correspondiente conjunto de estados activos del NFA A
-        Container ist_container;
-        std::vector<std::pair<bwt_interval, word_t>> input_for_step_2;
-
+        Container ist_container; //contains intervals with NFA states
         current_D = (word_t) A.getFinalStates();
-        //push_merge_interval(input_for_step_1, initial_object, current_D);
-        ist_container.push(interval_state_type{bwt_interval(L_P.get_C(initial_object),
-                                                            L_P.get_C(initial_object + 1) - 1), current_D});
-
         if (A.atFinal(current_D, BWD)) {
-            output_subjects.push_back(std::pair<uint64_t, uint64_t>(initial_object, initial_object));
+            solutions.emplace_back(initial_object, initial_object);
         }
 
         bool time_out = false;
-        while (!ist_container.empty()) {
-            input_for_step_2.clear();
+        ist_container.push(interval_state_type{bwt_interval(L_P.get_C(initial_object),
+                                                            L_P.get_C(initial_object + 1) - 1), current_D});
+        while (!time_out && !ist_container.empty()) {
             auto ist_top = ist_container.top();
             ist_container.pop();
+            next_step_solutions(A, B_array, D_array, ist_top.current_D, ist_top.interval,
+                                initial_object, ist_container, solutions, const_to_var);
             stop = high_resolution_clock::now();
-            time_span = duration_cast<microseconds>(stop - start);
-            total_time = time_span.count();
+            total_time = duration_cast<microseconds>(stop - start).count();
             if (total_time > TIME_OUT) time_out = true;
-            //Step 1
-            step_1(A, B_array, ist_top.current_D, ist_top.interval, input_for_step_2);
-            for (uint64_t i = 0; !time_out and i < input_for_step_2.size(); i++) {
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                if (total_time > TIME_OUT) time_out = true;
-                current_D = input_for_step_2[i].second;
-                //Step 2 and 3
-                step_2_merge_interval(A, D_array, current_D, input_for_step_2[i].first, ist_container,
-                                            initial_object, output_subjects, const_to_var);
-            }
-            if (time_out) break;
         }
     };
 
-    /*void _rpq_const_s_to_const_o(RpqAutomata &A,
-                               std::unordered_map<std::string, uint64_t> &predicates_map,
-                               std::vector<word_t> &B_array,
-                               uint64_t initial_object,
-                               std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
-                               bool const_to_var,
-                               high_resolution_clock::time_point start
-    ) {
-        high_resolution_clock::time_point stop;
-        double total_time = 0.0;
-        duration<double> time_span;
-
-        word_t current_D;  // palabra de maquina D, con los estados activos
-        initializable_array<word_t> D_array(4 * (max_O + 1), 0);
-
-        // Conjuntos de intervalos para cada paso del algoritmo.
-        // Cada intervalo está acompañado del correspondiente conjunto de estados activos del NFA A
-        std::vector<std::pair<bwt_interval, word_t>> input_for_step_1;
-        std::vector<std::pair<bwt_interval, word_t>> input_for_step_2;
-
-        current_D = (word_t) A.getFinalStates();
-        //push_merge_interval(input_for_step_1, initial_object, current_D);
-        input_for_step_1.push_back(std::pair<bwt_interval, word_t>(
-                bwt_interval(L_P.get_C(initial_object), L_P.get_C(initial_object + 1) - 1),
-                current_D)
-        );
-
-        if (A.atFinal(current_D, BWD)) {
-            output_subjects.push_back(std::pair<uint64_t, uint64_t>(initial_object, initial_object));
-            return;
-        }
-
-        bool time_out = false;
-        uint64_t iter = 1;
-        while (input_for_step_1.size() > 0 ) {
-            //std::cout << "Number of ranges to step 1 in iteration " << iter
-            //         << ": " << input_for_step_1.size() << std::endl;
-            // STEP 1
-            input_for_step_2.clear();
-            for (uint64_t i = 0; !time_out and i < input_for_step_1.size(); i++) {
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                if (total_time > TIME_OUT) time_out = true;  // 10 minute timeout
-                current_D = input_for_step_1[i].second;
-                step_1(A, B_array, current_D, input_for_step_1[i].first, input_for_step_2);
-            }
-
-            if (time_out) break;
-            // STEP 2 (includes step 3 from the paper)
-            input_for_step_1.clear(); // clears it as they have been processed
-            //std::cout << "Number of ranges to step 2 in iteration " << iter
-            //          << ": " << input_for_step_2.size() << std::endl;
-            for (uint64_t i = 0; !time_out and i < input_for_step_2.size(); i++) {
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                if (total_time > TIME_OUT) time_out = true;  // 10 minute timeout
-
-                current_D = input_for_step_2[i].second;
-                step_2_merge_interval(A, D_array, current_D, input_for_step_2[i].first, input_for_step_1, initial_object,
-                                      output_subjects, const_to_var);
-            }
-            ++iter;
-            if (time_out) break;
-        }
-    };*/
 
 public:
     void or_query_var_to_var(const std::string &rpq, uint64_t n_or,
