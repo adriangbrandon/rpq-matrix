@@ -431,12 +431,12 @@ private:
                                                           subj_vec);
 
             //PART3: Map the range of each subject to the range of objects
-            for (uint64_t j = 0; j < subj_vec.size(); i++) {
+            for (uint64_t j = 0; j < subj_vec.size(); j++) {
 
-                if (A.atFinal(get<1>(subj_vec[i]), BWD))
-                    objects.push_back(get<0>(subj_vec[i]));
+                if (A.atFinal(get<1>(subj_vec[j]), BWD))
+                    objects.push_back(get<0>(subj_vec[j]));
 
-                push_merge_interval(ist_container, subj_vec[i]);
+                push_merge_interval(ist_container, subj_vec[j]);
             }
         }
 
@@ -468,12 +468,12 @@ private:
                                                           subj_vec);
 
             //PART3: Map the range of each subject to the range of objects
-            for (uint64_t j = 0; j < subj_vec.size() and objects.size() < bound; i++) {
+            for (uint64_t j = 0; j < subj_vec.size() and objects.size() < bound; j++) {
 
-                if (A.atFinal(get<1>(subj_vec[i]), BWD))
-                    objects.push_back(get<0>(subj_vec[i]));
+                if (A.atFinal(get<1>(subj_vec[j]), BWD))
+                    objects.push_back(get<0>(subj_vec[j]));
 
-                push_merge_interval(ist_container, subj_vec[i]);
+                push_merge_interval(ist_container, subj_vec[j]);
             }
         }
 
@@ -506,14 +506,14 @@ private:
                                                           subj_vec);
 
             //PART3: Map the range of each subject to the range of objects
-            for (uint64_t j = 0; j < subj_vec.size(); i++) {
-                push_merge_interval(ist_container, subj_vec[i]);
+            for (uint64_t j = 0; j < subj_vec.size(); j++) {
+                push_merge_interval(ist_container, subj_vec[j]);
 
-                if (A.atFinal(get<1>(subj_vec[i]), BWD)) {
+                if (A.atFinal(get<1>(subj_vec[j]), BWD)) {
                     if (const_to_var) {
-                        solutions.emplace_back(initial_object, get<0>(subj_vec[i]));
+                        solutions.emplace_back(initial_object, get<0>(subj_vec[j]));
                     } else {
-                        solutions.emplace_back(get<0>(subj_vec[i]), initial_object);
+                        solutions.emplace_back(get<0>(subj_vec[j]), initial_object);
                     }
                 }
             }
@@ -549,14 +549,14 @@ private:
                                                           subj_vec);
 
             //PART3: Map the range of each subject to the range of objects
-            for (uint64_t j = 0; j < subj_vec.size() and solutions.size() < bound; i++) {
-                push_merge_interval(ist_container, subj_vec[i]);
+            for (uint64_t j = 0; j < subj_vec.size() and solutions.size() < bound; j++) {
+                push_merge_interval(ist_container, subj_vec[j]);
 
-                if (A.atFinal(get<1>(subj_vec[i]), BWD)) {
+                if (A.atFinal(get<1>(subj_vec[j]), BWD)) {
                     if (const_to_var) {
-                        solutions.emplace_back(initial_object, get<0>(subj_vec[i]));
+                        solutions.emplace_back(initial_object, get<0>(subj_vec[j]));
                     } else {
-                        solutions.emplace_back(get<0>(subj_vec[i]), initial_object);
+                        solutions.emplace_back(get<0>(subj_vec[j]), initial_object);
                     }
                 }
             }
