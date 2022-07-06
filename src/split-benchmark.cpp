@@ -1,5 +1,5 @@
 #include <iostream>
-#include "triple_bwt_v2.hpp"
+#include "triple_bwt_v3.hpp"
 #include <fstream>
 #include <sdsl/construct.hpp>
 
