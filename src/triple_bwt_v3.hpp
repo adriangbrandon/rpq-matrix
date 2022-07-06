@@ -710,7 +710,7 @@ private:
         bool time_out = false;
         while (!ist_container.empty() and object_vector.size() < bound) {
             input_for_step_2.clear();
-            const auto ist_top = ist_container.top();
+            auto ist_top = ist_container.top();
             ist_container.pop();
             stop = high_resolution_clock::now();
             time_span = duration_cast<microseconds>(stop - start);
@@ -757,7 +757,7 @@ private:
         bool time_out = false;
         while (!ist_container.empty()) {
             input_for_step_2.clear();
-            const auto ist_top = ist_container.top();
+            auto ist_top = ist_container.top();
             ist_container.pop();
             stop = high_resolution_clock::now();
             time_span = duration_cast<microseconds>(stop - start);
@@ -812,7 +812,7 @@ private:
         bool time_out = false;
         while (!ist_container.empty() and output_subjects.size() < bound) {
             input_for_step_2.clear();
-            const auto ist_top = ist_container.top();
+            auto ist_top = ist_container.top();
             ist_container.pop();
             stop = high_resolution_clock::now();
             time_span = duration_cast<microseconds>(stop - start);
@@ -866,7 +866,7 @@ private:
         bool time_out = false;
         while (!ist_container.empty()) {
             input_for_step_2.clear();
-            const auto ist_top = ist_container.top();
+            auto ist_top = ist_container.top();
             ist_container.pop();
             stop = high_resolution_clock::now();
             time_span = duration_cast<microseconds>(stop - start);
