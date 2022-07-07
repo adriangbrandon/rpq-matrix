@@ -39,7 +39,7 @@
 #include "selectivity.hpp"
 
 #define ELEMENTS 0
-#define RUN_QUERY 0
+#define RUN_QUERY 1
 
 
 using namespace std::chrono;
@@ -712,7 +712,7 @@ private:
         Container ist_container; //contains intervals with NFA states
         ist_container.push(interval_state_type{bwt_interval(1, nTriples), (word_t) A.getFinalStates()});
         while (!time_out && object_vector.size() < bound && !ist_container.empty()) {
-            auto ist_top = ist_container.top();
+            auto ist_top = first_element(ist_container);
             ist_container.pop();
             next_step_objects_with_bound(A, B_array, D_array, ist_top.current_D, ist_top.interval,
                                          ist_container, object_vector, bound);
@@ -775,7 +775,7 @@ private:
         ist_container.push(interval_state_type{bwt_interval(L_P.get_C(initial_object),
                                                             L_P.get_C(initial_object + 1) - 1), current_D});
         while (!time_out && solutions.size() < bound && !ist_container.empty()) {
-            auto ist_top = ist_container.top();
+            auto ist_top = first_element(ist_container);
             ist_container.pop();
             next_step_solutions_with_bound(A, B_array, D_array, ist_top.current_D, ist_top.interval,
                                          initial_object, ist_container, solutions, bound, const_to_var);
@@ -810,7 +810,7 @@ private:
         ist_container.push(interval_state_type{bwt_interval(L_P.get_C(initial_object),
                                                             L_P.get_C(initial_object + 1) - 1), current_D});
         while (!time_out && !ist_container.empty()) {
-            auto ist_top = ist_container.top();
+            auto ist_top = first_element(ist_container);
             ist_container.pop();
             next_step_solutions(A, B_array, D_array, ist_top.current_D, ist_top.interval,
                                 initial_object, ist_container, solutions, const_to_var);
