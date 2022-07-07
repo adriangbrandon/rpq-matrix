@@ -487,6 +487,7 @@ private:
                              std::vector<std::pair<uint64_t, uint64_t>> &solutions,
                              bool const_to_var = true){
 
+
         //PART1: Finding predicates from the object whose range in L_p is I_p
         std::vector<std::pair<uint64_t, std::pair<uint64_t, uint64_t>>> pred_vec;
         L_P.all_active_p_values_in_range_test<word_t>(I_p.left(), I_p.right(), B_array, current_D, pred_vec);
@@ -499,11 +500,10 @@ private:
                                               pred_vec[i].second.first,
                                               pred_vec[i].second.second);
             c = L_S.get_C(pred_vec[i].first);
+            current_D = A.next(current_D, pred_vec[i].first, BWD);
             std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> subj_vec;
             L_S.all_active_s_values_in_range_test<word_t>(c + interval.first, c + interval.second,
-                                                          D_array,
-                                                          (word_t) A.next(current_D, pred_vec[i].first, BWD),
-                                                          subj_vec);
+                                                          D_array,current_D,subj_vec);
 
             //PART3: Map the range of each subject to the range of objects
             for (uint64_t j = 0; j < subj_vec.size(); j++) {
