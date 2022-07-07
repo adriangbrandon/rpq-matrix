@@ -49,6 +49,11 @@ typedef struct {
     word_t current_D;
 } interval_state_type;
 
+typedef struct {
+    uint64_t element;
+    std::vector<std::pair<uint64_t, uint64_t>> solutions;
+} element_solution_type;
+
 template<class Container = std::stack<interval_state_type>>
 class ring_rpq_v3 {
     bwt_nose L_S;
@@ -1996,10 +2001,7 @@ public:
             start = high_resolution_clock::now();
 
             //std::vector<std::pair<uint64_t, uint64_t>> output_l, output_r;
-            typedef struct {
-                uint64_t element;
-                std::vector<std::pair<uint64_t, uint64_t>> solutions;
-            } element_solution_type;
+
             std::vector<element_solution_type> solutions_l;
 
             //RPQ1: var_s_to_const_o
@@ -2154,10 +2156,6 @@ public:
             std::string q_r = parse_reverse(rpq_r, p_rev, predicates_map, real_max_P);
             std::string q_l = parse(rpq_l, p, predicates_map, real_max_P);
 
-            typedef struct {
-                uint64_t element;
-                std::vector<std::pair<uint64_t, uint64_t>> solutions;
-            } element_solution_type;
             std::vector<element_solution_type> partial_solutions;
             if(first_left){
                 RpqAutomata A_1 = RpqAutomata(q_l, predicates_map);
@@ -2176,7 +2174,8 @@ public:
                 for (const auto &e : elements) {
                     //std::cout << "E: " << ++cnt << std::endl;
                     if(time_out) break;
-                    time_out = _rpq_const_s_to_var_o(A_1, predicates_map, B_array, e, output_1, const_to_var1, start);
+                    time_out = _rpq_const_s_to_var_o(A_1, predicates_map, B_array, e, output_1,
+                                                     const_to_var1, start);
                     if (output_1.empty()) continue; //There is no solution
                     partial_solutions.push_back({e, output_1});
                     output_1.clear();
@@ -2200,7 +2199,8 @@ public:
                 for (const auto &p_s : partial_solutions) {
                     //std::cout << "S: " << ++cnt << std::endl;
                     if(time_out) break;
-                    time_out = _rpq_const_s_to_var_o(A_2, predicates_map, B_array, p_s.element, output_2, const_to_var2, start);
+                    time_out = _rpq_const_s_to_var_o(A_2, predicates_map, B_array, p_s.element,
+                                                     output_2, const_to_var2, start);
                     if (output_2.empty()) continue; //There is no solution
                     //Adding results to solution
                     for (const auto &o_l : p_s.solutions) {
@@ -2361,10 +2361,6 @@ public:
             std::string q_r = parse_reverse(rpq_r, p_rev, predicates_map, real_max_P);
             std::string q_l = parse(rpq_l, p, predicates_map, real_max_P);
 
-            typedef struct {
-                uint64_t element;
-                std::vector<std::pair<uint64_t, uint64_t>> solutions;
-            } element_solution_type;
             std::vector<element_solution_type> partial_solutions;
             if(first_left){
                 RpqAutomata A_1 = RpqAutomata(q_l, predicates_map);
