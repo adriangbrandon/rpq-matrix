@@ -1,5 +1,5 @@
 #include <iostream>
-#include "triple_bwt_v3.hpp"
+#include "triple_bwt.hpp"
 #include <fstream>
 #include <sdsl/construct.hpp>
 
@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    ring_rpq_bfs graph;
+    ring_rpq graph;
 
     graph.load(string(argv[1]));
 

@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     memory_monitor::start();
     auto start = timer::now();
     
-    ring_rpq_v2 A(D);
+    ring_rpq A(D);
     auto stop = timer::now();
     memory_monitor::stop();
     cout << "  Index built " << (float)A.size()/input_size << " bytes per triple" << endl;
