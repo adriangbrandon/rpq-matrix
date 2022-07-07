@@ -524,9 +524,9 @@ private:
                 push_merge_interval(ist_container, subj_vec[j]);
                 if (A.atFinal(get<1>(subj_vec[j]), BWD)) {
                     if(const_to_var){
-                        solutions.emplace_back(std::pair<uint64_t, uint64_t>(initial_object, get<0>(subj_vec[j])));
+                        solutions.emplace_back(initial_object, get<0>(subj_vec[j]));
                     }else{
-                        solutions.emplace_back(std::pair<uint64_t, uint64_t>(get<0>(subj_vec[j]), initial_object));
+                        solutions.emplace_back(get<0>(subj_vec[j]), initial_object);
                     }
                 }
             }
@@ -814,7 +814,7 @@ private:
         ist_container.push(interval_state_type{bwt_interval(L_P.get_C(initial_object),
                                                             L_P.get_C(initial_object + 1) - 1), current_D});
         if (A.atFinal(current_D, BWD)) {
-            solutions.push_back(std::pair<uint64_t, uint64_t>(initial_object, initial_object));
+            solutions.emplace_back(initial_object, initial_object);
         }
 
         while (!ist_container.empty()) {
