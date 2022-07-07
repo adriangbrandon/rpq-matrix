@@ -597,12 +597,12 @@ private:
         }
         //The previous interval is contiguous to element's interval and
         //both have equal NFA state
-        auto& last = last_element(ist_container);
+        /*auto& last = last_element(ist_container);
         if(last.interval.right()+1 == lb && last.current_D == get<1>(element)){
             last.interval.set_right(rb);
-        }else{
-            ist_container.push(interval_state_type{bwt_interval(lb, rb),get<1>(element)});
-        }
+        }else{*/
+        ist_container.push(interval_state_type{bwt_interval(lb, rb),get<1>(element)});
+        //}
     }
 
 
