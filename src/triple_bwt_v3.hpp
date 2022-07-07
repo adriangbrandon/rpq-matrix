@@ -517,10 +517,10 @@ private:
                 push_merge_interval(ist_container, subj_vec[j]);
                 if (A.atFinal(get<1>(subj_vec[j]), BWD)) {
                     if(const_to_var){
-                        //TODO: usar o constructor do pair (por algunha razón esto non funciona)
-                        solutions.emplace_back(std::pair<uint64_t, uint64_t>(initial_object, get<0>(subj_vec[j])));
+                        //TODO: usar o constructor do pair (por algunha razón esto non funciona) - SI QUE FUNCIONA
+                        solutions.emplace_back(initial_object, get<0>(subj_vec[j]));
                     }else{
-                        solutions.emplace_back(std::pair<uint64_t, uint64_t>(get<0>(subj_vec[j]), initial_object));
+                        solutions.emplace_back(get<0>(subj_vec[j]), initial_object);
                     }
                 }
             }
@@ -717,7 +717,8 @@ private:
             next_step_objects_with_bound(A, B_array, D_array, ist_top.current_D, ist_top.interval,
                                          ist_container, object_vector, bound);
             stop = high_resolution_clock::now();
-            total_time = duration_cast<microseconds>(stop - start).count();
+            time_span = duration_cast<microseconds>(stop - start);
+            total_time = time_span.count();
             if (total_time > TIME_OUT) time_out = true;
         }
     };
@@ -742,7 +743,8 @@ private:
             next_step_objects(A, B_array, D_array, ist_top.current_D,
                               ist_top.interval,ist_container, object_vector);
             stop = high_resolution_clock::now();
-            total_time = duration_cast<microseconds>(stop - start).count();
+            time_span = duration_cast<microseconds>(stop - start);
+            total_time = time_span.count();
             if (total_time > TIME_OUT) time_out = true;
         }
     };
@@ -780,7 +782,8 @@ private:
             next_step_solutions_with_bound(A, B_array, D_array, ist_top.current_D, ist_top.interval,
                                          initial_object, ist_container, solutions, bound, const_to_var);
             stop = high_resolution_clock::now();
-            total_time = duration_cast<microseconds>(stop - start).count();
+            time_span = duration_cast<microseconds>(stop - start);
+            total_time = time_span.count();
             if (total_time > TIME_OUT) time_out = true;
         }
     };
@@ -815,7 +818,8 @@ private:
             next_step_solutions(A, B_array, D_array, ist_top.current_D, ist_top.interval,
                                 initial_object, ist_container, solutions, const_to_var);
             stop = high_resolution_clock::now();
-            total_time = duration_cast<microseconds>(stop - start).count();
+            time_span = duration_cast<microseconds>(stop - start);
+            total_time = time_span.count();
             if (total_time > TIME_OUT) time_out = true;
         }
     };
