@@ -809,7 +809,6 @@ private:
             solutions.emplace_back(initial_object, initial_object);
         }
 
-        bool time_out = false;
         ist_container.push(interval_state_type{bwt_interval(L_P.get_C(initial_object),
                                                             L_P.get_C(initial_object + 1) - 1), current_D});
         while (!ist_container.empty()) {
@@ -824,6 +823,7 @@ private:
                 return true;
             }
         }
+        return false;
     };
 
 
