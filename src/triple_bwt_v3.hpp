@@ -820,6 +820,7 @@ private:
             time_span = duration_cast<microseconds>(stop - start);
             total_time = time_span.count();
             if (total_time > TIME_OUT) {
+                std::cout << "Time: " << total_time << std::endl;
                 return true;
             }
         }
