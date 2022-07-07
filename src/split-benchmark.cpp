@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    ring_rpq_dfs graph;
+    ring_rpq_bfs graph;
 
     graph.load(string(argv[1]));
 

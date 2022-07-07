@@ -503,7 +503,7 @@ private:
             current_D = A.next(current_D, pred_vec[i].first, BWD);
             std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> subj_vec;
             L_S.all_active_s_values_in_range_test<word_t>(c + interval.first, c + interval.second,
-                                                          D_array,current_D,subj_vec);
+                                                          D_array, current_D,subj_vec);
 
             //PART3: Map the range of each subject to the range of objects
             for (uint64_t j = 0; j < subj_vec.size(); j++) {
