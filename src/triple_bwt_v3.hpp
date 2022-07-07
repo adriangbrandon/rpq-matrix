@@ -524,10 +524,9 @@ private:
                 push_merge_interval(ist_container, subj_vec[j]);
                 if (A.atFinal(get<1>(subj_vec[j]), BWD)) {
                     if(const_to_var){
-                        //TODO: usar o constructor do pair (por algunha razón esto non funciona) - SI QUE FUNCIONA
-                        solutions.emplace_back(initial_object, get<0>(subj_vec[j]));
+                        solutions.emplace_back(std::pair<uint64_t, uint64_t>(initial_object, get<0>(subj_vec[j])));
                     }else{
-                        solutions.emplace_back(get<0>(subj_vec[j]), initial_object);
+                        solutions.emplace_back(std::pair<uint64_t, uint64_t>(get<0>(subj_vec[j]), initial_object));
                     }
                 }
             }
@@ -597,12 +596,12 @@ private:
         }
         //The previous interval is contiguous to element's interval and
         //both have equal NFA state
-        /*auto& last = last_element(ist_container);
+        auto& last = last_element(ist_container);
         if(last.interval.right()+1 == lb && last.current_D == get<1>(element)){
             last.interval.set_right(rb);
-        }else{*/
-        ist_container.push(interval_state_type{bwt_interval(lb, rb),get<1>(element)});
-        //}
+        }else{
+            ist_container.push(interval_state_type{bwt_interval(lb, rb),get<1>(element)});
+        }
     }
 
 
