@@ -405,12 +405,14 @@ private:
         return stack.top();
     }
 
-    inline interval_state_type& last_element(std::queue<interval_state_type> &queue){
-        return queue.back();
-    }
 
     inline interval_state_type first_element(std::stack<interval_state_type> &stack){
         return stack.top();
+    }
+
+
+    inline interval_state_type& last_element(std::queue<interval_state_type> &queue){
+        return queue.back();
     }
 
     inline interval_state_type first_element(std::queue<interval_state_type> &queue){
@@ -810,12 +812,12 @@ private:
 
         Container ist_container; //contains intervals with NFA states
         current_D = (word_t) A.getFinalStates();
-        if (A.atFinal(current_D, BWD)) {
-            solutions.emplace_back(initial_object, initial_object);
-        }
-
         ist_container.push(interval_state_type{bwt_interval(L_P.get_C(initial_object),
                                                             L_P.get_C(initial_object + 1) - 1), current_D});
+        if (A.atFinal(current_D, BWD)) {
+            solutions.push_back(std::pair<uint64_t, uint64_t>(initial_object, initial_object));
+        }
+
         while (!ist_container.empty()) {
             auto ist_top = first_element(ist_container);
             ist_container.pop();
