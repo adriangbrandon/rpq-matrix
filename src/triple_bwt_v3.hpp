@@ -401,9 +401,16 @@ private:
     }
 
     inline interval_state_type& last_element(std::queue<interval_state_type> &queue){
-        return queue.front();
+        return queue.back();
     }
 
+    inline interval_state_type first_element(std::stack<interval_state_type> &stack){
+        return stack.top();
+    }
+
+    inline interval_state_type first_element(std::queue<interval_state_type> &queue){
+        return queue.front();
+    }
 
 
     void next_step_objects(RpqAutomata &A, std::vector<word_t> &B_array,
@@ -730,7 +737,7 @@ private:
         Container ist_container; //contains intervals with NFA states
         ist_container.push(interval_state_type{bwt_interval(1, nTriples), (word_t) A.getFinalStates()});
         while (!time_out && !ist_container.empty()) {
-            auto ist_top = ist_container.top();
+            auto ist_top = first_element(ist_container);
             ist_container.pop();
             next_step_objects(A, B_array, D_array, ist_top.current_D,
                               ist_top.interval,ist_container, object_vector);
