@@ -44,7 +44,7 @@
 
 using namespace std::chrono;
 
-class ring_rpq_v2 {
+class ring_rpq {
     bwt_nose L_S;
     bwt_type wt_pred_s;
     bwt L_P;
@@ -71,10 +71,10 @@ public:
     } pred_data_type;
 
 
-    ring_rpq_v2() { ; }
+    ring_rpq() { ; }
 
     // Assumes the triples have been stored in a vector<spo_triple>
-    ring_rpq_v2(vector<spo_triple>& D, bool verbose = true)
+    ring_rpq(vector<spo_triple>& D, bool verbose = true)
     {
         uint64_t i, pos_c;
         vector<spo_triple>::iterator it, triple_begin, triple_end;
