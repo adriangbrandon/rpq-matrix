@@ -2172,13 +2172,12 @@ public:
                 //std::cout << "Elements: " << elements.size() << std::endl;
                 //uint64_t cnt = 0;
                 bool time_out = false;
-                for (const auto &e : elements) {
+                for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
                     //std::cout << "E: " << ++cnt << std::endl;
-                    if(time_out) break;
-                    time_out = _rpq_const_s_to_var_o(A_1, predicates_map, B_array, e, output_1,
+                    time_out = _rpq_const_s_to_var_o(A_1, predicates_map, B_array, elements[i], output_1,
                                                      const_to_var1, start);
                     if (output_1.empty()) continue; //There is no solution
-                    partial_solutions.push_back({e, output_1});
+                    partial_solutions.push_back({elements[i], output_1});
                     output_1.clear();
                 }
                 //RPQ1: Unmark the NFA states
@@ -2197,14 +2196,14 @@ public:
                 std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
                 //std::cout << "Solutions_l: " << solutions_l.size() << std::endl;
                 //cnt = 0;
-                for (const auto &p_s : partial_solutions) {
+                for (uint64_t i = 0; !time_out && i < partial_solutions.size(); ++i) {
                     //std::cout << "S: " << ++cnt << std::endl;
-                    if(time_out) break;
-                    time_out = _rpq_const_s_to_var_o(A_2, predicates_map, B_array, p_s.element,
+                    time_out = _rpq_const_s_to_var_o(A_2, predicates_map, B_array,
+                                                     partial_solutions[i].element,
                                                      output_2, const_to_var2, start);
                     if (output_2.empty()) continue; //There is no solution
                     //Adding results to solution
-                    for (const auto &o_l : p_s.solutions) {
+                    for (const auto &o_l : partial_solutions[i].solutions) {
                         for (const auto &o_r : output_2) {
                             //Check duplicates
                             auto it_set = sol_set.insert({o_l.first, o_r.second});
@@ -2234,13 +2233,12 @@ public:
                 //std::cout << "Elements: " << elements.size() << std::endl;
                 //uint64_t cnt = 0;
                 bool time_out = false;
-                for (const auto &e : elements) {
+                for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
                     //std::cout << "E: " << ++cnt << std::endl;
-                    if(time_out) break;
-                    time_out = _rpq_const_s_to_var_o(A_1, predicates_map, B_array, e, output_1,
+                    time_out = _rpq_const_s_to_var_o(A_1, predicates_map, B_array, elements[i], output_1,
                                                      const_to_var1, start);
                     if (output_1.empty()) continue; //There is no solution
-                    partial_solutions.push_back({e, output_1});
+                    partial_solutions.push_back({elements[i], output_1});
                     output_1.clear();
                 }
                 //RPQ1: Unmark the NFA states
@@ -2259,14 +2257,14 @@ public:
                 std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
                 //std::cout << "Solutions_l: " << solutions_l.size() << std::endl;
                 //cnt = 0;
-                for (const auto &p_s : partial_solutions) {
+                for (uint64_t i = 0; !time_out && i < partial_solutions.size(); ++i) {
                     //std::cout << "S: " << ++cnt << std::endl;
-                    if(time_out) break;
-                    time_out = _rpq_const_s_to_var_o(A_2, predicates_map, B_array, p_s.element, output_2,
+                    time_out = _rpq_const_s_to_var_o(A_2, predicates_map, B_array,
+                                                     partial_solutions[i].element, output_2,
                                           const_to_var2, start);
                     if (output_2.empty()) continue; //There is no solution
                     //Adding results to solution
-                    for (const auto &o_r : p_s.solutions) {
+                    for (const auto &o_r : partial_solutions[i].solutions) {
                         for (const auto &o_l : output_2) {
                             //Check duplicates
                             auto it_set = sol_set.insert({o_l.first, o_r.second});
