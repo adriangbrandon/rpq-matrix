@@ -788,7 +788,7 @@ private:
         }
     };
 
-    void _rpq_const_s_to_var_o(RpqAutomata &A,
+    bool _rpq_const_s_to_var_o(RpqAutomata &A,
                                std::unordered_map<std::string, uint64_t> &predicates_map,
                                std::vector<word_t> &B_array,
                                uint64_t initial_object,
@@ -812,7 +812,7 @@ private:
         bool time_out = false;
         ist_container.push(interval_state_type{bwt_interval(L_P.get_C(initial_object),
                                                             L_P.get_C(initial_object + 1) - 1), current_D});
-        while (!time_out && !ist_container.empty()) {
+        while (!ist_container.empty()) {
             auto ist_top = first_element(ist_container);
             ist_container.pop();
             next_step_solutions(A, B_array, D_array, ist_top.current_D, ist_top.interval,
@@ -820,7 +820,9 @@ private:
             stop = high_resolution_clock::now();
             time_span = duration_cast<microseconds>(stop - start);
             total_time = time_span.count();
-            if (total_time > TIME_OUT) time_out = true;
+            if (total_time > TIME_OUT) {
+                return true;
+            }
         }
     };
 
@@ -2169,9 +2171,11 @@ public:
                 }
                 //std::cout << "Elements: " << elements.size() << std::endl;
                 //uint64_t cnt = 0;
+                bool time_out = false;
                 for (const auto &e : elements) {
                     //std::cout << "E: " << ++cnt << std::endl;
-                    _rpq_const_s_to_var_o(A_1, predicates_map, B_array, e, output_1, const_to_var1, start);
+                    if(time_out) break;
+                    time_out = _rpq_const_s_to_var_o(A_1, predicates_map, B_array, e, output_1, const_to_var1, start);
                     if (output_1.empty()) continue; //There is no solution
                     partial_solutions.push_back({e, output_1});
                     output_1.clear();
@@ -2194,7 +2198,8 @@ public:
                 //cnt = 0;
                 for (const auto &p_s : partial_solutions) {
                     //std::cout << "S: " << ++cnt << std::endl;
-                    _rpq_const_s_to_var_o(A_2, predicates_map, B_array, p_s.element, output_2, const_to_var2, start);
+                    if(time_out) break;
+                    time_out = _rpq_const_s_to_var_o(A_2, predicates_map, B_array, p_s.element, output_2, const_to_var2, start);
                     if (output_2.empty()) continue; //There is no solution
                     //Adding results to solution
                     for (const auto &o_l : p_s.solutions) {
@@ -2226,9 +2231,12 @@ public:
                 }
                 //std::cout << "Elements: " << elements.size() << std::endl;
                 //uint64_t cnt = 0;
+                bool time_out = false;
                 for (const auto &e : elements) {
                     //std::cout << "E: " << ++cnt << std::endl;
-                    _rpq_const_s_to_var_o(A_1, predicates_map, B_array, e, output_1, const_to_var1, start);
+                    if(time_out) break;
+                    time_out = _rpq_const_s_to_var_o(A_1, predicates_map, B_array, e, output_1,
+                                                     const_to_var1, start);
                     if (output_1.empty()) continue; //There is no solution
                     partial_solutions.push_back({e, output_1});
                     output_1.clear();
@@ -2251,7 +2259,8 @@ public:
                 //cnt = 0;
                 for (const auto &p_s : partial_solutions) {
                     //std::cout << "S: " << ++cnt << std::endl;
-                    _rpq_const_s_to_var_o(A_2, predicates_map, B_array, p_s.element, output_2,
+                    if(time_out) break;
+                    time_out = _rpq_const_s_to_var_o(A_2, predicates_map, B_array, p_s.element, output_2,
                                           const_to_var2, start);
                     if (output_2.empty()) continue; //There is no solution
                     //Adding results to solution
