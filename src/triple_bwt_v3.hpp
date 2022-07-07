@@ -508,12 +508,12 @@ private:
             //PART3: Map the range of each subject to the range of objects
             for (uint64_t j = 0; j < subj_vec.size(); j++) {
                 push_merge_interval(ist_container, subj_vec[j]);
-
                 if (A.atFinal(get<1>(subj_vec[j]), BWD)) {
-                    if (const_to_var) {
-                        solutions.emplace_back(initial_object, get<0>(subj_vec[j]));
-                    } else {
-                        solutions.emplace_back(get<0>(subj_vec[j]), initial_object);
+                    if(const_to_var){
+                        //TODO: usar o constructor do pair (por algunha razón esto non funciona)
+                        solutions.emplace_back(std::pair<uint64_t, uint64_t>(initial_object, get<0>(subj_vec[j])));
+                    }else{
+                        solutions.emplace_back(std::pair<uint64_t, uint64_t>(get<0>(subj_vec[j]), initial_object));
                     }
                 }
             }
