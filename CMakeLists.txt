@@ -51,40 +51,40 @@ add_subdirectory(nfa)
 add_subdirectory(external/malloc_count)
 
 add_executable(build-index src/build-index.cpp)
-target_link_libraries(build-index sdsl divsufsort divsufsort64 nfa)
+target_link_libraries(build-index sdsl divsufsort divsufsort64 nfa malloc_count)
 
 add_executable(query-index src/query-index.cpp)
-target_link_libraries(query-index sdsl divsufsort divsufsort64 nfa)
+target_link_libraries(query-index sdsl divsufsort divsufsort64 nfa malloc_count)
 
 add_executable(query-index-split src/query-index-split.cpp)
-target_link_libraries(query-index-split sdsl divsufsort divsufsort64 nfa)
+target_link_libraries(query-index-split sdsl divsufsort divsufsort64 nfa malloc_count)
 
 add_executable(split-benchmark src/split-benchmark.cpp)
-target_link_libraries(split-benchmark sdsl divsufsort divsufsort64 nfa)
+target_link_libraries(split-benchmark sdsl divsufsort divsufsort64 nfa malloc_count)
 
 add_executable(split-benchmark_v3 src/split-benchmark_v3.cpp)
-target_link_libraries(split-benchmark_v3 sdsl divsufsort divsufsort64 nfa)
+target_link_libraries(split-benchmark_v3 sdsl divsufsort divsufsort64 nfa malloc_count)
 
 add_executable(sort-dict src/sort-pos.cpp)
-target_link_libraries(sort-dict sdsl divsufsort divsufsort64 nfa)
+target_link_libraries(sort-dict sdsl divsufsort divsufsort64 nfa malloc_count)
 
 add_executable(sort-dict-bfs src/sort-pos-bfs.cpp)
-target_link_libraries(sort-dict-bfs sdsl divsufsort divsufsort64 nfa)
+target_link_libraries(sort-dict-bfs sdsl divsufsort divsufsort64 nfa malloc_count)
 
 add_executable(mandatory src/mandatory.cpp)
-target_link_libraries(mandatory sdsl divsufsort divsufsort64 nfa)
+target_link_libraries(mandatory sdsl divsufsort divsufsort64 nfa malloc_count)
 
 add_executable(intersection_or src/intersection_or.cpp)
-target_link_libraries(intersection_or sdsl divsufsort divsufsort64 nfa)
+target_link_libraries(intersection_or sdsl divsufsort divsufsort64 nfa malloc_count)
 
 add_executable(pre-query src/pre-query.cpp)
-target_link_libraries(pre-query sdsl divsufsort divsufsort64 nfa)
+target_link_libraries(pre-query sdsl divsufsort divsufsort64 nfa malloc_count)
 
 add_executable(prepare-yago2s src/prepare-yago2s.cpp)
-target_link_libraries(prepare-yago2s sdsl divsufsort divsufsort64 nfa)
+target_link_libraries(prepare-yago2s sdsl divsufsort divsufsort64 nfa malloc_count)
 
 add_executable(prepare-queries-yago2s src/prepare-queries-yago2s.cpp)
-target_link_libraries(prepare-queries-yago2s sdsl divsufsort divsufsort64 nfa)
+target_link_libraries(prepare-queries-yago2s sdsl divsufsort divsufsort64 nfa malloc_count)
 
 
 add_executable(split-memory src/split-memory.cpp)
