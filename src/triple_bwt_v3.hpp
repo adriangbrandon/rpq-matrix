@@ -2305,9 +2305,9 @@ public:
             }
 
             //Check the solutions from RPQ2
-            std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
-            for (const auto &e : elements) {
-                _rpq_const_s_to_var_o(A_r, predicates_map, B_array, e,
+            bool time_out = false;
+            for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
+                time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array, elements[i],
                                       solution, true, start);
             }
             //RPQ2: Unmark the NFA states
@@ -2327,9 +2327,9 @@ public:
             }
 
             //Check the solutions from RPQ1
-            std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
-            for (const auto &e : elements) {
-                _rpq_const_s_to_var_o(A_l, predicates_map, B_array, e,
+            bool time_out = false;
+            for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
+                time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array, elements[i],
                                       solution, false, start);
             }
             //RPQ1: Unmark the NFA states

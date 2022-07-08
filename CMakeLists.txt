@@ -42,10 +42,13 @@ else()
 endif()
 
 include_directories(~/include
-        ${CMAKE_HOME_DIRECTORY}/nfa/include)
+        ${CMAKE_HOME_DIRECTORY}/nfa/include
+        ${CMAKE_HOME_DIRECTORY}/external/malloc_count/include)
+
 link_directories(~/lib)
 
 add_subdirectory(nfa)
+add_subdirectory(external/malloc_count)
 
 add_executable(build-index src/build-index.cpp)
 target_link_libraries(build-index sdsl divsufsort divsufsort64 nfa)
@@ -82,3 +85,7 @@ target_link_libraries(prepare-yago2s sdsl divsufsort divsufsort64 nfa)
 
 add_executable(prepare-queries-yago2s src/prepare-queries-yago2s.cpp)
 target_link_libraries(prepare-queries-yago2s sdsl divsufsort divsufsort64 nfa)
+
+
+add_executable(split-memory src/split-memory.cpp)
+target_link_libraries(split-memory sdsl divsufsort divsufsort64 nfa malloc_count)
