@@ -2565,6 +2565,7 @@ public:
         const auto& pos_pred_vec = mandData.pos_pred;
         std::cout << "Source" << std::endl;
         for(uint64_t i = 0; i < pos_pred_vec.size(); ++i) {
+            sleep(1);
             std::vector<std::pair<uint64_t, uint64_t>> solution;
             //std::cout << "Splitting " << i << "-th mandatory pred by source" << std::endl;
 
@@ -2596,6 +2597,7 @@ public:
             //std::cout << "Solutions: " << solution.size() << std::endl;
             if(!rpq_l.empty() && !rpq_r.empty()) {
                 solution.clear();
+                sleep(1);
                 start = high_resolution_clock::now();
                 pred = pos_pred_vec[i].id_pred;
                 pred_rev = pred_reverse(pred);
@@ -2624,6 +2626,7 @@ public:
 
         std::cout << "Target" << std::endl;
         for(uint64_t i = 0; i < mandData.pos_pred.size(); ++i) {
+            sleep(1);
             std::vector<std::pair<uint64_t, uint64_t>> solution;
 
             high_resolution_clock::time_point start, stop;
@@ -2651,6 +2654,7 @@ public:
             cout << i << ";" << solution.size() << ";" << elements.size() << ";left;" << (uint64_t) (total_time * 1000000000ULL) << endl;
             if(!rpq_l.empty() && !rpq_r.empty()) {
                 solution.clear();
+                sleep(1);
                 start = high_resolution_clock::now();
                 pred = pos_pred_vec[i].id_pred;
                 get_elements(pred, elements);
@@ -2676,6 +2680,7 @@ public:
         }
         std::cout << "Intersection" << std::endl;
         for(uint64_t i = 0; i < mandData.pos_pred.size()-1; ++i) {
+            sleep(1);
             if(i+1 < pos_pred_vec.size()
                && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
                 std::vector<std::pair<uint64_t, uint64_t>> solution;
@@ -2710,6 +2715,7 @@ public:
                 //Format: split; n_solutions; n_elements; time (ns)
                 cout << i << ";" << solution.size() << ";" << elements.size() << ";left;" << (uint64_t) (total_time * 1000000000ULL) << endl;
                 if(!rpq_l.empty() && !rpq_r.empty()) {
+                    sleep(1);
                     solution.clear();
                     start = high_resolution_clock::now();
                     // std::cout << "Splitting " << i << "-th mandatory pred by intersecting" << std::endl;
