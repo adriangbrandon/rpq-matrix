@@ -2,7 +2,6 @@
 #include "triple_bwt_v3.hpp"
 #include <fstream>
 #include <sdsl/construct.hpp>
-#include <malloc_count/malloc_count.h>
 
 using namespace std;
 
@@ -213,12 +212,10 @@ int main(int argc, char **argv) {
             if (!skip_flag) {
                 if (!flag_s and !flag_o) {
                     std::cout << "<--------> Query: " << q << " <-------->" << std::endl;
-                    malloc_count_reset_peak();
+
                     graph.rpq_var_to_var_split_all(query, pred_map, B_array, n_predicates, is_negated_pred,
                                             n_operators, false);
-                    std::cout << "[[Mem. consumption]]  Current allocation: ";
-                    std::cout << malloc_count_current() << " Bytes, Peak allocation: ";
-                    std::cout << malloc_count_peak() << " Bytes" << std::endl;
+
 
                 } else {    
                     if (flag_s) {

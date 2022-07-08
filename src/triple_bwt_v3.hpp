@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sdsl/init_array.hpp>
+#include <malloc_count/malloc_count.h>
 
 #include "bwt.hpp"
 #include "bwt-C-nose.hpp"
@@ -40,6 +41,7 @@
 
 #define ELEMENTS 0
 #define RUN_QUERY 1
+#define CHECK_MEM 1
 
 
 using namespace std::chrono;
@@ -2574,9 +2576,17 @@ public:
             auto pred_rev = pred_reverse(pred);
             get_elements(pred_rev, elements);
             std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos-1);
+#if CHECK_MEM
+            malloc_count_reset_peak();
+#endif
             _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
                                         B_array, true, solution, n_predicates,
                                         is_negated_pred, n_operators, is_a_path, start);
+#if CHECK_MEM
+            std::cout << "[[Mem. consumption]]  Current allocation: ";
+            std::cout << malloc_count_current() << " Bytes, Peak allocation: ";
+            std::cout << malloc_count_peak() << " Bytes" << std::endl;
+#endif
             stop = high_resolution_clock::now();
             time_span = duration_cast<microseconds>(stop - start);
             total_time = time_span.count();
@@ -2591,9 +2601,18 @@ public:
                 pred_rev = pred_reverse(pred);
                 get_elements(pred_rev, elements);
                 std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos - 1);
+#if CHECK_MEM
+                malloc_count_reset_peak();
+#endif
                 _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
                                             B_array, false, solution, n_predicates,
                                             is_negated_pred, n_operators, is_a_path, start);
+#if CHECK_MEM
+                std::cout << "[[Mem. consumption]]  Current allocation: ";
+                std::cout << malloc_count_current() << " Bytes, Peak allocation: ";
+                std::cout << malloc_count_peak() << " Bytes" << std::endl;
+#endif
+
                 stop = high_resolution_clock::now();
                 time_span = duration_cast<microseconds>(stop - start);
                 total_time = time_span.count();
@@ -2614,10 +2633,17 @@ public:
             auto pred = pos_pred_vec[i].id_pred;
             get_elements(pred, elements);
             std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
+#if CHECK_MEM
+            malloc_count_reset_peak();
+#endif
             _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
                                         B_array, true, solution, n_predicates,
                                         is_negated_pred, n_operators, is_a_path, start);
-
+#if CHECK_MEM
+            std::cout << "[[Mem. consumption]]  Current allocation: ";
+            std::cout << malloc_count_current() << " Bytes, Peak allocation: ";
+            std::cout << malloc_count_peak() << " Bytes" << std::endl;
+#endif
             stop = high_resolution_clock::now();
             time_span = duration_cast<microseconds>(stop - start);
             total_time = time_span.count();
@@ -2629,9 +2655,17 @@ public:
                 pred = pos_pred_vec[i].id_pred;
                 get_elements(pred, elements);
                 std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
+#if CHECK_MEM
+                malloc_count_reset_peak();
+#endif
                 _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
                                             B_array, false, solution, n_predicates,
                                             is_negated_pred, n_operators, is_a_path, start);
+#if CHECK_MEM
+                std::cout << "[[Mem. consumption]]  Current allocation: ";
+                std::cout << malloc_count_current() << " Bytes, Peak allocation: ";
+                std::cout << malloc_count_peak() << " Bytes" << std::endl;
+#endif
 
                 stop = high_resolution_clock::now();
                 time_span = duration_cast<microseconds>(stop - start);
@@ -2657,9 +2691,17 @@ public:
                 get_elements_intersection(pred_rev, pred, elements);
                // std::cout << "elements: " << elements.size()<< std::endl;
                 std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
+#if CHECK_MEM
+                malloc_count_reset_peak();
+#endif
                 _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
                                             B_array, true, solution, n_predicates,
                                             is_negated_pred, n_operators, is_a_path, start);
+#if CHECK_MEM
+                std::cout << "[[Mem. consumption]]  Current allocation: ";
+                std::cout << malloc_count_current() << " Bytes, Peak allocation: ";
+                std::cout << malloc_count_peak() << " Bytes" << std::endl;
+#endif
                // std::cout << "Elements: " << elements.size() << std::endl;
                // std::cout << "Solutions: " << solution.size() << std::endl;
                 stop = high_resolution_clock::now();
@@ -2676,9 +2718,17 @@ public:
                     get_elements_intersection(pred_rev, pred, elements);
                     // std::cout << "elements: " << elements.size()<< std::endl;
                     std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
+#if CHECK_MEM
+                    malloc_count_reset_peak();
+#endif
                     _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
                                                 B_array, false, solution, n_predicates,
                                                 is_negated_pred, n_operators, is_a_path, start);
+#if CHECK_MEM
+                    std::cout << "[[Mem. consumption]]  Current allocation: ";
+                    std::cout << malloc_count_current() << " Bytes, Peak allocation: ";
+                    std::cout << malloc_count_peak() << " Bytes" << std::endl;
+#endif
                     // std::cout << "Elements: " << elements.size() << std::endl;
                     // std::cout << "Solutions: " << solution.size() << std::endl;
                     stop = high_resolution_clock::now();
@@ -2692,6 +2742,8 @@ public:
         std::cout << "---------------------" << std::endl;
 #endif
     }
+
+
 
 
 };
