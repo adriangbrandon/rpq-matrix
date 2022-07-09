@@ -87,5 +87,8 @@ add_executable(prepare-queries-yago2s src/prepare-queries-yago2s.cpp)
 target_link_libraries(prepare-queries-yago2s sdsl divsufsort divsufsort64 nfa malloc_count)
 
 
-add_executable(split-memory src/split-memory.cpp)
-target_link_libraries(split-memory sdsl divsufsort divsufsort64 nfa malloc_count)
+add_executable(split-memory-bfs src/split-memory-bfs.cpp)
+target_link_libraries(split-memory-bfs sdsl divsufsort divsufsort64 nfa malloc_count)
+
+add_executable(split-memory-dfs src/split-memory-dfs.cpp)
+target_link_libraries(split-memory-dfs sdsl divsufsort divsufsort64 nfa malloc_count)
