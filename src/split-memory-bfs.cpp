@@ -213,8 +213,9 @@ int main(int argc, char **argv) {
                 if (!flag_s and !flag_o) {
                     std::cout << "<--------> Query: " << q << " <-------->" << std::endl;
 
-                    graph.rpq_var_to_var_split_all(query, pred_map, B_array, n_predicates, is_negated_pred,
-                                            n_operators, false);
+                    graph.rpq_var_to_var_split_mem(query, pred_map, B_array, n_predicates, is_negated_pred,
+                                                   n_operators, false,
+                                                   "memory-q" + std::to_string(q) +".profile" );
 
 
                 } else {    

@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sdsl/init_array.hpp>
-#include <malloc_count/malloc_count.h>
 
 #include "bwt.hpp"
 #include "bwt-C-nose.hpp"
@@ -41,8 +40,11 @@
 
 #define ELEMENTS 0
 #define RUN_QUERY 1
-#define CHECK_MEM 1
 
+#if CHECK_MEM
+#include <malloc_count/malloc_count.h>
+#include <malloc_count/memprofile.h>
+#endif
 
 using namespace std::chrono;
 
@@ -2128,11 +2130,9 @@ public:
         double total_time = 0.0;
         duration<double> time_span;
         start = high_resolution_clock::now();
-
         std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
         std::cout << "rpq_l: " << rpq_l << std::endl;
         std::cout << "rpq_r: " << rpq_r << std::endl;
-        RpqTree rpqTree(rpq, predicates_map, real_max_P);
         _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
                                     B_array, true, solution, n_predicates,
                                     is_negated_pred, n_operators, is_a_path, start);
@@ -2565,7 +2565,6 @@ public:
         const auto& pos_pred_vec = mandData.pos_pred;
         std::cout << "Source" << std::endl;
         for(uint64_t i = 0; i < pos_pred_vec.size(); ++i) {
-            sleep(1);
             std::vector<std::pair<uint64_t, uint64_t>> solution;
             //std::cout << "Splitting " << i << "-th mandatory pred by source" << std::endl;
 
@@ -2597,7 +2596,6 @@ public:
             //std::cout << "Solutions: " << solution.size() << std::endl;
             if(!rpq_l.empty() && !rpq_r.empty()) {
                 solution.clear();
-                sleep(1);
                 start = high_resolution_clock::now();
                 pred = pos_pred_vec[i].id_pred;
                 pred_rev = pred_reverse(pred);
@@ -2606,6 +2604,8 @@ public:
 #if CHECK_MEM
                 malloc_count_reset_peak();
 #endif
+
+
                 _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
                                             B_array, false, solution, n_predicates,
                                             is_negated_pred, n_operators, is_a_path, start);
@@ -2626,7 +2626,6 @@ public:
 
         std::cout << "Target" << std::endl;
         for(uint64_t i = 0; i < mandData.pos_pred.size(); ++i) {
-            sleep(1);
             std::vector<std::pair<uint64_t, uint64_t>> solution;
 
             high_resolution_clock::time_point start, stop;
@@ -2654,7 +2653,6 @@ public:
             cout << i << ";" << solution.size() << ";" << elements.size() << ";left;" << (uint64_t) (total_time * 1000000000ULL) << endl;
             if(!rpq_l.empty() && !rpq_r.empty()) {
                 solution.clear();
-                sleep(1);
                 start = high_resolution_clock::now();
                 pred = pos_pred_vec[i].id_pred;
                 get_elements(pred, elements);
@@ -2680,7 +2678,6 @@ public:
         }
         std::cout << "Intersection" << std::endl;
         for(uint64_t i = 0; i < mandData.pos_pred.size()-1; ++i) {
-            sleep(1);
             if(i+1 < pos_pred_vec.size()
                && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
                 std::vector<std::pair<uint64_t, uint64_t>> solution;
@@ -2715,7 +2712,6 @@ public:
                 //Format: split; n_solutions; n_elements; time (ns)
                 cout << i << ";" << solution.size() << ";" << elements.size() << ";left;" << (uint64_t) (total_time * 1000000000ULL) << endl;
                 if(!rpq_l.empty() && !rpq_r.empty()) {
-                    sleep(1);
                     solution.clear();
                     start = high_resolution_clock::now();
                     // std::cout << "Splitting " << i << "-th mandatory pred by intersecting" << std::endl;
@@ -2748,6 +2744,31 @@ public:
         std::cout << "---------------------" << std::endl;
 #endif
     }
+
+    void rpq_var_to_var_split_mem(const std::string &rpq,
+                                  unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
+                                  std::vector<word_t> &B_array,
+                                  uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path,
+                                  const std::string &profile_file){
+
+
+            std::string rpq_l, rpq_r;
+            std::vector<uint64_t> elements;
+
+            high_resolution_clock::time_point start, stop;
+            double total_time = 0.0;
+            duration<double> time_span;
+            start = high_resolution_clock::now();
+            std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
+            std::cout << "rpq_l: " << rpq_l << std::endl;
+            std::cout << "rpq_r: " << rpq_r << std::endl;
+            std::vector<std::pair<uint64_t, uint64_t>> solution;
+            MemProfile mem(profile_file.c_str(), 0.1, 1024);
+            _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
+                                        B_array, true, solution, n_predicates,
+                                        is_negated_pred, n_operators, is_a_path, start);
+    }
+
 
 
 
