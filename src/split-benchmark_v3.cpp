@@ -216,10 +216,10 @@ int main(int argc, char **argv) {
                                             n_operators, false);
                 } else {    
                     if (flag_s) {
-                        graph.rpq_const_s_to_var_o_split(query, pred_map, B_array, s_id, query_output, n_predicates,
+                        graph.rpq_const_s_to_var_o_split_all(query, pred_map, B_array, s_id, n_predicates,
                                                    is_negated_pred, n_operators, is_a_path);
                     } else {
-                        graph.rpq_var_s_to_const_o_split(query, pred_map, B_array, o_id, query_output, n_predicates,
+                        graph.rpq_var_s_to_const_o_split_all(query, pred_map, B_array, o_id, n_predicates,
                                                    is_negated_pred, n_operators, is_a_path);
                     }
                 }
