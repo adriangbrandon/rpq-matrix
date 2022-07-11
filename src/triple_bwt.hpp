@@ -1680,6 +1680,55 @@ public:
         }
     };
 
+    void rpq_const_s_to_var_o(const std::string &rpq,
+                              unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
+                              std::vector<word_t> &B_array,
+                              uint64_t initial_object,
+                              std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                              uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path) {
+        std::string query, str_aux;
+
+        if (n_predicates == 1 and n_operators == 0) {
+            uint64_t predicate;
+            if (is_negated_pred)
+                predicate = real_max_P + predicates_map["<" + rpq.substr(2, rpq.size() - 1)];
+            else
+                predicate = predicates_map[rpq];
+
+            // cuidado, lo anterior asume que los negados han sido manipulados desde afuera, lo cual es cierto en la manera que los estoy escribiendo en el log que manejo, pero hay que hacerlo de una forma mas general.
+
+            single_predicate_query(predicate, initial_object, CONST_TO_VAR, is_negated_pred,
+                                   output_subjects);
+            return;
+        } else {
+            if (is_a_path and n_operators == 1) {
+                path_query(rpq, initial_object, CONST_TO_VAR, predicates_map, output_subjects);
+                return;
+            }
+        }
+
+        int64_t iii = rpq.size() - 1;
+        query = parse_reverse(rpq, iii, predicates_map, real_max_P);
+
+        RpqAutomata A(query, predicates_map);
+
+        std::unordered_map<uint64_t, uint64_t> m = A.getB();
+        for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++) {
+            L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
+        }
+
+        high_resolution_clock::time_point start;
+        double total_time = 0.0;
+        duration<double> time_span;
+        start = high_resolution_clock::now();
+
+        _rpq_const_s_to_var_o(A, predicates_map, B_array, initial_object, output_subjects, true, start);
+
+        for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++) {
+            L_P.unmark<word_t>(it->first, B_array);
+        }
+    };
+
    /* void rpq_const_s_to_var_o_split(const std::string &rpq,
                               unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
                               std::vector<word_t> &B_array,
@@ -1816,6 +1865,58 @@ public:
         }
     };*/
 
+   void rpq_var_s_to_const_o(const std::string &rpq,
+                             unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
+                             std::vector<word_t> &B_array,
+                             uint64_t initial_object,
+                             std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                             uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path) {
+       std::string query, str_aux;
+
+       if (n_predicates == 1 and n_operators == 0) {
+           uint64_t predicate;
+           if (is_negated_pred)
+               predicate = predicates_map["<" + rpq.substr(2, rpq.size() - 1)];
+           else
+               predicate = real_max_P + predicates_map[rpq];
+
+           // cuidado, lo anterior asume que los negados han sido manipulados desde afuera, lo cual es cierto en la manera que los estoy escribiendo en el log que manejo, pero hay que hacerlo de una forma mas general.
+           single_predicate_query(predicate, initial_object, VAR_TO_CONST, is_negated_pred,
+                                  output_subjects);
+           return;
+
+       } else {
+           if (is_a_path and n_operators == 1) {
+               path_query(rpq, initial_object, VAR_TO_CONST, predicates_map, output_subjects);
+               return;
+           }
+       }
+
+
+       int64_t iii = 0;
+       query = parse(rpq, iii, predicates_map, real_max_P);
+
+       RpqAutomata A(query, predicates_map);
+
+       // ToDo: actualmente asume que el arreglo B_array tiene espacio tambien para las hojas del WT
+       // Se puede cambiar y reducir el espacio del arreglo a la mitad, manejando las hojas con
+       // el unordered map
+       std::unordered_map<uint64_t, uint64_t> m = A.getB();
+       for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++) {
+           L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
+       }
+
+       high_resolution_clock::time_point start;
+       double total_time = 0.0;
+       duration<double> time_span;
+       start = high_resolution_clock::now();
+
+       _rpq_const_s_to_var_o(A, predicates_map, B_array, initial_object, output_subjects, false, start);
+
+       for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++) {
+           L_P.unmark<word_t>(it->first, B_array);
+       }
+   };
 
     void rpq_var_s_to_const_o(const std::string &rpq,
                               unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
