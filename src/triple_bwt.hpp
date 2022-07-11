@@ -1427,9 +1427,15 @@ public:
                 L_S.all_values_in_range_bounded(Is_p1.first, Is_p1.second, values_s, bound - output.size());
                 bound_aux -= values_s.size();
                 for (uint64_t j = 0; j < values_s.size() and output.size() < bound; ++j) {
-                    ret = o_set.insert(std::pair<uint64_t, uint64_t>(values_s[j], z_values[i].first));
-                    if (ret.second == true)
-                        output.push_back(std::pair<uint64_t, uint64_t>(values_s[j], z_values[i].first));
+                    if(query_type == CONST_TO_VAR){
+                        ret = o_set.insert(std::pair<uint64_t, uint64_t>(object, values_s[j]));
+                        if (ret.second == true)
+                            output.push_back(std::pair<uint64_t, uint64_t>(object, values_s[j]));
+                    }else{
+                        ret = o_set.insert(std::pair<uint64_t, uint64_t>(values_s[j], object));
+                        if (ret.second == true)
+                            output.push_back(std::pair<uint64_t, uint64_t>(values_s[j], object));
+                    }
                 }
             }
         } else {
@@ -1552,9 +1558,16 @@ public:
                 values_s.clear();
                 values_s = L_S.all_values_in_range(Is_p1.first, Is_p1.second);
                 for (uint64_t j = 0; j < values_s.size(); ++j) {
-                    ret = o_set.insert(std::pair<uint64_t, uint64_t>(values_s[j], z_values[i].first));
-                    if (ret.second == true)
-                        output.push_back(std::pair<uint64_t, uint64_t>(values_s[j], z_values[i].first));
+                    if(query_type == CONST_TO_VAR){
+                        ret = o_set.insert(std::pair<uint64_t, uint64_t>(object, values_s[j]));
+                        if (ret.second == true)
+                            output.push_back(std::pair<uint64_t, uint64_t>(object, values_s[j]));
+                    }else{
+                        ret = o_set.insert(std::pair<uint64_t, uint64_t>(values_s[j], object));
+                        if (ret.second == true)
+                            output.push_back(std::pair<uint64_t, uint64_t>(values_s[j], object));
+                    }
+
                 }
             }
         } else {
