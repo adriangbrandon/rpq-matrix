@@ -252,10 +252,10 @@ int main(int argc, char **argv) {
                 } else {
                     if (flag_s) {
                         graph.rpq_const_s_to_var_o(query, pred_map, B_array, s_id, query_output, n_predicates,
-                                                   is_negated_pred, n_operators, is_a_path, bound);
+                                                   is_negated_pred, n_operators, is_a_path);
                     } else {
                         graph.rpq_var_s_to_const_o(query, pred_map, B_array, o_id, query_output, n_predicates,
-                                                   is_negated_pred, n_operators, is_a_path, bound);
+                                                   is_negated_pred, n_operators, is_a_path);
                     }
                 }
                 stop = high_resolution_clock::now();
