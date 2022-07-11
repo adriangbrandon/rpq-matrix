@@ -11,7 +11,6 @@ typedef uint16_t word_t;
 #define VAR_TO_VAR 0
 #define VAR_TO_CONST 1
 #define CONST_TO_VAR 2
-#define CHECK_MEM 1
 
 #endif
 
