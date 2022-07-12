@@ -402,14 +402,25 @@ public:
         return (pred_id > real_max_P) ? pred_id - real_max_P : pred_id + real_max_P;
     }
 
-    uint64_t op_distinct_values(uint64_t o, uint64_t p){
+    bool start_with_left(uint64_t o, uint64_t p_left, uint64_t p_right){
+        if(p_right > real_max_P){
+            return true;
+        }
+        if(p_left > real_max_P){
+            return false;
+        }
+
         auto e = L_P.get_C(o+1)-1;
         auto b = L_P.get_C(o);
-        auto interval = L_P.backward_step(b, e, p);
-        e = L_S.get_C(p) + interval.second;
-        b = L_S.get_C(p) + interval.first;
-        auto v = wt_pred_s.range_search_2d(b, e, 0, b, false);
-        return v.first;
+        auto i_l = L_P.backward_step(b, e, p_left);
+        auto e_l = L_S.get_C(p_left) + i_l.second;
+        auto b_l = L_S.get_C(p_left) + i_l.first;
+        auto i_r = L_P.backward_step(b, e, p_right);
+        auto e_r = L_S.get_C(p_right) + i_r.second;
+        auto b_r = L_S.get_C(p_right) + i_r.first;
+        auto v_l = wt_pred_s.range_search_2d(b_l, e_l, 0, b_l, false);
+        auto v_r = wt_pred_s.range_search_2d(b_r, e_r, 0, b_r, false);
+        return (v_l.first < v_r.first);
     }
 
 
@@ -674,17 +685,20 @@ private:
 
     std::pair<std::string, std::string> split_rpq(const std::string &rpq,
                                                   unordered_map<std::string, uint64_t> &predicates_map,
-                                                  std::vector<uint64_t> &elements){
+                                                  std::vector<uint64_t> &elements,
+                                                  uint64_t &pred_l,
+                                                  uint64_t &pred_r){
         RpqTree rpqTree(rpq, predicates_map, real_max_P);
         auto mandData = rpqTree.getMandatoryData();
-        selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source, true};
+        selectivity::info_preds sel_min{std::numeric_limits<double>::max(), selectivity::source,
+                                        0, 0};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
         const auto& pos_pred_vec = mandData.pos_pred;
-        selectivity::h_growup_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
+        selectivity::h_sum_path_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size();++i){
-            selectivity::info sel_info;
+            selectivity::info_preds sel_info;
             //2. Intersection
             if(i+1 < pos_pred_vec.size()
                 && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
@@ -697,6 +711,8 @@ private:
             if(sel_info.weight < sel_min.weight){
                 sel_min = sel_info;
                 i_split = i;
+                pred_l = sel_info.mand_pred_left;
+                pred_r = sel_info.mand_pred_right;
             }
         }
 
@@ -723,7 +739,7 @@ private:
 
 
 
-    std::pair<uint64_t, selectivity::info> pos_split_rpq(const MandatoryData &mandData,
+   /* std::pair<uint64_t, selectivity::info> pos_split_rpq(const MandatoryData &mandData,
                                                      unordered_map<std::string, uint64_t> &predicates_map){
 
 
@@ -751,7 +767,7 @@ private:
 
         }
         return {i_split, sel_min};
-    }
+    }*/
 
 
 
@@ -1404,6 +1420,56 @@ public:
         }
     };
 
+    void rpq_const_s_to_var_o(const std::string &rpq,
+                              unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
+                              std::vector<word_t> &B_array,
+                              uint64_t initial_object,
+                              std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                              uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path) {
+
+        std::string query, str_aux;
+
+        if (n_predicates == 1 and n_operators == 0) {
+            uint64_t predicate;
+            if (is_negated_pred)
+                predicate = real_max_P + predicates_map["<" + rpq.substr(2, rpq.size() - 1)];
+            else
+                predicate = predicates_map[rpq];
+
+            // cuidado, lo anterior asume que los negados han sido manipulados desde afuera, lo cual es cierto en la manera que los estoy escribiendo en el log que manejo, pero hay que hacerlo de una forma mas general.
+
+            single_predicate_query(predicate, initial_object, CONST_TO_VAR, is_negated_pred,
+                                   output_subjects);
+            return;
+        } else {
+            if (is_a_path and n_operators == 1) {
+                path_query(rpq, initial_object, CONST_TO_VAR, predicates_map, output_subjects);
+                return;
+            }
+        }
+
+        int64_t iii = rpq.size() - 1;
+        query = parse_reverse(rpq, iii, predicates_map, real_max_P);
+
+        RpqAutomata A(query, predicates_map);
+
+        std::unordered_map<uint64_t, uint64_t> m = A.getB();
+        for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++) {
+            L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
+        }
+
+        high_resolution_clock::time_point start;
+        double total_time = 0.0;
+        duration<double> time_span;
+        start = high_resolution_clock::now();
+
+        _rpq_const_s_to_var_o(A, predicates_map, B_array, initial_object, output_subjects, true, start);
+
+        for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++) {
+            L_P.unmark<word_t>(it->first, B_array);
+        }
+    };
+
 
     void rpq_var_s_to_const_o(const std::string &rpq,
                               unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
@@ -1453,6 +1519,60 @@ public:
         start = high_resolution_clock::now();
 
         _rpq_const_s_to_var_o_with_bound(A, predicates_map, B_array, initial_object, output_subjects, false, start, bound);
+
+        for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++) {
+            L_P.unmark<word_t>(it->first, B_array);
+        }
+    };
+
+
+    void rpq_var_s_to_const_o(const std::string &rpq,
+                              unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
+                              std::vector<word_t> &B_array,
+                              uint64_t initial_object,
+                              std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                              uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path) {
+        std::string query, str_aux;
+
+        if (n_predicates == 1 and n_operators == 0) {
+            uint64_t predicate;
+            if (is_negated_pred)
+                predicate = predicates_map["<" + rpq.substr(2, rpq.size() - 1)];
+            else
+                predicate = real_max_P + predicates_map[rpq];
+
+            // cuidado, lo anterior asume que los negados han sido manipulados desde afuera, lo cual es cierto en la manera que los estoy escribiendo en el log que manejo, pero hay que hacerlo de una forma mas general.
+            single_predicate_query(predicate, initial_object, VAR_TO_CONST, is_negated_pred,
+                                   output_subjects);
+            return;
+
+        } else {
+            if (is_a_path and n_operators == 1) {
+                path_query(rpq, initial_object, VAR_TO_CONST, predicates_map, output_subjects);
+                return;
+            }
+        }
+
+
+        int64_t iii = 0;
+        query = parse(rpq, iii, predicates_map, real_max_P);
+
+        RpqAutomata A(query, predicates_map);
+
+        // ToDo: actualmente asume que el arreglo B_array tiene espacio tambien para las hojas del WT
+        // Se puede cambiar y reducir el espacio del arreglo a la mitad, manejando las hojas con
+        // el unordered map
+        std::unordered_map<uint64_t, uint64_t> m = A.getB();
+        for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++) {
+            L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
+        }
+
+        high_resolution_clock::time_point start;
+        double total_time = 0.0;
+        duration<double> time_span;
+        start = high_resolution_clock::now();
+
+        _rpq_const_s_to_var_o(A, predicates_map, B_array, initial_object, output_subjects, false, start);
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++) {
             L_P.unmark<word_t>(it->first, B_array);
@@ -2205,6 +2325,7 @@ public:
     }*/
 
     void _rpq_var_to_var_splits_done(const std::string &rpq_l,const std::string &rpq_r,
+                                     const uint64_t pred_l, const uint64_t pred_r,
                                      const std::vector<uint64_t> &elements,
                                      unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
                                      std::vector<word_t> &B_array_l,
@@ -2240,18 +2361,18 @@ public:
             bool const_to_var_l = false;
             bool const_to_var_r = true;
             bool time_out = false;
+            std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
             for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
                 //std::cout << "E: " << ++cnt << std::endl;
                 const auto &e = elements[i];
-                if(e > 1000 ) { //TODO: chequear se conven ir cara a esquerda ou cara a dereita
+                if(start_with_left(e, pred_l, pred_r)){
                     //Starting with the left part
-                    time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array, elements[i], output_1,
+                    time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l, elements[i], output_1,
                                                      const_to_var_l, start);
                     // if (output_1.empty()) continue; //There is no solution
                     for (uint64_t j = 0; !time_out && j < output_1.size(); ++j) {
-                        time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array,
-                                                         output_1[j],
-                                                         output_2, const_to_var_r, start);
+                        time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r,
+                                                         output_1[j],output_2, const_to_var_r, start);
                         for (const auto &o_r : output_2) {
                             //Check duplicates
                             auto it_set = sol_set.insert({output_1[j].first, o_r.second});
@@ -2264,11 +2385,11 @@ public:
                     output_1.clear();
                 }else{
                     //Starting with the right part
-                    time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array, elements[i], output_1,
+                    time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r, elements[i], output_1,
                                                      const_to_var_r, start);
                     // if (output_1.empty()) continue; //There is no solution
                     for (uint64_t j = 0; !time_out && j < output_1.size(); ++j) {
-                        time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array,
+                        time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l,
                                                          output_1[j],
                                                          output_2, const_to_var_r, start);
                         for (const auto &o_l : output_2) {
@@ -2306,7 +2427,7 @@ public:
             //Check the solutions from RPQ2
             bool time_out = false;
             for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
-                time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array, elements[i],
+                time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r, elements[i],
                                                  solution, true, start);
             }
             //RPQ2: Unmark the NFA states
@@ -2328,7 +2449,7 @@ public:
             //Check the solutions from RPQ1
             bool time_out = false;
             for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
-                time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array, elements[i],
+                time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l, elements[i],
                                                  solution, false, start);
             }
             //RPQ1: Unmark the NFA states
@@ -2341,7 +2462,7 @@ public:
 
     void rpq_var_to_var_split(const std::string &rpq,
                               unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
-                              std::vector<word_t> &B_array,
+                              std::vector<word_t> &B_array_l, std::vector<word_t> &B_array_r,
                               std::vector<std::pair<uint64_t, uint64_t>> &solution,
                               uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path){
 
@@ -2354,11 +2475,12 @@ public:
         double total_time = 0.0;
         duration<double> time_span;
         start = high_resolution_clock::now();
-        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
+        uint64_t pred_l, pred_r;
+        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements, pred_l, pred_r);
         std::cout << "rpq_l: " << rpq_l << std::endl;
         std::cout << "rpq_r: " << rpq_r << std::endl;
-        _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
-                                    B_array, true, solution, n_predicates,
+        _rpq_var_to_var_splits_done(rpq_l, rpq_r, pred_l, pred_r, elements, predicates_map,
+                                    B_array_l, B_array_r, solution, n_predicates,
                                     is_negated_pred, n_operators, is_a_path, start);
     }
 
@@ -2367,723 +2489,6 @@ public:
 
 
 
-    void _rpq_const_to_var_splits_done(const std::string &rpq_l,const std::string &rpq_r,
-                                     const uint64_t const_element,
-                                     const std::vector<uint64_t> &elements,
-                                     unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
-                                     std::vector<word_t> &B_array, bool is_const_to_var,
-                                     std::vector<std::pair<uint64_t, uint64_t>> &solution,
-                                     uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators,
-                                     bool is_a_path, high_resolution_clock::time_point start ){
-
-        // std::cout << "rpq_l: " << rpq_l << std::endl;
-        // std::cout << "rpq_r: " << rpq_r << std::endl;
-        if (!rpq_l.empty() && !rpq_r.empty()) {
-
-            //3.Solve RPQ1 and RPQ2 by using the selected ranges of objects (RPQ1 and RPQ2 exist)
-            std::vector<std::pair<uint64_t, uint64_t>> output_1, output_2;
-            int64_t p = 0;
-            int64_t p_rev = rpq_r.size() - 1;
-            std::string q_r = parse_reverse(rpq_r, p_rev, predicates_map, real_max_P);
-            std::string q_l = parse(rpq_l, p, predicates_map, real_max_P);
-
-            std::vector<element_solution_type> partial_solutions;
-            if(is_const_to_var){
-                RpqAutomata A_1 = RpqAutomata(q_l, predicates_map);
-                RpqAutomata A_2 = RpqAutomata(q_r, predicates_map);
-                bool sub_to_obj = false;
-                bool const_to_var2 = true;
-                //RPQ1: const_s_to_const_o
-                //RPQ1: Mark the NFA states that are reachable
-                std::unordered_map<uint64_t, uint64_t> m = A_1.getB();
-                for (auto it = m.begin(); it != m.end(); it++) {
-                    L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
-                }
-                //std::cout << "Elements: " << elements.size() << std::endl;
-                //uint64_t cnt = 0;
-                bool time_out = false;
-                for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
-                    //std::cout << "E: " << ++cnt << std::endl;
-                    time_out = _rpq_const_s_to_const_o(A_1, predicates_map, B_array, elements[i], const_element,
-                                            output_1, sub_to_obj, start);
-                    if (output_1.empty()) continue; //There is no solution
-                    partial_solutions.push_back({elements[i], output_1});
-                    output_1.clear();
-                }
-                //RPQ1: Unmark the NFA states
-                for (auto it = m.begin(); it != m.end(); it++) {
-                    L_P.unmark<word_t>(it->first, B_array);
-                }
-
-                //std::cout << "RPQ_r: " << rpq_r << std::endl;
-                //RPQ2: const_s_to_var_o
-                //RPQ2: Mark the NFA states that are reachable
-                m = A_2.getB();
-                for (auto it = m.begin(); it != m.end(); it++) {
-                    L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
-                }
-                //Check the solutions from RPQ1
-                std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
-                //std::cout << "Solutions_l: " << solutions_l.size() << std::endl;
-                //cnt = 0;
-                for (uint64_t i = 0; !time_out && i < partial_solutions.size(); ++i) {
-                    //std::cout << "S: " << ++cnt << std::endl;
-                    time_out = _rpq_const_s_to_var_o(A_2, predicates_map, B_array,
-                                                     partial_solutions[i].element, output_2, const_to_var2, start);
-                    if (output_2.empty()) continue; //There is no solution
-                    //Adding results to solution
-                    for (const auto &o_l : partial_solutions[i].solutions) {
-                        for (const auto &o_r : output_2) {
-                            //Check duplicates
-                            auto it_set = sol_set.insert({o_l.first, o_r.second});
-                            if (it_set.second) {
-                                solution.emplace_back(o_l.first, o_r.second);
-                            }
-                        }
-                    }
-                    output_2.clear();
-                }
-                //RPQ2: Unmark the NFA states
-                for (auto it = m.begin(); it != m.end(); it++) {
-                    L_P.unmark<word_t>(it->first, B_array);
-                }
-            }else{
-                RpqAutomata A_1 = RpqAutomata(q_r, predicates_map);
-                RpqAutomata A_2 = RpqAutomata(q_l, predicates_map);
-                bool sub_to_obj = true;
-                bool const_to_var2 = false;
-
-                //RPQ1: const_s_to_const_o
-                //RPQ1: Mark the NFA states that are reachable
-                std::unordered_map<uint64_t, uint64_t> m = A_1.getB();
-                for (auto it = m.begin(); it != m.end(); it++) {
-                    L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
-                }
-                //std::cout << "Elements: " << elements.size() << std::endl;
-                //uint64_t cnt = 0;
-                bool time_out = false;
-                for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
-                    //std::cout << "E: " << ++cnt << std::endl;
-                    time_out = _rpq_const_s_to_const_o(A_1, predicates_map, B_array, elements[i], const_element,
-                                            output_1, sub_to_obj, start);
-                    if (output_1.empty()) continue; //There is no solution
-                    partial_solutions.push_back({elements[i], output_1});
-                    output_1.clear();
-                }
-                //RPQ1: Unmark the NFA states
-                for (auto it = m.begin(); it != m.end(); it++) {
-                    L_P.unmark<word_t>(it->first, B_array);
-                }
-
-                //std::cout << "RPQ_r: " << rpq_r << std::endl;
-                //RPQ2: const_s_to_var_o
-                //RPQ2: Mark the NFA states that are reachable
-                m = A_2.getB();
-                for (auto it = m.begin(); it != m.end(); it++) {
-                    L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
-                }
-                //Check the solutions from RPQ1
-                std::unordered_set<std::pair<uint64_t, uint64_t>> sol_set;
-                //std::cout << "Solutions_l: " << solutions_l.size() << std::endl;
-                //cnt = 0;
-                for (uint64_t i = 0; !time_out && i < partial_solutions.size(); ++i) {
-                    //std::cout << "S: " << ++cnt << std::endl;
-                    time_out = _rpq_const_s_to_var_o(A_2, predicates_map, B_array,
-                                                     partial_solutions[i].element, output_2, const_to_var2, start);
-                    if (output_2.empty()) continue; //There is no solution
-                    //Adding results to solution
-                    for (const auto &o_r : partial_solutions[i].solutions) {
-                        for (const auto &o_l : output_2) {
-                            //Check duplicates
-                            auto it_set = sol_set.insert({o_l.first, o_r.second});
-                            if (it_set.second) {
-                                solution.emplace_back(o_l.first, o_r.second);
-                            }
-                        }
-                    }
-                    output_2.clear();
-                }
-                //RPQ2: Unmark the NFA states
-                for (auto it = m.begin(); it != m.end(); it++) {
-                    L_P.unmark<word_t>(it->first, B_array);
-                }
-            }
-
-        } else if (rpq_l.empty()) {
-            int64_t p = rpq_r.size() - 1;
-            std::string q_r = parse_reverse(rpq_r, p, predicates_map, real_max_P);
-            RpqAutomata A_r = RpqAutomata(q_r, predicates_map);
-
-            //RPQ2: Mark the NFA states
-            std::unordered_map<uint64_t, uint64_t> m = A_r.getB();
-            for (auto it = m.begin(); it != m.end(); it++) {
-                L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
-            }
-
-            if(is_const_to_var){
-                _rpq_const_s_to_var_o(A_r, predicates_map, B_array, const_element, solution, true, start);
-            }else {
-                //Check the solutions from RPQ2
-                bool time_out = false;
-                for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
-                    time_out = _rpq_const_s_to_const_o(A_r, predicates_map, B_array, elements[i],
-                                                       const_element,solution, true, start);
-                }
-            }
-            //RPQ2: Unmark the NFA states
-            for (auto it = m.begin(); it != m.end(); it++) {
-                L_P.unmark<word_t>(it->first, B_array);
-            }
-
-        } else { //rpq_r.empty()
-            int64_t p = 0;
-            std::string q_l = parse(rpq_l, p, predicates_map, real_max_P);
-            RpqAutomata A_l = RpqAutomata(q_l, predicates_map);
-
-            //RPQ1: Mark the NFA states
-            std::unordered_map<uint64_t, uint64_t> m = A_l.getB();
-            for (auto it = m.begin(); it != m.end(); it++) {
-                L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
-            }
-
-            if(!is_const_to_var){
-                _rpq_const_s_to_var_o(A_l, predicates_map, B_array, const_element, solution, false, start);
-            }else {
-                //Check the solutions from RPQ2
-                bool time_out = false;
-                for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
-                    time_out = _rpq_const_s_to_const_o(A_l, predicates_map, B_array, elements[i],
-                                                       const_element,solution, false, start);
-                }
-            }
-            //RPQ1: Unmark the NFA states
-            for (auto it = m.begin(); it != m.end(); it++) {
-                L_P.unmark<word_t>(it->first, B_array);
-            }
-
-        }
-    }
-
-    void rpq_const_s_to_var_o_split(const std::string &rpq,
-                              unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
-                              std::vector<word_t> &B_array,
-                              uint64_t initial_object,
-                              std::vector<std::pair<uint64_t, uint64_t>> &solution,
-                              uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path){
-
-        std::string rpq_l, rpq_r;
-        std::vector<uint64_t> elements;
-
-
-        high_resolution_clock::time_point start, stop;
-        double total_time = 0.0;
-        duration<double> time_span;
-        start = high_resolution_clock::now();
-        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
-        std::cout << "rpq_l: " << rpq_l << std::endl;
-        std::cout << "rpq_r: " << rpq_r << std::endl;
-        _rpq_const_to_var_splits_done(rpq_l, rpq_r, initial_object, elements, predicates_map,
-                                    B_array, true, solution, n_predicates,
-                                    is_negated_pred, n_operators, is_a_path, start);
-    }
-
-    void rpq_var_s_to_const_o_split(const std::string &rpq,
-                                    unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
-                                    std::vector<word_t> &B_array,
-                                    uint64_t initial_object,
-                                    std::vector<std::pair<uint64_t, uint64_t>> &solution,
-                                    uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path){
-
-        std::string rpq_l, rpq_r;
-        std::vector<uint64_t> elements;
-
-
-        high_resolution_clock::time_point start, stop;
-        double total_time = 0.0;
-        duration<double> time_span;
-        start = high_resolution_clock::now();
-        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
-        std::cout << "rpq_l: " << rpq_l << std::endl;
-        std::cout << "rpq_r: " << rpq_r << std::endl;
-        _rpq_const_to_var_splits_done(rpq_l, rpq_r, initial_object, elements, predicates_map,
-                                      B_array, false, solution, n_predicates,
-                                      is_negated_pred, n_operators, is_a_path, start);
-    }
-
-    void rpq_var_to_var_split_all(const std::string &rpq,
-                              unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
-                              std::vector<word_t> &B_array,
-                              uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path){
-
-        RpqTree rpqTree(rpq, predicates_map, real_max_P);
-        auto mandData = rpqTree.getMandatoryData();
-
-        auto a = pos_split_rpq(mandData, predicates_map);
-
-        if(a.second.split == selectivity::intersect){
-            std::cout << "Selectivity: " << a.first << "-th mandatory pred by intersecting " << std::endl;
-            std::cout << "Startitng with subquery: " << (a.second.first_left ? "left" : "right") << std::endl;
-        }else if (a.second.split == selectivity::target){
-            std::cout << "Selectivity: " << a.first << "-th mandatory pred by target" << std::endl;
-            std::cout << "Startitng with subquery: " << (a.second.first_left ? "left" : "right") << std::endl;
-        }else{
-            std::cout << "Selectivity: " << a.first << "-th mandatory pred by source" << std::endl;
-            std::cout << "Startitng with subquery: " << (a.second.first_left ? "left" : "right") << std::endl;
-        }
-
-#if RUN_QUERY
-        std::string rpq_l, rpq_r;
-        std::vector<uint64_t> elements;
-        const auto& pos_pred_vec = mandData.pos_pred;
-        std::cout << "Source" << std::endl;
-        for(uint64_t i = 0; i < pos_pred_vec.size(); ++i) {
-            std::vector<std::pair<uint64_t, uint64_t>> solution;
-            //std::cout << "Splitting " << i << "-th mandatory pred by source" << std::endl;
-
-            high_resolution_clock::time_point start, stop;
-            double total_time = 0.0;
-            duration<double> time_span;
-            start = high_resolution_clock::now();
-            auto pred = pos_pred_vec[i].id_pred;
-            auto pred_rev = pred_reverse(pred);
-            get_elements(pred_rev, elements);
-            std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos-1);
-            _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
-                                        B_array, true, solution, n_predicates,
-                                        is_negated_pred, n_operators, is_a_path, start);
-            stop = high_resolution_clock::now();
-            time_span = duration_cast<microseconds>(stop - start);
-            total_time = time_span.count();
-            //Format: split; n_solutions; n_elements; time (ns)
-            cout << i << ";" << solution.size() << ";" << elements.size() << ";left;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-            //std::cout << "Elements: " << elements.size() << std::endl;
-            //std::cout << "Solutions: " << solution.size() << std::endl;
-            if(!rpq_l.empty() && !rpq_r.empty()) {
-                solution.clear();
-                start = high_resolution_clock::now();
-                pred = pos_pred_vec[i].id_pred;
-                pred_rev = pred_reverse(pred);
-                get_elements(pred_rev, elements);
-                std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos - 1);
-
-
-                _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
-                                            B_array, false, solution, n_predicates,
-                                            is_negated_pred, n_operators, is_a_path, start);
-
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                //Format: split; n_solutions; n_elements; time (ns)
-                cout << i << ";" << solution.size() << ";" << elements.size() << ";right;"
-                     << (uint64_t) (total_time * 1000000000ULL) << endl;
-            }
-        }
-
-        std::cout << "Target" << std::endl;
-        for(uint64_t i = 0; i < mandData.pos_pred.size(); ++i) {
-            std::vector<std::pair<uint64_t, uint64_t>> solution;
-
-            high_resolution_clock::time_point start, stop;
-            double total_time = 0.0;
-            duration<double> time_span;
-            start = high_resolution_clock::now();
-            auto pred = pos_pred_vec[i].id_pred;
-            get_elements(pred, elements);
-            std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-            _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
-                                        B_array, true, solution, n_predicates,
-                                        is_negated_pred, n_operators, is_a_path, start);
-            stop = high_resolution_clock::now();
-            time_span = duration_cast<microseconds>(stop - start);
-            total_time = time_span.count();
-            //Format: split; n_solutions; n_elements; time (ns)
-            cout << i << ";" << solution.size() << ";" << elements.size() << ";left;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-            if(!rpq_l.empty() && !rpq_r.empty()) {
-                solution.clear();
-                start = high_resolution_clock::now();
-                pred = pos_pred_vec[i].id_pred;
-                get_elements(pred, elements);
-                std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-                _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
-                                            B_array, false, solution, n_predicates,
-                                            is_negated_pred, n_operators, is_a_path, start);
-
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                //Format: split; n_solutions; n_elements; time (ns)
-                cout << i << ";" << solution.size() << ";" << elements.size() << ";right;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-            }
-        }
-        std::cout << "Intersection" << std::endl;
-        for(uint64_t i = 0; i < mandData.pos_pred.size()-1; ++i) {
-            if(i+1 < pos_pred_vec.size()
-               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
-                std::vector<std::pair<uint64_t, uint64_t>> solution;
-
-                high_resolution_clock::time_point start, stop;
-                double total_time = 0.0;
-                duration<double> time_span;
-                start = high_resolution_clock::now();
-
-               // std::cout << "Splitting " << i << "-th mandatory pred by intersecting" << std::endl;
-                auto pred_rev = pred_reverse(pos_pred_vec[i+1].id_pred);
-                auto pred = pos_pred_vec[i].id_pred;
-                get_elements_intersection(pred_rev, pred, elements);
-               // std::cout << "elements: " << elements.size()<< std::endl;
-                std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-                _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
-                                            B_array, true, solution, n_predicates,
-                                            is_negated_pred, n_operators, is_a_path, start);
-               // std::cout << "Elements: " << elements.size() << std::endl;
-               // std::cout << "Solutions: " << solution.size() << std::endl;
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                //Format: split; n_solutions; n_elements; time (ns)
-                cout << i << ";" << solution.size() << ";" << elements.size() << ";left;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-                if(!rpq_l.empty() && !rpq_r.empty()) {
-                    solution.clear();
-                    start = high_resolution_clock::now();
-                    // std::cout << "Splitting " << i << "-th mandatory pred by intersecting" << std::endl;
-                    pred_rev = pred_reverse(pos_pred_vec[i+1].id_pred);
-                    pred = pos_pred_vec[i].id_pred;
-                    get_elements_intersection(pred_rev, pred, elements);
-                    // std::cout << "elements: " << elements.size()<< std::endl;
-                    std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-                    _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
-                                                B_array, false, solution, n_predicates,
-                                                is_negated_pred, n_operators, is_a_path, start);
-                    // std::cout << "Elements: " << elements.size() << std::endl;
-                    // std::cout << "Solutions: " << solution.size() << std::endl;
-                    stop = high_resolution_clock::now();
-                    time_span = duration_cast<microseconds>(stop - start);
-                    total_time = time_span.count();
-                    //Format: split; n_solutions; n_elements; time (ns)
-                    cout << i << ";" << solution.size() << ";" << elements.size() << ";right;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-                }
-            }
-        }
-        std::cout << "---------------------" << std::endl;
-#endif
-    }
-
-    void rpq_const_s_to_var_o_split_all(const std::string &rpq,
-                                  unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
-                                  std::vector<word_t> &B_array,
-                                  uint64_t so_id,
-                                  uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path){
-
-        RpqTree rpqTree(rpq, predicates_map, real_max_P);
-        auto mandData = rpqTree.getMandatoryData();
-
-        auto a = pos_split_rpq(mandData, predicates_map);
-
-        if(a.second.split == selectivity::intersect){
-            std::cout << "Selectivity: " << a.first << "-th mandatory pred by intersecting " << std::endl;
-            std::cout << "Startitng with subquery: " << (a.second.first_left ? "left" : "right") << std::endl;
-        }else if (a.second.split == selectivity::target){
-            std::cout << "Selectivity: " << a.first << "-th mandatory pred by target" << std::endl;
-            std::cout << "Startitng with subquery: " << (a.second.first_left ? "left" : "right") << std::endl;
-        }else{
-            std::cout << "Selectivity: " << a.first << "-th mandatory pred by source" << std::endl;
-            std::cout << "Startitng with subquery: " << (a.second.first_left ? "left" : "right") << std::endl;
-        }
-
-#if RUN_QUERY
-        std::string rpq_l, rpq_r;
-        std::vector<uint64_t> elements;
-        const auto& pos_pred_vec = mandData.pos_pred;
-        std::cout << "Source" << std::endl;
-        for(uint64_t i = 0; i < pos_pred_vec.size(); ++i) {
-            std::vector<std::pair<uint64_t, uint64_t>> solution;
-            //std::cout << "Splitting " << i << "-th mandatory pred by source" << std::endl;
-
-            high_resolution_clock::time_point start, stop;
-            double total_time = 0.0;
-            duration<double> time_span;
-            start = high_resolution_clock::now();
-            auto pred = pos_pred_vec[i].id_pred;
-            auto pred_rev = pred_reverse(pred);
-            get_elements(pred_rev, elements);
-            std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos-1);
-            _rpq_const_to_var_splits_done(rpq_l, rpq_r, so_id, elements, predicates_map,
-                                        B_array, true, solution, n_predicates,
-                                        is_negated_pred, n_operators, is_a_path, start);
-            stop = high_resolution_clock::now();
-            time_span = duration_cast<microseconds>(stop - start);
-            total_time = time_span.count();
-            //Format: split; n_solutions; n_elements; time (ns)
-            cout << i << ";" << solution.size() << ";" << elements.size() << ";left;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-            //std::cout << "Elements: " << elements.size() << std::endl;
-            //std::cout << "Solutions: " << solution.size() << std::endl;
-            if(!rpq_l.empty() && !rpq_r.empty()) {
-                solution.clear();
-                start = high_resolution_clock::now();
-                pred = pos_pred_vec[i].id_pred;
-                pred_rev = pred_reverse(pred);
-                get_elements(pred_rev, elements);
-                std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos - 1);
-                _rpq_const_to_var_splits_done(rpq_l, rpq_r, so_id, elements, predicates_map,
-                                              B_array, true, solution, n_predicates,
-                                              is_negated_pred, n_operators, is_a_path, start);
-
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                //Format: split; n_solutions; n_elements; time (ns)
-                cout << i << ";" << solution.size() << ";" << elements.size() << ";right;"
-                     << (uint64_t) (total_time * 1000000000ULL) << endl;
-            }
-        }
-
-        std::cout << "Target" << std::endl;
-        for(uint64_t i = 0; i < mandData.pos_pred.size(); ++i) {
-            std::vector<std::pair<uint64_t, uint64_t>> solution;
-
-            high_resolution_clock::time_point start, stop;
-            double total_time = 0.0;
-            duration<double> time_span;
-            start = high_resolution_clock::now();
-            auto pred = pos_pred_vec[i].id_pred;
-            get_elements(pred, elements);
-            std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-            _rpq_const_to_var_splits_done(rpq_l, rpq_r, so_id, elements, predicates_map,
-                                          B_array, true, solution, n_predicates,
-                                          is_negated_pred, n_operators, is_a_path, start);
-            stop = high_resolution_clock::now();
-            time_span = duration_cast<microseconds>(stop - start);
-            total_time = time_span.count();
-            //Format: split; n_solutions; n_elements; time (ns)
-            cout << i << ";" << solution.size() << ";" << elements.size() << ";left;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-            if(!rpq_l.empty() && !rpq_r.empty()) {
-                solution.clear();
-                start = high_resolution_clock::now();
-                pred = pos_pred_vec[i].id_pred;
-                get_elements(pred, elements);
-                std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-                _rpq_const_to_var_splits_done(rpq_l, rpq_r, so_id, elements, predicates_map,
-                                              B_array, true, solution, n_predicates,
-                                              is_negated_pred, n_operators, is_a_path, start);
-
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                //Format: split; n_solutions; n_elements; time (ns)
-                cout << i << ";" << solution.size() << ";" << elements.size() << ";right;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-            }
-        }
-        std::cout << "Intersection" << std::endl;
-        for(uint64_t i = 0; i < mandData.pos_pred.size()-1; ++i) {
-            if(i+1 < pos_pred_vec.size()
-               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
-                std::vector<std::pair<uint64_t, uint64_t>> solution;
-
-                high_resolution_clock::time_point start, stop;
-                double total_time = 0.0;
-                duration<double> time_span;
-                start = high_resolution_clock::now();
-
-                // std::cout << "Splitting " << i << "-th mandatory pred by intersecting" << std::endl;
-                auto pred_rev = pred_reverse(pos_pred_vec[i+1].id_pred);
-                auto pred = pos_pred_vec[i].id_pred;
-                get_elements_intersection(pred_rev, pred, elements);
-                // std::cout << "elements: " << elements.size()<< std::endl;
-                std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-                _rpq_const_to_var_splits_done(rpq_l, rpq_r, so_id, elements, predicates_map,
-                                              B_array, true, solution, n_predicates,
-                                              is_negated_pred, n_operators, is_a_path, start);
-                // std::cout << "Elements: " << elements.size() << std::endl;
-                // std::cout << "Solutions: " << solution.size() << std::endl;
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                //Format: split; n_solutions; n_elements; time (ns)
-                cout << i << ";" << solution.size() << ";" << elements.size() << ";left;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-                if(!rpq_l.empty() && !rpq_r.empty()) {
-                    solution.clear();
-                    start = high_resolution_clock::now();
-                    // std::cout << "Splitting " << i << "-th mandatory pred by intersecting" << std::endl;
-                    pred_rev = pred_reverse(pos_pred_vec[i+1].id_pred);
-                    pred = pos_pred_vec[i].id_pred;
-                    get_elements_intersection(pred_rev, pred, elements);
-                    // std::cout << "elements: " << elements.size()<< std::endl;
-                    std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-                    _rpq_const_to_var_splits_done(rpq_l, rpq_r, so_id, elements, predicates_map,
-                                                  B_array, true, solution, n_predicates,
-                                                  is_negated_pred, n_operators, is_a_path, start);
-                    // std::cout << "Elements: " << elements.size() << std::endl;
-                    // std::cout << "Solutions: " << solution.size() << std::endl;
-                    stop = high_resolution_clock::now();
-                    time_span = duration_cast<microseconds>(stop - start);
-                    total_time = time_span.count();
-                    //Format: split; n_solutions; n_elements; time (ns)
-                    cout << i << ";" << solution.size() << ";" << elements.size() << ";right;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-                }
-            }
-        }
-        std::cout << "---------------------" << std::endl;
-#endif
-    }
-
-    void rpq_var_s_to_const_o_split_all(const std::string &rpq,
-                                        unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
-                                        std::vector<word_t> &B_array,
-                                        uint64_t so_id,
-                                        uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path){
-
-        RpqTree rpqTree(rpq, predicates_map, real_max_P);
-        auto mandData = rpqTree.getMandatoryData();
-
-        auto a = pos_split_rpq(mandData, predicates_map);
-
-        if(a.second.split == selectivity::intersect){
-            std::cout << "Selectivity: " << a.first << "-th mandatory pred by intersecting " << std::endl;
-            std::cout << "Startitng with subquery: " << (a.second.first_left ? "left" : "right") << std::endl;
-        }else if (a.second.split == selectivity::target){
-            std::cout << "Selectivity: " << a.first << "-th mandatory pred by target" << std::endl;
-            std::cout << "Startitng with subquery: " << (a.second.first_left ? "left" : "right") << std::endl;
-        }else{
-            std::cout << "Selectivity: " << a.first << "-th mandatory pred by source" << std::endl;
-            std::cout << "Startitng with subquery: " << (a.second.first_left ? "left" : "right") << std::endl;
-        }
-
-#if RUN_QUERY
-        std::string rpq_l, rpq_r;
-        std::vector<uint64_t> elements;
-        const auto& pos_pred_vec = mandData.pos_pred;
-        std::cout << "Source" << std::endl;
-        for(uint64_t i = 0; i < pos_pred_vec.size(); ++i) {
-            std::vector<std::pair<uint64_t, uint64_t>> solution;
-            //std::cout << "Splitting " << i << "-th mandatory pred by source" << std::endl;
-
-            high_resolution_clock::time_point start, stop;
-            double total_time = 0.0;
-            duration<double> time_span;
-            start = high_resolution_clock::now();
-            auto pred = pos_pred_vec[i].id_pred;
-            auto pred_rev = pred_reverse(pred);
-            get_elements(pred_rev, elements);
-            std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos-1);
-            _rpq_const_to_var_splits_done(rpq_l, rpq_r, so_id, elements, predicates_map,
-                                          B_array, false, solution, n_predicates,
-                                          is_negated_pred, n_operators, is_a_path, start);
-            stop = high_resolution_clock::now();
-            time_span = duration_cast<microseconds>(stop - start);
-            total_time = time_span.count();
-            //Format: split; n_solutions; n_elements; time (ns)
-            cout << i << ";" << solution.size() << ";" << elements.size() << ";left;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-            //std::cout << "Elements: " << elements.size() << std::endl;
-            //std::cout << "Solutions: " << solution.size() << std::endl;
-            if(!rpq_l.empty() && !rpq_r.empty()) {
-                solution.clear();
-                start = high_resolution_clock::now();
-                pred = pos_pred_vec[i].id_pred;
-                pred_rev = pred_reverse(pred);
-                get_elements(pred_rev, elements);
-                std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos - 1);
-                _rpq_const_to_var_splits_done(rpq_l, rpq_r, so_id, elements, predicates_map,
-                                              B_array, false, solution, n_predicates,
-                                              is_negated_pred, n_operators, is_a_path, start);
-
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                //Format: split; n_solutions; n_elements; time (ns)
-                cout << i << ";" << solution.size() << ";" << elements.size() << ";right;"
-                     << (uint64_t) (total_time * 1000000000ULL) << endl;
-            }
-        }
-
-        std::cout << "Target" << std::endl;
-        for(uint64_t i = 0; i < mandData.pos_pred.size(); ++i) {
-            std::vector<std::pair<uint64_t, uint64_t>> solution;
-
-            high_resolution_clock::time_point start, stop;
-            double total_time = 0.0;
-            duration<double> time_span;
-            start = high_resolution_clock::now();
-            auto pred = pos_pred_vec[i].id_pred;
-            get_elements(pred, elements);
-            std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-            _rpq_const_to_var_splits_done(rpq_l, rpq_r, so_id, elements, predicates_map,
-                                          B_array, false, solution, n_predicates,
-                                          is_negated_pred, n_operators, is_a_path, start);
-            stop = high_resolution_clock::now();
-            time_span = duration_cast<microseconds>(stop - start);
-            total_time = time_span.count();
-            //Format: split; n_solutions; n_elements; time (ns)
-            cout << i << ";" << solution.size() << ";" << elements.size() << ";left;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-            if(!rpq_l.empty() && !rpq_r.empty()) {
-                solution.clear();
-                start = high_resolution_clock::now();
-                pred = pos_pred_vec[i].id_pred;
-                get_elements(pred, elements);
-                std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-                _rpq_const_to_var_splits_done(rpq_l, rpq_r, so_id, elements, predicates_map,
-                                              B_array, false, solution, n_predicates,
-                                              is_negated_pred, n_operators, is_a_path, start);
-
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                //Format: split; n_solutions; n_elements; time (ns)
-                cout << i << ";" << solution.size() << ";" << elements.size() << ";right;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-            }
-        }
-        std::cout << "Intersection" << std::endl;
-        for(uint64_t i = 0; i < mandData.pos_pred.size()-1; ++i) {
-            if(i+1 < pos_pred_vec.size()
-               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
-                std::vector<std::pair<uint64_t, uint64_t>> solution;
-
-                high_resolution_clock::time_point start, stop;
-                double total_time = 0.0;
-                duration<double> time_span;
-                start = high_resolution_clock::now();
-
-                // std::cout << "Splitting " << i << "-th mandatory pred by intersecting" << std::endl;
-                auto pred_rev = pred_reverse(pos_pred_vec[i+1].id_pred);
-                auto pred = pos_pred_vec[i].id_pred;
-                get_elements_intersection(pred_rev, pred, elements);
-                // std::cout << "elements: " << elements.size()<< std::endl;
-                std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-                _rpq_const_to_var_splits_done(rpq_l, rpq_r, so_id, elements, predicates_map,
-                                              B_array, false, solution, n_predicates,
-                                              is_negated_pred, n_operators, is_a_path, start);
-                // std::cout << "Elements: " << elements.size() << std::endl;
-                // std::cout << "Solutions: " << solution.size() << std::endl;
-                stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
-                //Format: split; n_solutions; n_elements; time (ns)
-                cout << i << ";" << solution.size() << ";" << elements.size() << ";left;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-                if(!rpq_l.empty() && !rpq_r.empty()) {
-                    solution.clear();
-                    start = high_resolution_clock::now();
-                    // std::cout << "Splitting " << i << "-th mandatory pred by intersecting" << std::endl;
-                    pred_rev = pred_reverse(pos_pred_vec[i+1].id_pred);
-                    pred = pos_pred_vec[i].id_pred;
-                    get_elements_intersection(pred_rev, pred, elements);
-                    // std::cout << "elements: " << elements.size()<< std::endl;
-                    std::tie(rpq_l, rpq_r) = rpqTree.splitRpq(pos_pred_vec[i].pos);
-                    _rpq_const_to_var_splits_done(rpq_l, rpq_r, so_id, elements, predicates_map,
-                                                  B_array, false, solution, n_predicates,
-                                                  is_negated_pred, n_operators, is_a_path, start);
-                    // std::cout << "Elements: " << elements.size() << std::endl;
-                    // std::cout << "Solutions: " << solution.size() << std::endl;
-                    stop = high_resolution_clock::now();
-                    time_span = duration_cast<microseconds>(stop - start);
-                    total_time = time_span.count();
-                    //Format: split; n_solutions; n_elements; time (ns)
-                    cout << i << ";" << solution.size() << ";" << elements.size() << ";right;" << (uint64_t) (total_time * 1000000000ULL) << endl;
-                }
-            }
-        }
-        std::cout << "---------------------" << std::endl;
-#endif
-    }
 
 
     void rpq_var_to_var_split_mem(const std::string &rpq,

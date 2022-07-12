@@ -65,6 +65,13 @@ target_link_libraries(split-benchmark sdsl divsufsort divsufsort64 nfa)
 add_executable(split-benchmark_v3 src/split-benchmark_v3.cpp)
 target_link_libraries(split-benchmark_v3 sdsl divsufsort divsufsort64 nfa)
 
+
+add_executable(query-index-split_v3 src/query-index-split_v3.cpp)
+target_link_libraries(query-index-split_v3 sdsl divsufsort divsufsort64 nfa)
+
+add_executable(query-index-split_v4 src/query-index-split_v4.cpp)
+target_link_libraries(query-index-split_v4 sdsl divsufsort divsufsort64 nfa)
+
 add_executable(sort-dict src/sort-pos.cpp)
 target_link_libraries(sort-dict sdsl divsufsort divsufsort64 nfa)
 

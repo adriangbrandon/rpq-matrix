@@ -58,6 +58,13 @@ namespace selectivity {
         bool first_left;
     };
 
+    struct info_preds {
+        double weight;
+        split_type  split;
+        uint64_t mand_pred_left;
+        uint64_t mand_pred_right;
+    };
+
     class h_distinct {
         std::vector<uint64_t> m_s;
         std::vector<uint64_t> m_t;
@@ -840,7 +847,7 @@ namespace selectivity {
     };
 
 
-    class h_growup_path2_intersection {
+    class h_sum_path2_intersection {
 
 
     private:
@@ -856,7 +863,7 @@ namespace selectivity {
 
 
     public:
-        h_growup_path2_intersection(const std::vector<PairPredPos> &preds,
+        h_sum_path2_intersection(const std::vector<PairPredPos> &preds,
                                     bwt_nose &L_S, const bwt_type &wt_pred_s,
                            uint64_t maxP, uint64_t sigma) {
 
@@ -1002,7 +1009,176 @@ namespace selectivity {
         }
     };
 
-    class h_growup_path3_intersection {
+
+    class h_sum_path_intersection {
+
+
+    private:
+        std::vector<uint64_t> m_s;
+        std::vector<uint64_t> m_t;
+        std::vector<uint64_t> m_intersection;
+        std::vector<double> m_r;
+        std::vector<double> m_sol_r;
+        std::vector<double> m_l;
+        std::vector<double> m_sol_l;
+        uint64_t m_max_p;
+        uint64_t m_sigma;
+        const std::vector<PairPredPos>* m_preds;
+
+
+    public:
+        h_sum_path_intersection(const std::vector<PairPredPos> &preds,
+                                 bwt_nose &L_S, const bwt_type &wt_pred_s,
+                                 uint64_t maxP, uint64_t sigma) {
+
+            m_preds = &preds;
+            m_max_p = maxP;
+            m_sigma = sigma;
+            //m_t.push_back(-1ULL);
+            for (const auto &pair : *m_preds) {
+                auto e_d = L_S.get_C(pair.id_pred + 1) - 1;
+                auto b_d = L_S.get_C(pair.id_pred);
+                auto v_target = distinct_values(b_d, e_d, wt_pred_s);
+                m_t.push_back(v_target);
+
+                auto rev_id = reverse(pair.id_pred, m_max_p);
+                auto e_r = L_S.get_C(rev_id + 1) - 1;
+                auto b_r = L_S.get_C(rev_id);
+                auto v_source = distinct_values(b_r, e_r, wt_pred_s);
+                m_s.push_back(v_source);
+            }
+
+
+            auto t0 = std::chrono::high_resolution_clock::now();
+            for(uint64_t i = 0; i < preds.size(); ++i){
+                if(i < preds.size()-1 && preds[i].pos == preds[i+1].pos-1){
+                    std::vector<std::array<uint64_t, 2ul>> ranges;
+                    auto Is_p1 = std::pair<uint64_t, uint64_t>(L_S.get_C(preds[i].id_pred),
+                                                               L_S.get_C(preds[i].id_pred + 1) - 1);
+                    auto Is_p2 = std::pair<uint64_t, uint64_t>(L_S.get_C(preds[i+1].id_pred),
+                                                               L_S.get_C(preds[i+1].id_pred + 1) - 1);
+                    ranges.push_back({Is_p1.first, Is_p1.second});
+                    ranges.push_back({Is_p2.first, Is_p2.second});
+                    m_intersection.push_back(L_S.intersect(ranges).size());
+                }else{
+                    m_intersection.push_back(0);
+                }
+            }
+            auto t1 = std::chrono::high_resolution_clock::now();
+            auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
+            std::cout << "Time intersections: " << intersections << std::endl;
+            // m_s.push_back(-1ULL);
+            auto s = m_s.size();
+            std::vector<double> m_d(s), m_i(s);
+
+            for (uint64_t i = 0; i < s; ++i) {
+                m_d[i] = m_t[i] / (double) m_s[i];
+                m_i[i] = m_s[i] / (double) m_t[i];
+            }
+            m_sol_l.resize(s);
+            m_sol_r.resize(s);
+            m_sol_r[s - 1] = m_d[s - 1];
+            m_sol_l[0] = m_i[0];
+            m_l.resize(s);
+            m_r.resize(s);
+            m_r[s - 1] = m_d[s - 1];
+            m_l[0] = m_i[0];
+            for (uint64_t i = 1; i < s; ++i) {
+                //Solutions:
+                // m_sol_r[i]: multiplicity ratio of solutions from i to s-1
+                // m_sol_l[i]: multiplicity ratio of solutions from 0 to i
+                m_sol_r[s - 1 - i] = m_sol_r[s - i] * m_d[s - 1 - i];
+                m_sol_l[i] = m_sol_l[i - 1] * m_i[i];
+
+                //Paths:
+                //m_r: multiplicity ratio of paths from i to s-1
+                //m_l: multiplicity ratio of paths from 0 to i
+                m_r[s - 1 - i] = (1 + m_r[s - i]) * m_d[s - 1 - i];
+                m_l[i] = (1 + m_l[i - 1]) * m_i[i];
+            }
+
+            std::cout << "-----T-----" << std::endl;
+            printVector(m_t);
+            std::cout << "-----S-----" << std::endl;
+            printVector(m_s);
+            std::cout << "-----L-----" << std::endl;
+            printVector(m_l);
+            std::cout << "-----R-----" << std::endl;
+            printVector(m_r);
+
+        }
+
+
+        info_preds simple(const uint64_t ith) {
+            info_preds res;
+            double first_left, first_right;
+            if (m_s[ith] < m_t[ith]) {
+                res.split = source;
+                if (ith == 0) {
+                    //Seed * (1+PathsFactorRight)
+                    res.weight = m_s[ith] * (1 + m_r[ith]);
+                    res.mand_pred_left = m_max_p+1;
+                    res.mand_pred_right = m_preds->at(ith).id_pred;
+                    return res;
+                }
+                //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
+                first_right = m_s[ith] * ((1 + m_r[ith]) + m_sol_r[ith] * (1 + m_l[ith - 1]));
+                //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
+                first_left = m_s[ith] * ((1 + m_l[ith - 1]) + m_sol_l[ith - 1] * (1 + m_r[ith]));
+                res.mand_pred_left =  reverse(m_preds->at(ith-1).id_pred, m_max_p);
+                res.mand_pred_right = m_preds->at(ith).id_pred;
+            } else {
+                res.split = target;
+                if (ith == m_t.size() - 1) {
+                    //Seed * (1+PathsFactorLeft)
+                    res.weight = m_t[ith] * (1 + m_l[ith]);
+                    res.mand_pred_left =  reverse(m_preds->at(ith).id_pred, m_max_p);
+                    res.mand_pred_right = m_max_p+1;
+                    return res;
+                }
+                //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
+                first_right = m_t[ith] * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
+                //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
+                first_left = m_t[ith] * ((1 + m_l[ith]) + m_sol_l[ith] * (1 + m_r[ith + 1]));
+                res.mand_pred_left =  reverse(m_preds->at(ith-1).id_pred, m_max_p);
+                res.mand_pred_right = m_preds->at(ith).id_pred;
+            }
+            if (first_left <= first_right) {
+                res.weight = first_left;
+            } else {
+                res.weight = first_right;
+            }
+            return res;
+        }
+
+        info_preds intersection(const uint64_t ith) {
+            info_preds res;
+            res.split = intersect;
+            double seed, first_right, first_left;
+            /*if (m_s[ith + 1] < m_t[ith]) {
+                //double p = m_t[ith] / (double) (m_sigma);
+                seed = m_s[ith + 1]; //Seed
+            } else {
+                //double p = m_s[ith+1] / (double) (m_sigma);
+                seed = m_t[ith]; //Seed
+            }*/
+            seed = m_intersection[ith];
+            //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
+            first_right = seed * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
+            //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
+            first_left = seed * ((1 + m_l[ith]) + m_sol_l[ith] * (1 + m_r[ith + 1]));
+            if (first_left <= first_right) {
+                res.weight = first_left;
+            } else {
+                res.weight = first_right;
+            }
+            res.mand_pred_left =  reverse(m_preds->at(ith).id_pred, m_max_p);
+            res.mand_pred_right = m_preds->at(ith+1).id_pred;
+            return res;
+        }
+    };
+
+    class h_sum_path3_intersection {
 
 
     private:
@@ -1018,7 +1194,7 @@ namespace selectivity {
 
 
     public:
-        h_growup_path3_intersection(const std::vector<PairPredPos> &preds,
+        h_sum_path3_intersection(const std::vector<PairPredPos> &preds,
                                     bwt_nose &L_S, const bwt_type &wt_pred_s,
                                     uint64_t maxP, uint64_t sigma){
 
@@ -1253,45 +1429,7 @@ namespace selectivity {
 
     };*/
 
-    struct h_ratio {
 
-        info simple(const uint64_t id,
-                    const bwt_nose &L_S, const bwt_type &wt_pred_s,
-                    uint64_t maxP, uint64_t sigma){
-            auto e_d = L_S.get_C(id + 1)-1;
-            auto b_d = L_S.get_C(id);
-            auto rev_id = reverse(id, maxP);
-            auto e_r = L_S.get_C(rev_id + 1)-1;
-            auto b_r = L_S.get_C(rev_id);
-            info res;
-            auto v_source = distinct_values(b_d, e_d, wt_pred_s);
-            auto v_target = distinct_values(b_r, e_r, wt_pred_s);
-            if(v_source > v_target){
-                res.split = target;
-                res.weight = v_target / (double) (e_d-b_d+1);
-            }else{
-                res.split = source;
-                res.weight = v_source / (double) (e_d-b_d+1);
-            }
-            return res;
-        }
-
-        info intersection(const uint64_t id1, const uint64_t id2,
-                          const bwt_nose &L_S, const bwt_type &wt_pred_s,
-                          uint64_t maxP, uint64_t sigma){
-            auto e_l = L_S.get_C(id1 + 1)-1;
-            auto b_l = L_S.get_C(id1);
-            auto rev_id2 = reverse(id2, maxP);
-            auto e_r = L_S.get_C(rev_id2 + 1)-1;
-            auto b_r = L_S.get_C(rev_id2);
-            auto v_l = distinct_values(b_l, e_l, wt_pred_s);
-            auto v_r = distinct_values(b_r, e_r, wt_pred_s);
-            info res;
-            res.weight = (v_l / (double) (e_l-b_l+1)) * (v_r / (double) (e_r-b_r+1));
-            res.split = intersect;
-            return res;
-        }
-    };
 }
 
 #endif //RING_RPQ_SELECTIVITY_HPP
