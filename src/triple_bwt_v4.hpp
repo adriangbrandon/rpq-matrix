@@ -2352,7 +2352,7 @@ public:
                 L_P.mark<word_t>(it->first, B_array_l, (word_t) it->second);
             }
             std::unordered_map<uint64_t, uint64_t> m_r = A_r.getB();
-            for (auto it = m_l.begin(); it != m_l.end(); it++) {
+            for (auto it = m_r.begin(); it != m_r.end(); it++) {
                 L_P.mark<word_t>(it->first, B_array_r, (word_t) it->second);
             }
 
@@ -2366,11 +2366,11 @@ public:
                 const auto &e = elements[i];
                 if(start_with_left(e, pred_l, pred_r)){
                     //Starting with the left part
-                    time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l, elements[i], output_1,
+                    time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l, e, output_1,
                                                      const_to_var_l, start);
                     if (output_1.empty()) continue; //There is no solution
                     time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r,
-                                                     elements[i],output_2, const_to_var_r, start);
+                                                     e,output_2, const_to_var_r, start);
                     for (const auto &o_r : output_2) {
                         for (const auto &o_l : output_1) {
                             //Check duplicates
@@ -2382,11 +2382,11 @@ public:
                     }
                 }else{
                     //Starting with the right part
-                    time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r, elements[i], output_1,
+                    time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r, e, output_1,
                                                      const_to_var_r, start);
                     if (output_1.empty()) continue; //There is no solution
                     time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l,
-                                                     elements[i], output_2, const_to_var_r, start);
+                                                     e, output_2, const_to_var_r, start);
                     for (const auto &o_l : output_2) {
                         for (const auto &o_r : output_1) {
                             //Check duplicates
