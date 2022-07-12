@@ -60,6 +60,7 @@ int main(int argc, char **argv) {
     bool flag_s, flag_o, skip_flag;
     std::vector<std::pair<uint64_t, uint64_t>> query_output;
     std::vector<word_t> B_array(4 * graph.n_labels(), 0);
+    std::vector<word_t> B_array_2(4 * graph.n_labels(), 0);
 
     high_resolution_clock::time_point start, stop;
     double total_time = 0.0;
@@ -212,7 +213,7 @@ int main(int argc, char **argv) {
             if (!skip_flag) {
                 start = high_resolution_clock::now();
                 if (!flag_s and !flag_o) {
-                    graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates,
+                    graph.rpq_var_to_var_split(query, pred_map, B_array, B_array_2, query_output, n_predicates,
                                                is_negated_pred, n_operators, is_a_path);
                 } else {
                     if (flag_s) {
