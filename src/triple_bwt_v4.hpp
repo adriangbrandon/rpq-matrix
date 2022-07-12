@@ -706,7 +706,6 @@ private:
             }else{
                 sel_info = h.simple(i);
             }
-            std::cout << "Weight of i=" << i << ": " << sel_info.weight << std::endl;
             //3. Taking info with the smallest selectivity
             if(sel_info.weight < sel_min.weight){
                 sel_min = sel_info;
@@ -2474,8 +2473,6 @@ public:
         start = high_resolution_clock::now();
         uint64_t pred_l, pred_r;
         std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements, pred_l, pred_r);
-        std::cout << "rpq_l: " << rpq_l << std::endl;
-        std::cout << "rpq_r: " << rpq_r << std::endl;
         _rpq_var_to_var_splits_done(rpq_l, rpq_r, pred_l, pred_r, elements, predicates_map,
                                     B_array_l, B_array_r, solution, n_predicates,
                                     is_negated_pred, n_operators, is_a_path, start);
@@ -2503,8 +2500,6 @@ public:
             duration<double> time_span;
             start = high_resolution_clock::now();
             std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
-            std::cout << "rpq_l: " << rpq_l << std::endl;
-            std::cout << "rpq_r: " << rpq_r << std::endl;
             std::vector<std::pair<uint64_t, uint64_t>> solution;
 #ifdef CHECK_MEM
             MemProfile mem(profile_file.c_str(), 0.1, 1024);

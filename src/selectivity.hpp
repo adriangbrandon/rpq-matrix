@@ -206,14 +206,14 @@ namespace selectivity {
                 m_r[s-i-1] = m_r[s-i] * m_t[m_t.size()-i];
                 m_l[i] = m_l[i-1] * m_s[i-1];
             }
-            std::cout << "-----T-----" << std::endl;
+            /*std::cout << "-----T-----" << std::endl;
             printVector(m_t);
             std::cout << "-----S-----" << std::endl;
             printVector(m_s);
             std::cout << "-----L-----" << std::endl;
             printVector(m_l);
             std::cout << "-----R-----" << std::endl;
-            printVector(m_r);
+            printVector(m_r);*/
 
 
         }
@@ -422,14 +422,14 @@ namespace selectivity {
                 m_r[i] = m_t[i] / (double) m_s[i];
                 m_l[i] = m_s[i] / (double) m_t[i];
             }
-            std::cout << "-----T-----" << std::endl;
+            /*std::cout << "-----T-----" << std::endl;
             printVector(m_t);
             std::cout << "-----S-----" << std::endl;
             printVector(m_s);
             std::cout << "-----L-----" << std::endl;
             printVector(m_l);
             std::cout << "-----R-----" << std::endl;
-            printVector(m_r);
+            printVector(m_r);*/
 
 
         }
@@ -626,14 +626,14 @@ namespace selectivity {
                 m_l[i] = (1+m_l[i-1])*m_i[i];
             }
 
-            std::cout << "-----T-----" << std::endl;
+           /* std::cout << "-----T-----" << std::endl;
             printVector(m_t);
             std::cout << "-----S-----" << std::endl;
             printVector(m_s);
             std::cout << "-----L-----" << std::endl;
             printVector(m_l);
             std::cout << "-----R-----" << std::endl;
-            printVector(m_r);
+            printVector(m_r);*/
 
         }
 
@@ -770,14 +770,14 @@ namespace selectivity {
                 m_l[i] = (1+m_l[i-1])*m_i[i];
             }
 
-            std::cout << "-----T-----" << std::endl;
+            /*std::cout << "-----T-----" << std::endl;
             printVector(m_t);
             std::cout << "-----S-----" << std::endl;
             printVector(m_s);
             std::cout << "-----L-----" << std::endl;
             printVector(m_l);
             std::cout << "-----R-----" << std::endl;
-            printVector(m_r);
+            printVector(m_r);*/
 
         }
 
@@ -884,7 +884,7 @@ namespace selectivity {
             }
 
 
-            auto t0 = std::chrono::high_resolution_clock::now();
+            //auto t0 = std::chrono::high_resolution_clock::now();
             for(uint64_t i = 0; i < preds.size(); ++i){
                 if(i < preds.size()-1 && preds[i].pos == preds[i+1].pos-1){
                     std::vector<std::array<uint64_t, 2ul>> ranges;
@@ -899,9 +899,9 @@ namespace selectivity {
                     m_intersection.push_back(0);
                 }
             }
-            auto t1 = std::chrono::high_resolution_clock::now();
+            /*auto t1 = std::chrono::high_resolution_clock::now();
             auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-            std::cout << "Time intersections: " << intersections << std::endl;
+            std::cout << "Time intersections: " << intersections << std::endl;*/
             // m_s.push_back(-1ULL);
             auto s = m_s.size();
             std::vector<double> m_d(s), m_i(s);
@@ -931,7 +931,7 @@ namespace selectivity {
                 m_r[s - 1 - i] = (1 + m_r[s - i]) * m_d[s - 1 - i];
                 m_l[i] = (1 + m_l[i - 1]) * m_i[i];
             }
-
+            /*
             std::cout << "-----T-----" << std::endl;
             printVector(m_t);
             std::cout << "-----S-----" << std::endl;
@@ -939,7 +939,7 @@ namespace selectivity {
             std::cout << "-----L-----" << std::endl;
             printVector(m_l);
             std::cout << "-----R-----" << std::endl;
-            printVector(m_r);
+            printVector(m_r);*/
 
         }
 
@@ -1264,7 +1264,7 @@ namespace selectivity {
                 m_r[s-1-i] = (1+m_r[s-i])*m_d[s-1-i];
                 m_l[i] = (1+m_l[i-1])*m_i[i];
             }
-
+            /*
             std::cout << "-----T-----" << std::endl;
             printVector(m_t);
             std::cout << "-----S-----" << std::endl;
@@ -1272,7 +1272,7 @@ namespace selectivity {
             std::cout << "-----L-----" << std::endl;
             printVector(m_l);
             std::cout << "-----R-----" << std::endl;
-            printVector(m_r);
+            printVector(m_r);*/
 
         }
 
