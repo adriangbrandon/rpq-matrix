@@ -2369,40 +2369,37 @@ public:
                     //Starting with the left part
                     time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l, elements[i], output_1,
                                                      const_to_var_l, start);
-                    // if (output_1.empty()) continue; //There is no solution
-                    for (uint64_t j = 0; !time_out && j < output_1.size(); ++j) {
-                        time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r,
-                                                         output_1[j],output_2, const_to_var_r, start);
-                        for (const auto &o_r : output_2) {
+                    if (output_1.empty()) continue; //There is no solution
+                    time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r,
+                                                     elements[i],output_2, const_to_var_r, start);
+                    for (const auto &o_r : output_2) {
+                        for (const auto &o_l : output_1) {
                             //Check duplicates
-                            auto it_set = sol_set.insert({output_1[j].first, o_r.second});
+                            auto it_set = sol_set.insert({o_l.first, o_r.second});
                             if (it_set.second) {
-                                solution.emplace_back(output_1[j].first, o_r.second);
+                                solution.emplace_back(o_l.first, o_r.second);
                             }
                         }
-                        output_2.clear();
                     }
-                    output_1.clear();
                 }else{
                     //Starting with the right part
                     time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r, elements[i], output_1,
                                                      const_to_var_r, start);
-                    // if (output_1.empty()) continue; //There is no solution
-                    for (uint64_t j = 0; !time_out && j < output_1.size(); ++j) {
-                        time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l,
-                                                         output_1[j],
-                                                         output_2, const_to_var_r, start);
-                        for (const auto &o_l : output_2) {
+                    if (output_1.empty()) continue; //There is no solution
+                    time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l,
+                                                     elements[i], output_2, const_to_var_r, start);
+                    for (const auto &o_l : output_2) {
+                        for (const auto &o_r : output_1) {
                             //Check duplicates
-                            auto it_set = sol_set.insert({o_l.first, output_1[j].second});
+                            auto it_set = sol_set.insert({o_l.first, o_r.second});
                             if (it_set.second) {
-                                solution.emplace_back(o_l.first, output_1[j].second);
+                                solution.emplace_back(o_l.first, o_r.second);
                             }
                         }
-                        output_2.clear();
                     }
-                    output_1.clear();
                 }
+                output_2.clear();
+                output_1.clear();
             }
 
             //RPQ2: Unmark the NFA states

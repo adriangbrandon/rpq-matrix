@@ -733,7 +733,7 @@ private:
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
         const auto& pos_pred_vec = mandData.pos_pred;
-        selectivity::h_growup_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
+        selectivity::h_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size(); ++i){
             selectivity::info sel_info;
@@ -3274,7 +3274,8 @@ public:
             double total_time = 0.0;
             duration<double> time_span;
             start = high_resolution_clock::now();
-            std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
+            bool first_left;
+            std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, first_left, elements);
             std::cout << "rpq_l: " << rpq_l << std::endl;
             std::cout << "rpq_r: " << rpq_r << std::endl;
             std::vector<std::pair<uint64_t, uint64_t>> solution;
@@ -3282,7 +3283,7 @@ public:
             MemProfile mem(profile_file.c_str(), 0.1, 1024);
 #endif
             _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
-                                        B_array, true, solution, n_predicates,
+                                        B_array, first_left, solution, n_predicates,
                                         is_negated_pred, n_operators, is_a_path, start);
     }
 
