@@ -211,6 +211,7 @@ int main(int argc, char **argv) {
             } while (!skip_flag and X_a >> s_aux);
 
             if (!skip_flag) {
+                start = high_resolution_clock::now();
                 if (!flag_s and !flag_o) {
                     graph.rpq_var_to_var_split(query, pred_map, B_array, B_array_2, query_output, n_predicates,
                                                is_negated_pred, n_operators, is_a_path);
