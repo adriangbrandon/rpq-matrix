@@ -2386,7 +2386,7 @@ public:
                                                      const_to_var_r, start);
                     if (output_1.empty()) continue; //There is no solution
                     time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l,
-                                                     e, output_2, const_to_var_r, start);
+                                                     e, output_2, const_to_var_l, start);
                     for (const auto &o_l : output_2) {
                         for (const auto &o_r : output_1) {
                             //Check duplicates
