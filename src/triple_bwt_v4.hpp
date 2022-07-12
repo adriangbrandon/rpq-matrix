@@ -418,8 +418,8 @@ public:
         auto i_r = L_P.backward_step(b, e, p_right);
         auto e_r = L_S.get_C(p_right) + i_r.second;
         auto b_r = L_S.get_C(p_right) + i_r.first;
-        auto v_l = wt_pred_s.range_search_2d(b_l, e_l, 0, b_l, false);
-        auto v_r = wt_pred_s.range_search_2d(b_r, e_r, 0, b_r, false);
+        auto v_l = wt_pred_s.range_search_2d(b_l, e_l, 0, b_l-1, false);
+        auto v_r = wt_pred_s.range_search_2d(b_r, e_r, 0, b_r-1, false);
         return (v_l.first < v_r.first);
     }
 

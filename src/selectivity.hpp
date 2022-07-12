@@ -872,7 +872,8 @@ namespace selectivity {
             m_max_p = maxP;
             m_sigma = sigma;
             //m_t.push_back(-1ULL);
-            for (const auto &pair : preds) {
+            for (uint64_t i = 0; i < preds.size(); ++i) {
+                const auto& pair = preds[i];
                 auto e_d = L_S.get_C(pair.id_pred + 1) - 1;
                 auto b_d = L_S.get_C(pair.id_pred);
                 auto v_target = distinct_values(b_d, e_d, wt_pred_s);
@@ -883,17 +884,12 @@ namespace selectivity {
                 auto b_r = L_S.get_C(rev_id);
                 auto v_source = distinct_values(b_r, e_r, wt_pred_s);
                 m_s.push_back(v_source);
-            }
 
-
-            //auto t0 = std::chrono::high_resolution_clock::now();
-            for(uint64_t i = 0; i < preds.size(); ++i){
-                if(i < preds.size()-1 && preds[i].pos == preds[i+1].pos-1){
+                if(i < preds.size()-1 && pair.pos == preds[i+1].pos-1){
                     std::vector<std::array<uint64_t, 2ul>> ranges;
-                    auto Is_p1 = std::pair<uint64_t, uint64_t>(L_S.get_C(preds[i].id_pred),
-                                                               L_S.get_C(preds[i].id_pred + 1) - 1);
-                    auto Is_p2 = std::pair<uint64_t, uint64_t>(L_S.get_C(preds[i+1].id_pred),
-                                                               L_S.get_C(preds[i+1].id_pred + 1) - 1);
+                    auto Is_p1 = std::pair<uint64_t, uint64_t>(b_d, e_d);
+                    auto Is_p2 = std::pair<uint64_t, uint64_t>(L_S.get_C(reverse(preds[i+1].id_pred, m_max_p)),
+                                                               L_S.get_C(reverse(preds[i+1].id_pred, m_max_p) + 1) - 1);
                     ranges.push_back({Is_p1.first, Is_p1.second});
                     ranges.push_back({Is_p2.first, Is_p2.second});
                     m_intersection.push_back(L_S.intersect(ranges).size());
@@ -901,6 +897,8 @@ namespace selectivity {
                     m_intersection.push_back(0);
                 }
             }
+
+
             /*auto t1 = std::chrono::high_resolution_clock::now();
             auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
             std::cout << "Time intersections: " << intersections << std::endl;*/
@@ -1042,7 +1040,8 @@ namespace selectivity {
             m_max_p = maxP;
             m_sigma = sigma;
             //m_t.push_back(-1ULL);
-            for (const auto &pair : *m_preds) {
+            for (uint64_t i = 0; i < preds.size(); ++i) {
+                const auto& pair = preds[i];
                 auto e_d = L_S.get_C(pair.id_pred + 1) - 1;
                 auto b_d = L_S.get_C(pair.id_pred);
                 auto v_target = distinct_values(b_d, e_d, wt_pred_s);
@@ -1053,16 +1052,12 @@ namespace selectivity {
                 auto b_r = L_S.get_C(rev_id);
                 auto v_source = distinct_values(b_r, e_r, wt_pred_s);
                 m_s.push_back(v_source);
-            }
 
-
-            for(uint64_t i = 0; i < preds.size(); ++i){
-                if(i < preds.size()-1 && preds[i].pos == preds[i+1].pos-1){
+                if(i < preds.size()-1 && pair.pos == preds[i+1].pos-1){
                     std::vector<std::array<uint64_t, 2ul>> ranges;
-                    auto Is_p1 = std::pair<uint64_t, uint64_t>(L_S.get_C(preds[i].id_pred),
-                                                               L_S.get_C(preds[i].id_pred + 1) - 1);
-                    auto Is_p2 = std::pair<uint64_t, uint64_t>(L_S.get_C(preds[i+1].id_pred),
-                                                               L_S.get_C(preds[i+1].id_pred + 1) - 1);
+                    auto Is_p1 = std::pair<uint64_t, uint64_t>(b_d, e_d);
+                    auto Is_p2 = std::pair<uint64_t, uint64_t>(L_S.get_C(reverse(preds[i+1].id_pred, m_max_p)),
+                                                               L_S.get_C(reverse(preds[i+1].id_pred, m_max_p) + 1) - 1);
                     ranges.push_back({Is_p1.first, Is_p1.second});
                     ranges.push_back({Is_p2.first, Is_p2.second});
                     m_intersection.push_back(L_S.intersect(ranges).size());
