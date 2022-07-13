@@ -48,7 +48,7 @@ namespace selectivity {
     }
 
     inline uint64_t distinct_values(const uint64_t l, const uint64_t r, const bwt_type &wt_pred_s){
-        auto p =  wt_pred_s.range_search_2d(l, r, 0, l-1, false);
+        const auto p =  wt_pred_s.range_search_2d(l, r, 0, l-1, false);
         return p.first;
     }
 
@@ -1024,7 +1024,7 @@ namespace selectivity {
     private:
         std::vector<uint64_t> m_s;
         std::vector<uint64_t> m_t;
-        std::vector<uint64_t> m_intersection;
+        std::vector<std::vector<uint64_t>> m_intersection;
         std::vector<double> m_r;
         std::vector<double> m_sol_r;
         std::vector<double> m_l;
@@ -1064,9 +1064,9 @@ namespace selectivity {
                                                                L_S.get_C(reverse(preds[i+1].id_pred, m_max_p) + 1) - 1);
                     ranges.push_back({Is_p1.first, Is_p1.second});
                     ranges.push_back({Is_p2.first, Is_p2.second});
-                    m_intersection.push_back(L_S.intersect(ranges).size());
+                    m_intersection.emplace_back(L_S.intersect_nofreq(ranges));
                 }else{
-                    m_intersection.push_back(0);
+                    m_intersection.emplace_back(std::vector<uint64_t>());
                 }
             }
             // m_s.push_back(-1ULL);
@@ -1168,7 +1168,7 @@ namespace selectivity {
                 //double p = m_s[ith+1] / (double) (m_sigma);
                 seed = m_t[ith]; //Seed
             }*/
-            seed = m_intersection[ith];
+            seed = m_intersection[ith].size();
             //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
             first_right = seed * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
             //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
@@ -1181,6 +1181,10 @@ namespace selectivity {
             res.mand_pred_left =  reverse(m_preds->at(ith).id_pred, m_max_p);
             res.mand_pred_right = m_preds->at(ith+1).id_pred;
             return res;
+        }
+
+        inline std::vector<uint64_t> get_elements_intersection(uint64_t i){
+            return m_intersection[i];
         }
     };
 

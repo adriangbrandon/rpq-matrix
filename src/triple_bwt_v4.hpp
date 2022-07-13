@@ -718,9 +718,9 @@ private:
         //Computing the elements and splitting the RPQ
         if(sel_min.split == selectivity::intersect){
             //Target of i_split is the splitting node
-            auto pred_rev = pred_reverse(pos_pred_vec[i_split+1].id_pred);
-            auto pred = pos_pred_vec[i_split].id_pred;
-            get_elements_intersection(pred_rev, pred, elements);
+            //auto pred_rev = pred_reverse(pos_pred_vec[i_split+1].id_pred);
+            //auto pred = pos_pred_vec[i_split].id_pred;
+            elements = h.get_elements_intersection(i_split);
             return rpqTree.splitRpq(pos_pred_vec[i_split].pos);
         }else if (sel_min.split == selectivity::source){
             //Source of i_split is the splitting node
