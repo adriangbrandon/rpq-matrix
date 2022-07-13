@@ -1188,6 +1188,114 @@ namespace selectivity {
         }
     };
 
+    class h_distinct_intersection {
+
+
+    private:
+        std::vector<uint64_t> m_s;
+        std::vector<uint64_t> m_t;
+        std::vector<std::vector<uint64_t>> m_intersection;
+        uint64_t m_max_p;
+        uint64_t m_sigma;
+        const std::vector<PairPredPos>* m_preds;
+
+
+    public:
+        h_distinct_intersection(const std::vector<PairPredPos> &preds,
+                                bwt_nose &L_S, const bwt_type &wt_pred_s,
+                                uint64_t maxP, uint64_t sigma) {
+
+            auto t0 = std::chrono::high_resolution_clock::now();
+            m_preds = &preds;
+            m_max_p = maxP;
+            m_sigma = sigma;
+            //m_t.push_back(-1ULL);
+            for (uint64_t i = 0; i < preds.size(); ++i) {
+                const auto& pair = preds[i];
+                auto e_d = L_S.get_C(pair.id_pred + 1) - 1;
+                auto b_d = L_S.get_C(pair.id_pred);
+                auto v_target = distinct_values(b_d, e_d, wt_pred_s);
+                m_t.push_back(v_target);
+
+                auto rev_id = reverse(pair.id_pred, m_max_p);
+                auto e_r = L_S.get_C(rev_id + 1) - 1;
+                auto b_r = L_S.get_C(rev_id);
+                auto v_source = distinct_values(b_r, e_r, wt_pred_s);
+                m_s.push_back(v_source);
+
+                if(i < preds.size()-1 && pair.pos == preds[i+1].pos-1){
+                    std::vector<std::array<uint64_t, 2ul>> ranges;
+                    auto Is_p1 = std::pair<uint64_t, uint64_t>(b_d, e_d);
+                    auto Is_p2 = std::pair<uint64_t, uint64_t>(L_S.get_C(reverse(preds[i+1].id_pred, m_max_p)),
+                                                               L_S.get_C(reverse(preds[i+1].id_pred, m_max_p) + 1) - 1);
+                    ranges.push_back({Is_p1.first, Is_p1.second});
+                    ranges.push_back({Is_p2.first, Is_p2.second});
+                    m_intersection.emplace_back(L_S.intersect_nofreq(ranges));
+                }else{
+                    m_intersection.emplace_back(std::vector<uint64_t>());
+                }
+            }
+
+            auto t1 = std::chrono::high_resolution_clock::now();
+            auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
+            std::cout << "CDecision: " << intersections << std::endl;
+            /*
+            std::cout << "-----T-----" << std::endl;
+            printVector(m_t);
+            std::cout << "-----S-----" << std::endl;
+            printVector(m_s);
+            std::cout << "-----L-----" << std::endl;
+            printVector(m_l);
+            std::cout << "-----R-----" << std::endl;
+            printVector(m_r);*/
+
+        }
+
+
+        info_preds simple(const uint64_t ith) {
+            info_preds res;
+            double first_left, first_right;
+            if (m_s[ith] < m_t[ith]) {
+                res.split = source;
+                res.weight = m_s[ith];
+                if (ith == 0) {
+                    //Seed * (1+PathsFactorRight)
+                    res.mand_pred_left = m_max_p+1;
+                    res.mand_pred_right = m_preds->at(ith).id_pred;
+                    return res;
+                }
+                res.mand_pred_left =  reverse(m_preds->at(ith-1).id_pred, m_max_p);
+                res.mand_pred_right = m_preds->at(ith).id_pred;
+            } else {
+                res.split = target;
+                res.weight = m_t[ith];
+                if (ith == m_t.size() - 1) {
+                    //Seed * (1+PathsFactorLeft)
+                    res.mand_pred_left =  reverse(m_preds->at(ith).id_pred, m_max_p);
+                    res.mand_pred_right = m_max_p+1;
+                    return res;
+                }
+                res.mand_pred_left =  reverse(m_preds->at(ith-1).id_pred, m_max_p);
+                res.mand_pred_right = m_preds->at(ith).id_pred;
+            }
+            return res;
+        }
+
+        info_preds intersection(const uint64_t ith) {
+            info_preds res;
+            res.split = intersect;
+            res.weight = m_intersection[ith].size();
+            res.mand_pred_left =  reverse(m_preds->at(ith).id_pred, m_max_p);
+            res.mand_pred_right = m_preds->at(ith+1).id_pred;
+            return res;
+        }
+
+        inline std::vector<uint64_t> get_elements_intersection(uint64_t i){
+            return m_intersection[i];
+        }
+    };
+
+
     class h_sum_path3_intersection {
 
 
