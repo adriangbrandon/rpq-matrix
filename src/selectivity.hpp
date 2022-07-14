@@ -878,20 +878,16 @@ namespace selectivity {
             //m_t.push_back(-1ULL);
             for (uint64_t i = 0; i < preds.size(); ++i) {
                 const auto& pair = preds[i];
-                auto e_d = L_S.get_C(pair.id_pred + 1) - 1;
-                auto b_d = L_S.get_C(pair.id_pred);
-                auto v_target = distinct_values(b_d, e_d, wt_pred_s);
+                auto v_target = distinct_values(L_S.get_C(pair.id_pred), L_S.get_C(pair.id_pred + 1) - 1, wt_pred_s);
                 m_t.push_back(v_target);
 
                 auto rev_id = reverse(pair.id_pred, m_max_p);
-                auto e_r = L_S.get_C(rev_id + 1) - 1;
-                auto b_r = L_S.get_C(rev_id);
-                auto v_source = distinct_values(b_r, e_r, wt_pred_s);
+                auto v_source = distinct_values(L_S.get_C(rev_id), L_S.get_C(rev_id + 1) - 1, L_S);
                 m_s.push_back(v_source);
 
                 if(i < preds.size()-1 && pair.pos == preds[i+1].pos-1){
                     std::vector<std::array<uint64_t, 2ul>> ranges;
-                    auto Is_p1 = std::pair<uint64_t, uint64_t>(b_d, e_d);
+                    auto Is_p1 = std::pair<uint64_t, uint64_t>(L_S.get_C(pair.id_pred), L_S.get_C(pair.id_pred + 1) - 1);
                     auto Is_p2 = std::pair<uint64_t, uint64_t>(L_S.get_C(reverse(preds[i+1].id_pred, m_max_p)),
                                                                L_S.get_C(reverse(preds[i+1].id_pred, m_max_p) + 1) - 1);
                     ranges.push_back({Is_p1.first, Is_p1.second});
@@ -947,7 +943,7 @@ namespace selectivity {
 
             auto t1 = std::chrono::high_resolution_clock::now();
             auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-            std::cout << "CDecision: " << intersections << std::endl;
+            std::cout << "Decision: " << intersections << std::endl;
 
         }
 
@@ -1050,20 +1046,16 @@ namespace selectivity {
             //m_t.push_back(-1ULL);
             for (uint64_t i = 0; i < preds.size(); ++i) {
                 const auto& pair = preds[i];
-                auto e_d = L_S.get_C(pair.id_pred + 1) - 1;
-                auto b_d = L_S.get_C(pair.id_pred);
-                auto v_target = distinct_values(b_d, e_d, wt_pred_s);
+                auto v_target = distinct_values(L_S.get_C(pair.id_pred), L_S.get_C(pair.id_pred + 1) - 1, L_S);
                 m_t.push_back(v_target);
 
                 auto rev_id = reverse(pair.id_pred, m_max_p);
-                auto e_r = L_S.get_C(rev_id + 1) - 1;
-                auto b_r = L_S.get_C(rev_id);
-                auto v_source = distinct_values(b_r, e_r, wt_pred_s);
+                auto v_source = distinct_values(L_S.get_C(rev_id), L_S.get_C(rev_id + 1) - 1, L_S);
                 m_s.push_back(v_source);
 
                 if(i < preds.size()-1 && pair.pos == preds[i+1].pos-1){
                     std::vector<std::array<uint64_t, 2ul>> ranges;
-                    auto Is_p1 = std::pair<uint64_t, uint64_t>(b_d, e_d);
+                    auto Is_p1 = std::pair<uint64_t, uint64_t>(L_S.get_C(pair.id_pred), L_S.get_C(pair.id_pred + 1) - 1);
                     auto Is_p2 = std::pair<uint64_t, uint64_t>(L_S.get_C(reverse(preds[i+1].id_pred, m_max_p)),
                                                                L_S.get_C(reverse(preds[i+1].id_pred, m_max_p) + 1) - 1);
                     ranges.push_back({Is_p1.first, Is_p1.second});
@@ -1105,7 +1097,7 @@ namespace selectivity {
 
             auto t1 = std::chrono::high_resolution_clock::now();
             auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-            std::cout << "CDecision: " << intersections << std::endl;
+            std::cout << "Decision: " << intersections << std::endl;
             /*
             std::cout << "-----T-----" << std::endl;
             printVector(m_t);
