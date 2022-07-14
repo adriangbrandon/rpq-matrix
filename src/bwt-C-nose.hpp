@@ -333,5 +333,10 @@ class bwt_nose
         return sdsl::intersect_nofreq<bwt_type>(L, ranges);
     };
 
+
+    inline uint64_t count_distinct_values(uint64_t lb, uint64_t rb) {
+        return L.count_distinct_values(lb, rb);
+    };
+
  };
 #endif

@@ -51,6 +51,11 @@ namespace selectivity {
         return  wt_pred_s.count_range_search_2d(l, r, 0, l-1);
     }
 
+
+    inline uint64_t distinct_values(const uint64_t l, const uint64_t r, bwt_nose &L_S){
+        return  L_S.count_distinct_values(l, r);
+    }
+
     struct info {
         double weight;
         split_type  split;
@@ -1211,12 +1216,12 @@ namespace selectivity {
             auto t0 = std::chrono::high_resolution_clock::now();
             for (const auto& pair : preds) {
                 auto v_target = distinct_values(L_S.get_C(pair.id_pred),
-                                                L_S.get_C(pair.id_pred + 1) - 1, wt_pred_s);
+                                                L_S.get_C(pair.id_pred + 1) - 1, L_S);
                 m_t.push_back(v_target);
 
                 auto rev_id = reverse(pair.id_pred, m_max_p);
                 auto v_source = distinct_values(L_S.get_C(rev_id),
-                                                L_S.get_C(rev_id + 1) - 1, wt_pred_s);
+                                                L_S.get_C(rev_id + 1) - 1, L_S);
                 m_s.push_back(v_source);
 
             }
