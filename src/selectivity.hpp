@@ -47,7 +47,7 @@ namespace selectivity {
         return (id > maxP) ? id - maxP : id + maxP;
     }
 
-    inline uint64_t distinct_values(const uint64_t l, const uint64_t r, const bwt_type &wt_pred_s){
+    inline uint64_t distinct_values(const uint64_t l, const uint64_t r, bwt_type &wt_pred_s){
         return  wt_pred_s.count_range_search_2d(l, r, 0, l-1);
     }
 
@@ -77,7 +77,7 @@ namespace selectivity {
 
 
         h_distinct(const std::vector<PairPredPos> &preds,
-                        const bwt_nose &L_S, const bwt_type &wt_pred_s,
+                   bwt_nose &L_S, bwt_type &wt_pred_s,
                         uint64_t maxP, uint64_t sigma) {
 
             m_max_p = maxP;
@@ -176,7 +176,7 @@ namespace selectivity {
 
     public:
         h_distinct_path(const std::vector<PairPredPos> &preds,
-                        const bwt_nose &L_S, const bwt_type &wt_pred_s,
+                        bwt_nose &L_S, bwt_type &wt_pred_s,
                         uint64_t maxP, uint64_t sigma){
 
             m_max_p = maxP;
@@ -265,7 +265,7 @@ namespace selectivity {
 
     public:
         h_growup_path(const std::vector<PairPredPos> &preds,
-                        const bwt_nose &L_S, const bwt_type &wt_pred_s,
+                      bwt_nose &L_S, bwt_type &wt_pred_s,
                         uint64_t maxP, uint64_t sigma){
 
             m_max_p = maxP;
@@ -392,7 +392,7 @@ namespace selectivity {
 
     public:
         h_growup_path2(const std::vector<PairPredPos> &preds,
-                      const bwt_nose &L_S, const bwt_type &wt_pred_s,
+                       bwt_nose &L_S, bwt_type &wt_pred_s,
                       uint64_t maxP, uint64_t sigma){
 
             m_max_p = maxP;
@@ -576,7 +576,7 @@ namespace selectivity {
 
     public:
         h_growup_path2_opt(const std::vector<PairPredPos> &preds,
-                       const bwt_nose &L_S, const bwt_type &wt_pred_s,
+                        bwt_nose &L_S, bwt_type &wt_pred_s,
                        uint64_t maxP, uint64_t sigma){
 
             m_max_p = maxP;
@@ -718,7 +718,7 @@ namespace selectivity {
 
     public:
         h_growup_path3(const std::vector<PairPredPos> &preds,
-                           const bwt_nose &L_S, const bwt_type &wt_pred_s,
+                       bwt_nose &L_S, bwt_type &wt_pred_s,
                            uint64_t maxP, uint64_t sigma){
 
             m_max_p = maxP;
@@ -863,7 +863,7 @@ namespace selectivity {
 
     public:
         h_sum_path2_intersection(const std::vector<PairPredPos> &preds,
-                                    bwt_nose &L_S, const bwt_type &wt_pred_s,
+                                    bwt_nose &L_S, bwt_type &wt_pred_s,
                            uint64_t maxP, uint64_t sigma) {
 
 
@@ -1035,7 +1035,7 @@ namespace selectivity {
 
     public:
         h_sum_path_intersection(const std::vector<PairPredPos> &preds,
-                                 bwt_nose &L_S, const bwt_type &wt_pred_s,
+                                 bwt_nose &L_S, bwt_type &wt_pred_s,
                                  uint64_t maxP, uint64_t sigma) {
 
             auto t0 = std::chrono::high_resolution_clock::now();
@@ -1201,7 +1201,7 @@ namespace selectivity {
 
     public:
         h_distinct_intersection(const std::vector<PairPredPos> &preds,
-                                bwt_nose &L_S, const bwt_type &wt_pred_s,
+                                bwt_nose &L_S, bwt_type &wt_pred_s,
                                 uint64_t maxP, uint64_t sigma) {
 
             auto t0 = std::chrono::high_resolution_clock::now();
@@ -1209,17 +1209,14 @@ namespace selectivity {
             m_max_p = maxP;
             m_sigma = sigma;
             //m_t.push_back(-1ULL);
-            for (uint64_t i = 0; i < preds.size(); ++i) {
-                const auto& pair = preds[i];
-                auto e_d = L_S.get_C(pair.id_pred + 1) - 1;
-                auto b_d = L_S.get_C(pair.id_pred);
-                auto v_target = distinct_values(b_d, e_d, wt_pred_s);
+            for (const auto& pair : preds) {
+                auto v_target = distinct_values(L_S.get_C(pair.id_pred),
+                                                L_S.get_C(pair.id_pred + 1) - 1, wt_pred_s);
                 m_t.push_back(v_target);
 
                 auto rev_id = reverse(pair.id_pred, m_max_p);
-                auto e_r = L_S.get_C(rev_id + 1) - 1;
-                auto b_r = L_S.get_C(rev_id);
-                auto v_source = distinct_values(b_r, e_r, wt_pred_s);
+                auto v_source = distinct_values(L_S.get_C(rev_id),
+                                                L_S.get_C(rev_id + 1) - 1, wt_pred_s);
                 m_s.push_back(v_source);
 
             }
@@ -1320,7 +1317,7 @@ namespace selectivity {
 
     public:
         h_sum_path3_intersection(const std::vector<PairPredPos> &preds,
-                                    bwt_nose &L_S, const bwt_type &wt_pred_s,
+                                    bwt_nose &L_S, bwt_type &wt_pred_s,
                                     uint64_t maxP, uint64_t sigma){
 
             m_max_p = maxP;
