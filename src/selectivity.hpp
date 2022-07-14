@@ -48,8 +48,7 @@ namespace selectivity {
     }
 
     inline uint64_t distinct_values(const uint64_t l, const uint64_t r, const bwt_type &wt_pred_s){
-        const auto p =  wt_pred_s.range_search_2d(l, r, 0, l-1, false);
-        return p.first;
+        return  wt_pred_s.count_range_search_2d(l, r, 0, l-1);
     }
 
     struct info {
@@ -1223,15 +1222,21 @@ namespace selectivity {
                 auto v_source = distinct_values(b_r, e_r, wt_pred_s);
                 m_s.push_back(v_source);
 
-                if(i < preds.size()-1 && pair.pos == preds[i+1].pos-1){
+            }
+
+
+            for (uint64_t i = 0; i < preds.size(); ++i) {
+                if (i < preds.size() - 1 && preds[i].pos == preds[i + 1].pos - 1) {
                     std::vector<std::array<uint64_t, 2ul>> ranges;
-                    auto Is_p1 = std::pair<uint64_t, uint64_t>(b_d, e_d);
-                    auto Is_p2 = std::pair<uint64_t, uint64_t>(L_S.get_C(reverse(preds[i+1].id_pred, m_max_p)),
-                                                               L_S.get_C(reverse(preds[i+1].id_pred, m_max_p) + 1) - 1);
+                    auto Is_p1 = std::pair<uint64_t, uint64_t>(L_S.get_C(preds[i].id_pred),
+                                                               L_S.get_C(preds[i].id_pred + 1) - 1);
+                    auto Is_p2 = std::pair<uint64_t, uint64_t>(L_S.get_C(reverse(preds[i + 1].id_pred, m_max_p)),
+                                                               L_S.get_C(reverse(preds[i + 1].id_pred, m_max_p) + 1) -
+                                                               1);
                     ranges.push_back({Is_p1.first, Is_p1.second});
                     ranges.push_back({Is_p2.first, Is_p2.second});
                     m_intersection.emplace_back(L_S.intersect_nofreq(ranges));
-                }else{
+                } else {
                     m_intersection.emplace_back(std::vector<uint64_t>());
                 }
             }

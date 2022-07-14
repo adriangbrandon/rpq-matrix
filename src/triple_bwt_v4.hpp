@@ -391,13 +391,6 @@ public:
         return L_S.get_C(pred_id + 1) - L_S.get_C(pred_id);
     };
 
-    uint64_t pred_distinct_values(uint64_t pred_id){
-        auto e = L_S.get_C(pred_id + 1)-1;
-        auto b = L_S.get_C(pred_id);
-        auto v = wt_pred_s.range_search_2d(b, e, 0, b, false);
-        return v.first;
-    }
-
     inline uint64_t pred_reverse(uint64_t pred_id) const{
         return (pred_id > real_max_P) ? pred_id - real_max_P : pred_id + real_max_P;
     }
@@ -418,9 +411,9 @@ public:
         auto i_r = L_P.backward_step(b, e, p_right);
         auto e_r = L_S.get_C(p_right) + i_r.second;
         auto b_r = L_S.get_C(p_right) + i_r.first;
-        auto v_l = wt_pred_s.range_search_2d(b_l, e_l, 0, b_l-1, false);
-        auto v_r = wt_pred_s.range_search_2d(b_r, e_r, 0, b_r-1, false);
-        return (v_l.first < v_r.first);
+        auto v_l = wt_pred_s.count_range_search_2d(b_l, e_l, 0, b_l-1);
+        auto v_r = wt_pred_s.count_range_search_2d(b_r, e_r, 0, b_r-1);
+        return (v_l < v_r);
     }
 
 
@@ -695,7 +688,7 @@ private:
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
         const auto& pos_pred_vec = mandData.pos_pred;
-        selectivity::h_distinct_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
+        selectivity::h_sum_path_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size();++i){
             selectivity::info_preds sel_info;
