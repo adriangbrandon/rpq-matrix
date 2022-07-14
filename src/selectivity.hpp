@@ -1204,11 +1204,11 @@ namespace selectivity {
                                 bwt_nose &L_S, bwt_type &wt_pred_s,
                                 uint64_t maxP, uint64_t sigma) {
 
-            auto t0 = std::chrono::high_resolution_clock::now();
             m_preds = &preds;
             m_max_p = maxP;
             m_sigma = sigma;
             //m_t.push_back(-1ULL);
+            auto t0 = std::chrono::high_resolution_clock::now();
             for (const auto& pair : preds) {
                 auto v_target = distinct_values(L_S.get_C(pair.id_pred),
                                                 L_S.get_C(pair.id_pred + 1) - 1, wt_pred_s);
