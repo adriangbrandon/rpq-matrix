@@ -1241,8 +1241,10 @@ namespace selectivity {
             auto t2 = std::chrono::high_resolution_clock::now();
             auto distincts = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
             auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+            auto total = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t0).count();
             std::cout << "Distincts: " << distincts << std::endl;
             std::cout << "Intersections: " << intersections << std::endl;
+            std::cout << "Decision: " << total << std::endl;
             /*
             std::cout << "-----T-----" << std::endl;
             printVector(m_t);
