@@ -1224,7 +1224,7 @@ namespace selectivity {
 
             }
 
-
+            auto t1 = std::chrono::high_resolution_clock::now();
             for (uint64_t i = 0; i < preds.size(); ++i) {
                 if (i < preds.size() - 1 && preds[i].pos == preds[i + 1].pos - 1) {
                     std::vector<std::array<uint64_t, 2ul>> ranges;
@@ -1241,9 +1241,11 @@ namespace selectivity {
                 }
             }
 
-            auto t1 = std::chrono::high_resolution_clock::now();
-            auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-            std::cout << "CDecision: " << intersections << std::endl;
+            auto t2 = std::chrono::high_resolution_clock::now();
+            auto distincts = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
+            auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+            std::cout << "Distincts: " << distincts << std::endl;
+            std::cout << "Intersections: " << intersections << std::endl;
             /*
             std::cout << "-----T-----" << std::endl;
             printVector(m_t);
