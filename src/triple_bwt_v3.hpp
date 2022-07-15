@@ -2014,8 +2014,9 @@ public:
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
 
-        for (uint64_t i = 0; i < object_vector_1.size(); i++)
-            _rpq_const_s_to_var_o(A2, predicates_map, B_array, object_vector_1[i], output_subjects, true, start);
+        bool time_out = false;
+        for (uint64_t i = 0; !time_out && i < object_vector_1.size(); i++)
+            time_out = _rpq_const_s_to_var_o(A2, predicates_map, B_array, object_vector_1[i], output_subjects, true, start);
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.unmark<word_t>(it->first, B_array);
@@ -2155,8 +2156,10 @@ public:
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
 
-        for (uint64_t i = 0; i < object_vector_2.size(); i++)
-            _rpq_const_s_to_var_o(A, predicates_map, B_array, object_vector_2[i], output_subjects, true, start);
+
+        bool time_out = false;
+        for (uint64_t i = 0; !time_out && i < object_vector_2.size(); i++)
+            time_out = _rpq_const_s_to_var_o(A, predicates_map, B_array, object_vector_2[i], output_subjects, true, start);
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.unmark<word_t>(it->first, B_array);
