@@ -52,9 +52,12 @@ PatternData rpqToPatternData(const std::string &rpq,
     {
         std::smatch match = *next;
         const auto str = match.str();
-        auto predicateId = predicates.at(str);
+        uint64_t predicateId;
         if(str[1] == '%'){ //<%...>
-            predicateId = predicateId + max_pred;
+            std::string no_neg = '<' + str.substr(2);
+            predicateId = predicates.at(no_neg) + max_pred;
+        }else{
+            predicateId = predicates.at(str);
         }
         if (map_pred_to_str.find(predicateId) == map_pred_to_str.end())
         {
