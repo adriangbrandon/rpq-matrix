@@ -47,11 +47,7 @@ typedef struct {
     int pos;
 } PairPredPos;
 
-typedef struct
-{
-    bool c = false;
-    std::vector<PairPredPos> pos_pred;
-} MandatoryData;
+typedef struct std::vector<PairPredPos> MandatoryData;
 
 typedef struct {
     std::string pattern;

@@ -80,7 +80,7 @@ void RpqTree::mandatoryTraversal(Tree* e, MandatoryData &md, int& last){
         /*if(!md.pos_pred.empty() && md.pos_pred.back().pos == e->pos-1){
             md.c = true;
         }*/
-        md.pos_pred.push_back({posToPred(e->pos), e->pos});
+        md.push_back({posToPred(e->pos), e->pos});
         last = e->pos;
     }else if(e->type == CONC || e->type == PLUS){
         mandatoryTraversal(e->e1, md, last);

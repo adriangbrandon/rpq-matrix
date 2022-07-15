@@ -676,18 +676,17 @@ private:
 
 
 
-    std::pair<std::string, std::string> split_rpq(const std::string &rpq,
-                                                  unordered_map<std::string, uint64_t> &predicates_map,
+
+    std::pair<std::string, std::string> split_rpq(RpqTree &rpqTree,
+                                                  MandatoryData &pos_pred_vec,
                                                   std::vector<uint64_t> &elements,
                                                   uint64_t &pred_l,
                                                   uint64_t &pred_r){
-        RpqTree rpqTree(rpq, predicates_map, real_max_P);
-        auto mandData = rpqTree.getMandatoryData();
+
         selectivity::info_preds sel_min{std::numeric_limits<double>::max(), selectivity::source,
                                         0, 0};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
-        const auto& pos_pred_vec = mandData.pos_pred;
         selectivity::h_sum_path_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size();++i){
@@ -2456,35 +2455,16 @@ public:
                               uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path){
 
 
-        std::string rpq_l, rpq_r;
-        std::vector<uint64_t> elements;
 
-
-        high_resolution_clock::time_point start, stop;
-        double total_time = 0.0;
-        duration<double> time_span;
-        start = high_resolution_clock::now();
-        uint64_t pred_l, pred_r;
-        std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements, pred_l, pred_r);
-        _rpq_var_to_var_splits_done(rpq_l, rpq_r, pred_l, pred_r, elements, predicates_map,
-                                    B_array_l, B_array_r, solution, n_predicates,
-                                    is_negated_pred, n_operators, is_a_path, start);
-    }
-
-
-
-
-
-
-
-
-    void rpq_var_to_var_split_mem(const std::string &rpq,
-                                  unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
-                                  std::vector<word_t> &B_array,
-                                  uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path,
-                                  const std::string &profile_file){
-
-
+        RpqTree rpqTree(rpq, predicates_map, real_max_P);
+        auto mand_data = rpqTree.getMandatoryData();
+        if(mand_data.empty()){
+            //TODO. por ahora así, se me ocurre mejorar esto fijandonos en como crecen los multiplicadores
+            // t/s y s/t (hablar con Gonzalo) Tengo bastantes dudas, porque si es opcional muchos casos
+            // no necesitarán recorrer el path completo. Se puede mantener las opciones anteriores.
+            rpq_var_to_var_so(rpq, predicates_map, B_array_l, solution,
+                              n_predicates, is_negated_pred, n_operators, is_a_path);
+        }else{
             std::string rpq_l, rpq_r;
             std::vector<uint64_t> elements;
 
@@ -2492,15 +2472,23 @@ public:
             double total_time = 0.0;
             duration<double> time_span;
             start = high_resolution_clock::now();
-            std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, elements);
-            std::vector<std::pair<uint64_t, uint64_t>> solution;
-#ifdef CHECK_MEM
-            MemProfile mem(profile_file.c_str(), 0.1, 1024);
-#endif
-            _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
-                                        B_array, true, solution, n_predicates,
+            uint64_t pred_l, pred_r;
+            std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, elements, pred_l, pred_r);
+            _rpq_var_to_var_splits_done(rpq_l, rpq_r, pred_l, pred_r, elements, predicates_map,
+                                        B_array_l, B_array_r, solution, n_predicates,
                                         is_negated_pred, n_operators, is_a_path, start);
+        }
+
+
+
     }
+
+
+
+
+
+
+
 
 
 
