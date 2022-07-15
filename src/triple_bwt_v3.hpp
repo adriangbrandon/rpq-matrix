@@ -3316,6 +3316,10 @@ public:
                                   const std::string &profile_file){
 
 
+            RpqTree rpqTree(rpq, predicates_map, real_max_P);
+            auto mand_data = rpqTree.getMandatoryData();
+
+            if(mand_data.empty()) return;
             std::string rpq_l, rpq_r;
             std::vector<uint64_t> elements;
 
@@ -3324,7 +3328,7 @@ public:
             duration<double> time_span;
             start = high_resolution_clock::now();
             bool first_left;
-            std::tie(rpq_l, rpq_r) = split_rpq(rpq, predicates_map, first_left, elements);
+            std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, first_left, elements);
             std::vector<std::pair<uint64_t, uint64_t>> solution;
 #ifdef CHECK_MEM
             MemProfile mem(profile_file.c_str(), 0.1, 1024);
