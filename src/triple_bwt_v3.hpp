@@ -2416,13 +2416,16 @@ public:
                     if (output_1.empty()) continue; //There is no solution
                     time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r,
                                                      e,output_2, const_to_var_r, start);
-                    for (const auto &o_r : output_2) {
-                        for (const auto &o_l : output_1) {
+                    for (uint64_t i_r = 0; !time_out && i_r < output_2.size(); ++i_r) {
+                        for (uint64_t i_l = 0; !time_out && i_l < output_1.size(); ++i_l) {
                             //Check duplicates
-                            auto it_set = sol_set.insert({o_l.first, o_r.second});
+                            auto it_set = sol_set.insert({output_1[i_l].first, output_2[i_r].second});
                             if (it_set.second) {
-                                solution.emplace_back(o_l.first, o_r.second);
+                                solution.emplace_back(output_1[i_l].first, output_2[i_r].second);
                             }
+                            auto stop = high_resolution_clock::now();
+                            auto total_time = duration_cast<seconds>(stop - start).count();
+                            time_out = (total_time > TIME_OUT);
                         }
                     }
                     output_2.clear();
@@ -2438,13 +2441,16 @@ public:
                     if (output_1.empty()) continue; //There is no solution
                     time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l,
                                                      e, output_2, const_to_var_l, start);
-                    for (const auto &o_l : output_2) {
-                        for (const auto &o_r : output_1) {
+                    for (uint64_t i_l = 0; !time_out && i_l < output_2.size(); ++i_l) {
+                        for (uint64_t i_r = 0; !time_out && i_r < output_1.size(); ++i_r) {
                             //Check duplicates
-                            auto it_set = sol_set.insert({o_l.first, o_r.second});
+                            auto it_set = sol_set.insert({output_2[i_l].first, output_1[i_r].second});
                             if (it_set.second) {
-                                solution.emplace_back(o_l.first, o_r.second);
+                                solution.emplace_back(output_2[i_l].first, output_1[i_r].second);
                             }
+                            auto stop = high_resolution_clock::now();
+                            auto total_time = duration_cast<seconds>(stop - start).count();
+                            time_out = (total_time > TIME_OUT);
                         }
                     }
                     output_2.clear();
