@@ -52,9 +52,9 @@ namespace selectivity {
     }
 
 
-    inline uint64_t distinct_values(const uint64_t l, const uint64_t r, bwt_nose &L_S){
+    /*inline uint64_t distinct_values(const uint64_t l, const uint64_t r, bwt_nose &L_S){
         return  L_S.count_distinct_values(l, r);
-    }
+    }*/
 
     struct info {
         double weight;
@@ -882,7 +882,7 @@ namespace selectivity {
                 m_t.push_back(v_target);
 
                 auto rev_id = reverse(pair.id_pred, m_max_p);
-                auto v_source = distinct_values(L_S.get_C(rev_id), L_S.get_C(rev_id + 1) - 1, L_S);
+                auto v_source = distinct_values(L_S.get_C(rev_id), L_S.get_C(rev_id + 1) - 1, wt_pred_s);
                 m_s.push_back(v_source);
 
                 if(i < preds.size()-1 && pair.pos == preds[i+1].pos-1){
@@ -1046,11 +1046,11 @@ namespace selectivity {
             //m_t.push_back(-1ULL);
             for (uint64_t i = 0; i < preds.size(); ++i) {
                 const auto& pair = preds[i];
-                auto v_target = distinct_values(L_S.get_C(pair.id_pred), L_S.get_C(pair.id_pred + 1) - 1, L_S);
+                auto v_target = distinct_values(L_S.get_C(pair.id_pred), L_S.get_C(pair.id_pred + 1) - 1, wt_pred_s);
                 m_t.push_back(v_target);
 
                 auto rev_id = reverse(pair.id_pred, m_max_p);
-                auto v_source = distinct_values(L_S.get_C(rev_id), L_S.get_C(rev_id + 1) - 1, L_S);
+                auto v_source = distinct_values(L_S.get_C(rev_id), L_S.get_C(rev_id + 1) - 1, wt_pred_s);
                 m_s.push_back(v_source);
 
                 if(i < preds.size()-1 && pair.pos == preds[i+1].pos-1){
@@ -1208,12 +1208,12 @@ namespace selectivity {
             auto t0 = std::chrono::high_resolution_clock::now();
             for (const auto& pair : preds) {
                 auto v_target = distinct_values(L_S.get_C(pair.id_pred),
-                                                L_S.get_C(pair.id_pred + 1) - 1, L_S);
+                                                L_S.get_C(pair.id_pred + 1) - 1, wt_pred_s);
                 m_t.push_back(v_target);
 
                 auto rev_id = reverse(pair.id_pred, m_max_p);
                 auto v_source = distinct_values(L_S.get_C(rev_id),
-                                                L_S.get_C(rev_id + 1) - 1, L_S);
+                                                L_S.get_C(rev_id + 1) - 1, wt_pred_s);
                 m_s.push_back(v_source);
 
             }
