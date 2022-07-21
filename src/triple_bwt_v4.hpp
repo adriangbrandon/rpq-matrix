@@ -1847,7 +1847,7 @@ public:
             L_P.unmark<word_t>(it->first, B_array);
     };
 
-    vvoid rpq_var_to_var_min(const std::string &rpq,
+    void rpq_var_to_var_min(const std::string &rpq,
                              unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
                              std::vector<word_t> &B_array,
                              std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
