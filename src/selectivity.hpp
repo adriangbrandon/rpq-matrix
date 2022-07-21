@@ -1142,8 +1142,8 @@ namespace selectivity {
                 first_right = m_t[ith] * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
                 //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
                 first_left = m_t[ith] * ((1 + m_l[ith]) + m_sol_l[ith] * (1 + m_r[ith + 1]));
-                res.mand_pred_left =  reverse(m_preds->at(ith-1).id_pred, m_max_p);
-                res.mand_pred_right = m_preds->at(ith).id_pred;
+                res.mand_pred_left =  reverse(m_preds->at(ith).id_pred, m_max_p);
+                res.mand_pred_right = m_preds->at(ith+1).id_pred;
             }
             if (first_left <= first_right) {
                 res.weight = first_left;
