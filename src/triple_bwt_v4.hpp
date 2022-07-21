@@ -1065,7 +1065,8 @@ public:
     // Solves single-predicate queries (with no operator, except ^)
     void single_predicate_query(uint64_t predicate, uint64_t object, uint64_t query_type,
                                 bool is_negated,
-                                std::vector<std::pair<uint64_t, uint64_t>> &output) {
+                                std::vector<std::pair<uint64_t, uint64_t>> &output,
+                                high_resolution_clock::time_point start) {
         if (query_type == VAR_TO_CONST or query_type == CONST_TO_VAR) {
             std::pair<uint64_t, uint64_t> I_S = L_P.backward_step(L_P.get_C(object), L_P.get_C(object + 1) - 1,
                                                                   predicate);
@@ -1075,12 +1076,28 @@ public:
 
             std::vector<uint64_t> values_in_I_S = L_S.all_values_in_range(I_S.first, I_S.second);
 
-            if (VAR_TO_CONST and !is_negated)
-                for (uint64_t i = 0; i < values_in_I_S.size(); ++i)
+            if (VAR_TO_CONST and !is_negated) {
+                auto stop = high_resolution_clock::now();
+                auto total_time = duration_cast<seconds>(stop - start).count();
+                bool time_out = (total_time > TIME_OUT);
+                for (uint64_t i = 0; !time_out && i < values_in_I_S.size(); ++i) {
                     output.push_back(std::pair<uint64_t, uint64_t>(values_in_I_S[i], object));
-            else
-                for (uint64_t i = 0; i < values_in_I_S.size(); ++i)
+                    stop = high_resolution_clock::now();
+                    total_time = duration_cast<seconds>(stop - start).count();
+                    time_out = (total_time > TIME_OUT);
+                }
+            }else{
+                auto stop = high_resolution_clock::now();
+                auto total_time = duration_cast<seconds>(stop - start).count();
+                bool time_out = (total_time > TIME_OUT);
+                for (uint64_t i = 0; !time_out && i < values_in_I_S.size(); ++i) {
                     output.push_back(std::pair<uint64_t, uint64_t>(object, values_in_I_S[i]));
+                    stop = high_resolution_clock::now();
+                    total_time = duration_cast<seconds>(stop - start).count();
+                    time_out = (total_time > TIME_OUT);
+                }
+
+            }
 
         } else {
             // asumo que siempre envio el predicado original, sin negar, el var-to-var tiene que hacer eso
@@ -1093,8 +1110,11 @@ public:
             std::vector<uint64_t> values_x, values_y;
             values_x = L_S.all_values_in_range(I_S.first, I_S.second);
             uint64_t c;
+            auto stop = high_resolution_clock::now();
+            auto total_time = duration_cast<seconds>(stop - start).count();
+            bool time_out = (total_time > TIME_OUT);
             // For each ?x obtained, search for ?y p ?x using backward search
-            for (uint64_t i = 0; i < values_x.size(); i++) {
+            for (uint64_t i = 0; !time_out && i < values_x.size(); i++) {
                 object = values_x[i];
                 I_S = L_P.backward_step(L_P.get_C(object), L_P.get_C(object + 1) - 1, predicate);
                 c = L_S.get_C(predicate);
@@ -1102,8 +1122,12 @@ public:
                 I_S.second += c;
                 values_y.clear();
                 values_y = L_S.all_values_in_range(I_S.first, I_S.second);
-                for (uint64_t j = 0; j < values_y.size() ; ++j)
+                for (uint64_t j = 0; !time_out && j < values_y.size() ; ++j){
                     output.push_back(std::pair<uint64_t, uint64_t>(object, values_y[j]));
+                    stop = high_resolution_clock::now();
+                    total_time = duration_cast<seconds>(stop - start).count();
+                    time_out = (total_time > TIME_OUT);
+                }
             }
         }
     };
@@ -1237,7 +1261,9 @@ public:
 
     void path_query(const std::string &rpq, uint64_t object, uint64_t query_type,
                     unordered_map<std::string, uint64_t> &predicates_map,
-                    std::vector<std::pair<uint64_t, uint64_t>> &output) {
+                    std::vector<std::pair<uint64_t, uint64_t>> &output,
+                    high_resolution_clock::time_point start) {
+
         if (query_type == VAR_TO_CONST || query_type == CONST_TO_VAR) {
             // primero voy a asumir que los predicados no son negados
             uint64_t i, pred_1, pred_2;
@@ -1275,17 +1301,24 @@ public:
                 pred_1 = pred_2 + real_max_P;
             std::unordered_set<std::pair<uint64_t, uint64_t>> o_set;
             std::pair<std::unordered_set<std::pair<uint64_t, uint64_t>>::iterator, bool> ret;
-            for (i = 0; i < z_values.size(); ++i) {
+
+            auto stop = high_resolution_clock::now();
+            auto total_time = duration_cast<seconds>(stop - start).count();
+            auto time_out = (total_time > TIME_OUT);
+            for (i = 0; !time_out && i < z_values.size(); ++i) {
                 Is_p1 = L_P.backward_step(L_P.get_C(z_values[i].first), L_P.get_C(z_values[i].first + 1) - 1, pred_1);
                 c = L_S.get_C(pred_1);
                 Is_p1.first += c;
                 Is_p1.second += c;
                 values_s.clear();
                 values_s = L_S.all_values_in_range(Is_p1.first, Is_p1.second);
-                for (uint64_t j = 0; j < values_s.size(); ++j) {
+                for (uint64_t j = 0; !time_out && j < values_s.size(); ++j) {
                     ret = o_set.insert(std::pair<uint64_t, uint64_t>(values_s[j], z_values[i].first));
                     if (ret.second == true)
                         output.push_back(std::pair<uint64_t, uint64_t>(values_s[j], z_values[i].first));
+                    stop = high_resolution_clock::now();
+                    total_time = duration_cast<seconds>(stop - start).count();
+                    time_out = (total_time > TIME_OUT);
                 }
             }
         } else {
@@ -1333,7 +1366,10 @@ public:
 
                 std::unordered_set<std::pair<uint64_t, uint64_t>> o_set;
                 std::pair<std::unordered_set<std::pair<uint64_t, uint64_t>>::iterator, bool> ret;
-                for (i = 0; i < z_values.size(); ++i) {
+                auto stop = high_resolution_clock::now();
+                auto total_time = duration_cast<seconds>(stop - start).count();
+                auto time_out = (total_time > TIME_OUT);
+                for (i = 0; !time_out && i < z_values.size(); ++i) {
                     z = z_values[i].first;
                     Is_p1 = L_P.backward_step(L_P.get_C(z), L_P.get_C(z + 1) - 1, pred_1);
                     c = L_S.get_C(pred_1);
@@ -1348,11 +1384,14 @@ public:
                     values_s1 = L_S.all_values_in_range(Is_p1.first, Is_p1.second);
                     values_s2 = L_S.all_values_in_range(Is_p2.first, Is_p2.second);
 
-                    for (uint64_t j = 0; j < values_s1.size(); ++j) {
-                        for (uint64_t w = 0; w < values_s2.size(); ++w) {
+                    for (uint64_t j = 0; !time_out && j < values_s1.size(); ++j) {
+                        for (uint64_t w = 0; !time_out && w < values_s2.size(); ++w) {
                             ret = o_set.insert(std::pair<uint64_t, uint64_t>(values_s1[j], values_s2[w]));
                             if (ret.second == true)
                                 output.push_back(std::pair<uint64_t, uint64_t>(values_s1[j], values_s2[w]));
+                            stop = high_resolution_clock::now();
+                            total_time = duration_cast<seconds>(stop - start).count();
+                            time_out = (total_time > TIME_OUT);
                         }
                     }
                 }
@@ -1420,6 +1459,7 @@ public:
 
         std::string query, str_aux;
 
+
         if (n_predicates == 1 and n_operators == 0) {
             uint64_t predicate;
             if (is_negated_pred)
@@ -1428,13 +1468,14 @@ public:
                 predicate = predicates_map[rpq];
 
             // cuidado, lo anterior asume que los negados han sido manipulados desde afuera, lo cual es cierto en la manera que los estoy escribiendo en el log que manejo, pero hay que hacerlo de una forma mas general.
-
+            high_resolution_clock::time_point start = high_resolution_clock::now();
             single_predicate_query(predicate, initial_object, CONST_TO_VAR, is_negated_pred,
-                                   output_subjects);
+                                   output_subjects, start);
             return;
         } else {
             if (is_a_path and n_operators == 1) {
-                path_query(rpq, initial_object, CONST_TO_VAR, predicates_map, output_subjects);
+                high_resolution_clock::time_point start = high_resolution_clock::now();
+                path_query(rpq, initial_object, CONST_TO_VAR, predicates_map, output_subjects, start);
                 return;
             }
         }
@@ -1533,13 +1574,16 @@ public:
                 predicate = real_max_P + predicates_map[rpq];
 
             // cuidado, lo anterior asume que los negados han sido manipulados desde afuera, lo cual es cierto en la manera que los estoy escribiendo en el log que manejo, pero hay que hacerlo de una forma mas general.
+
+            high_resolution_clock::time_point start = high_resolution_clock::now();
             single_predicate_query(predicate, initial_object, VAR_TO_CONST, is_negated_pred,
-                                   output_subjects);
+                                   output_subjects, start);
             return;
 
         } else {
             if (is_a_path and n_operators == 1) {
-                path_query(rpq, initial_object, VAR_TO_CONST, predicates_map, output_subjects);
+                high_resolution_clock::time_point start = high_resolution_clock::now();
+                path_query(rpq, initial_object, VAR_TO_CONST, predicates_map, output_subjects, start);
                 return;
             }
         }
@@ -1587,12 +1631,14 @@ public:
                 predicate = predicates_map[rpq];
 
             // cuidado, lo anterior asume que los negados han sido manipulados desde afuera, lo cual es cierto en la manera que los estoy escribiendo en el log que manejo, pero hay que hacerlo de una forma mas general.
+            high_resolution_clock::time_point start = high_resolution_clock::now();
             single_predicate_query(predicate, 0, VAR_TO_VAR, is_negated_pred,
-                                   output_subjects);
+                                   output_subjects, start);
             return;
         } else {
             if (is_a_path and n_operators == 1) {
-                path_query(rpq, 0, VAR_TO_VAR, predicates_map, output_subjects);
+                high_resolution_clock::time_point start = high_resolution_clock::now();
+                path_query(rpq, 0, VAR_TO_VAR, predicates_map, output_subjects, start);
                 return;
             }
         }
@@ -1633,8 +1679,9 @@ public:
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
 
-        for (uint64_t i = 0; i < object_vector_2.size(); i++)
-            _rpq_const_s_to_var_o(A, predicates_map, B_array, object_vector_2[i], output_subjects, true, start);
+        bool time_out = false;
+        for (uint64_t i = 0; !time_out && i < object_vector_2.size(); i++)
+            time_out = _rpq_const_s_to_var_o(A, predicates_map, B_array, object_vector_2[i], output_subjects, true, start);
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.unmark<word_t>(it->first, B_array);
@@ -1800,11 +1847,11 @@ public:
             L_P.unmark<word_t>(it->first, B_array);
     };
 
-    void rpq_var_to_var_min(const std::string &rpq,
-                            unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
-                            std::vector<word_t> &B_array,
-                            std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
-                            uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path) {
+    vvoid rpq_var_to_var_min(const std::string &rpq,
+                             unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
+                             std::vector<word_t> &B_array,
+                             std::vector<std::pair<uint64_t, uint64_t>> &output_subjects,
+                             uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path) {
         std::string query, str_aux;
 
         if (n_predicates == 1 and n_operators == 0) {
@@ -1815,12 +1862,15 @@ public:
                 predicate = predicates_map[rpq];
 
             // cuidado, lo anterior asume que los negados han sido manipulados desde afuera, lo cual es cierto en la manera que los estoy escribiendo en el log que manejo, pero hay que hacerlo de una forma mas general.
+
+            high_resolution_clock::time_point start = high_resolution_clock::now();
             single_predicate_query(predicate, 0, VAR_TO_VAR, is_negated_pred,
-                                   output_subjects);
+                                   output_subjects, start);
             return;
         } else {
             if (is_a_path and n_operators == 1) {
-                path_query(rpq, 0, VAR_TO_VAR, predicates_map, output_subjects);
+                high_resolution_clock::time_point start = high_resolution_clock::now();
+                path_query(rpq, 0, VAR_TO_VAR, predicates_map, output_subjects, start);
                 return;
             }
         }
@@ -1872,15 +1922,17 @@ public:
             for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
                 L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
 
-            for (uint64_t i = 0; i < object_vector_1.size(); i++)
-                _rpq_const_s_to_var_o(A2, predicates_map, B_array, object_vector_1[i], output_subjects, true, start);
+            bool time_out = false;
+            for (uint64_t i = 0; !time_out && i < object_vector_1.size(); i++)
+                time_out = _rpq_const_s_to_var_o(A2, predicates_map, B_array, object_vector_1[i], output_subjects, true, start);
         } else {
             m = A.getB();
             for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
                 L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
 
-            for (uint64_t i = 0; i < object_vector_2.size(); i++)
-                _rpq_const_s_to_var_o(A, predicates_map, B_array, object_vector_2[i], output_subjects, true, start);
+            bool time_out = false;
+            for (uint64_t i = 0; !time_out && i < object_vector_2.size(); i++)
+                time_out = _rpq_const_s_to_var_o(A, predicates_map, B_array, object_vector_2[i], output_subjects, true, start);
         }
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
@@ -1973,12 +2025,14 @@ public:
                 predicate = predicates_map[rpq];
 
             // cuidado, lo anterior asume que los negados han sido manipulados desde afuera, lo cual es cierto en la manera que los estoy escribiendo en el log que manejo, pero hay que hacerlo de una forma mas general.
+            high_resolution_clock::time_point start = high_resolution_clock::now();
             single_predicate_query(predicate, 0, VAR_TO_VAR, is_negated_pred,
-                                   output_subjects);
+                                   output_subjects, start);
             return;
         } else {
             if (is_a_path and n_operators == 1) {
-                path_query(rpq, 0, VAR_TO_VAR, predicates_map, output_subjects);
+                high_resolution_clock::time_point start = high_resolution_clock::now();
+                path_query(rpq, 0, VAR_TO_VAR, predicates_map, output_subjects, start);
                 return;
             }
         }
@@ -2021,13 +2075,13 @@ public:
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
 
-        for (uint64_t i = 0; i < object_vector_1.size(); i++)
-            _rpq_const_s_to_var_o(A2, predicates_map, B_array, object_vector_1[i], output_subjects, true, start);
+        bool time_out = false;
+        for (uint64_t i = 0; !time_out && i < object_vector_1.size(); i++)
+            time_out = _rpq_const_s_to_var_o(A2, predicates_map, B_array, object_vector_1[i], output_subjects, true, start);
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.unmark<word_t>(it->first, B_array);
     };
-
 
     void rpq_var_to_var_so(const std::string &rpq,
                            unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
@@ -2114,12 +2168,14 @@ public:
                 predicate = predicates_map[rpq];
 
             // cuidado, lo anterior asume que los negados han sido manipulados desde afuera, lo cual es cierto en la manera que los estoy escribiendo en el log que manejo, pero hay que hacerlo de una forma mas general.
+            high_resolution_clock::time_point start = high_resolution_clock::now();
             single_predicate_query(predicate, 0, VAR_TO_VAR, is_negated_pred,
-                                   output_subjects);
+                                   output_subjects, start);
             return;
         } else {
             if (is_a_path and n_operators == 1) {
-                path_query(rpq, 0, VAR_TO_VAR, predicates_map, output_subjects);
+                high_resolution_clock::time_point start = high_resolution_clock::now();
+                path_query(rpq, 0, VAR_TO_VAR, predicates_map, output_subjects, start);
                 return;
             }
         }
@@ -2156,19 +2212,20 @@ public:
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.unmark<word_t>(it->first, B_array);
 
-
-
         m = A.getB();
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.mark<word_t>(it->first, B_array, (word_t) it->second);
 
-        for (uint64_t i = 0; i < object_vector_2.size(); i++)
-            _rpq_const_s_to_var_o(A, predicates_map, B_array, object_vector_2[i], output_subjects, true, start);
+
+        bool time_out = false;
+        for (uint64_t i = 0; !time_out && i < object_vector_2.size(); i++)
+            time_out = _rpq_const_s_to_var_o(A, predicates_map, B_array, object_vector_2[i], output_subjects, true, start);
 
         for (std::unordered_map<uint64_t, uint64_t>::iterator it = m.begin(); it != m.end(); it++)
             L_P.unmark<word_t>(it->first, B_array);
 
     };
+
 
     /*void rpq_var_to_var_split(const std::string &rpq,
                               unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
@@ -2363,13 +2420,16 @@ public:
                     if (output_1.empty()) continue; //There is no solution
                     time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r,
                                                      e,output_2, const_to_var_r, start);
-                    for (const auto &o_r : output_2) {
-                        for (const auto &o_l : output_1) {
+                    for (uint64_t i_r = 0; !time_out && i_r < output_2.size(); ++i_r) {
+                        for (uint64_t i_l = 0; !time_out && i_l < output_1.size(); ++i_l) {
                             //Check duplicates
-                            auto it_set = sol_set.insert({o_l.first, o_r.second});
+                            auto it_set = sol_set.insert({output_1[i_l].first, output_2[i_r].second});
                             if (it_set.second) {
-                                solution.emplace_back(o_l.first, o_r.second);
+                                solution.emplace_back(output_1[i_l].first, output_2[i_r].second);
                             }
+                            auto stop = high_resolution_clock::now();
+                            auto total_time = duration_cast<seconds>(stop - start).count();
+                            time_out = (total_time > TIME_OUT);
                         }
                     }
                 }else{
@@ -2379,13 +2439,16 @@ public:
                     if (output_1.empty()) continue; //There is no solution
                     time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l,
                                                      e, output_2, const_to_var_l, start);
-                    for (const auto &o_l : output_2) {
-                        for (const auto &o_r : output_1) {
+                    for (uint64_t i_l = 0; !time_out && i_l < output_2.size(); ++i_l) {
+                        for (uint64_t i_r = 0; !time_out && i_r < output_1.size(); ++i_r) {
                             //Check duplicates
-                            auto it_set = sol_set.insert({o_l.first, o_r.second});
+                            auto it_set = sol_set.insert({output_2[i_l].first, output_1[i_r].second});
                             if (it_set.second) {
-                                solution.emplace_back(o_l.first, o_r.second);
+                                solution.emplace_back(output_2[i_l].first, output_1[i_r].second);
                             }
+                            auto stop = high_resolution_clock::now();
+                            auto total_time = duration_cast<seconds>(stop - start).count();
+                            time_out = (total_time > TIME_OUT);
                         }
                     }
                 }
