@@ -8,7 +8,6 @@ using namespace std;
 using namespace std::chrono;
 using timer = std::chrono::high_resolution_clock;
 
-#define CHECK_MEM 1
 
 int main(int argc, char **argv) {
 
