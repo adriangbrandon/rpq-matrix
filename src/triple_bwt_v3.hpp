@@ -656,6 +656,41 @@ private:
     }
 
 
+    void push_merge_interval_stats(Container& ist_container,
+                             const std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>> &element,
+                             uint64_t &merged, uint64_t &total, uint64_t &max_size){
+
+        /**
+             * get<0>: symbol
+             * get<1>: NFA states (D)
+             * get<2>: [lb, rb]
+             */
+
+        const auto lb = L_P.get_C(get<0>(element));
+        const auto rb = L_P.get_C(get<0>(element) + 1) - 1;
+
+        if(ist_container.empty()){
+            ist_container.push(interval_state_type{bwt_interval(lb, rb),get<1>(element)});
+            ++total;
+            max_size = 1;
+            return;
+        }
+        //The previous interval is contiguous to element's interval and
+        //both have equal NFA state
+        auto& last = last_element(ist_container);
+        if(last.interval.right()+1 == lb && last.current_D == get<1>(element)){
+            last.interval.set_right(rb);
+            ++merged;
+        }else{
+            ist_container.push(interval_state_type{bwt_interval(lb, rb),get<1>(element)});
+        }
+        ++total;
+        if(ist_container.size() > max_size){
+            max_size = ist_container.size();
+        }
+    }
+
+
     inline void get_elements_intersection(const uint64_t pred_1, const uint64_t pred_2,
                                     std::vector<uint64_t> &elements){
 
@@ -3377,7 +3412,8 @@ public:
 
     void rpq_var_to_var_split_mem(const std::string &rpq,
                                   unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
-                                  std::vector<word_t> &B_array,
+                                  std::vector<word_t> &B_array_l,
+                                  std::vector<word_t> &B_array_r,
                                   uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path,
                                   const std::string &profile_file){
 
@@ -3400,7 +3436,7 @@ public:
             MemProfile mem(profile_file.c_str(), 0.1, 1024);
 #endif
             _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
-                                        B_array, first_left, solution, n_predicates,
+                                        B_array_l, B_array_r, first_left, solution, n_predicates,
                                         is_negated_pred, n_operators, is_a_path, start);
     }
 
