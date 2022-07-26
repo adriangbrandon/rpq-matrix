@@ -61,6 +61,7 @@ int main(int argc, char **argv) {
     bool flag_s, flag_o, skip_flag;
     std::vector<std::pair<uint64_t, uint64_t>> query_output;
     std::vector<word_t> B_array(4 * graph.n_labels(), 0);
+    std::vector<word_t> B_array_2(4 * graph.n_labels(), 0);
 
     high_resolution_clock::time_point start, stop;
     double total_time = 0.0;
@@ -214,7 +215,8 @@ int main(int argc, char **argv) {
                 if (!flag_s and !flag_o) {
                     std::cout << "<--------> Query: " << q << " <-------->" << std::endl;
 
-                    graph.rpq_var_to_var_split_mem(query, pred_map, B_array, n_predicates, is_negated_pred,
+                    graph.rpq_var_to_var_split_mem(query, pred_map, B_array, B_array_2,
+                                                   n_predicates, is_negated_pred,
                                                    n_operators, false,
                                                    "memory-q" + std::to_string(q) +".profile" );
 
