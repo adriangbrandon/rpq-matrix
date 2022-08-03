@@ -2894,9 +2894,10 @@ public:
 
             high_resolution_clock::time_point start, stop;
             double total_time = 0.0;
+            bool first_left;
             duration<double> time_span;
             start = high_resolution_clock::now();
-            std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, elements);
+            std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, first_left, elements );
             _rpq_const_to_var_splits_done(rpq_l, rpq_r, initial_object, elements, predicates_map,
                                           B_array, true, solution, n_predicates,
                                           is_negated_pred, n_operators, is_a_path, start);
@@ -2929,7 +2930,8 @@ public:
             double total_time = 0.0;
             duration<double> time_span;
             start = high_resolution_clock::now();
-            std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, elements);
+            bool first_left;
+            std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, first_left, elements);
             _rpq_const_to_var_splits_done(rpq_l, rpq_r, initial_object, elements, predicates_map,
                                           B_array, false, solution, n_predicates,
                                           is_negated_pred, n_operators, is_a_path, start);
