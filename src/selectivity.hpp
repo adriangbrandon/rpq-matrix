@@ -950,7 +950,9 @@ namespace selectivity {
 
         info simple(const uint64_t ith) {
             info res;
-            double first_left, first_right;
+            double w_left, w_right;
+            std::cout << "Target with ith=" << ith << " size=" << m_t[ith] << std::endl;
+            std::cout << "Source with ith=" << ith << " size=" << m_s[ith] << std::endl;
             if (m_s[ith] < m_t[ith]) {
                 res.split = source;
                 if (ith == 0) {
@@ -960,9 +962,11 @@ namespace selectivity {
                     return res;
                 }
                 //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
-                first_right = m_s[ith] * ((1 + m_r[ith]) + m_sol_r[ith] * (1 + m_l[ith - 1]));
+                //first_right = m_s[ith] * ((1 + m_r[ith]) + m_sol_r[ith] * (1 + m_l[ith - 1]));
                 //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
-                first_left = m_s[ith] * ((1 + m_l[ith - 1]) + m_sol_l[ith - 1] * (1 + m_r[ith]));
+                //first_left = m_s[ith] * ((1 + m_l[ith - 1]) + m_sol_l[ith - 1] * (1 + m_r[ith]));
+                w_right = m_s[ith] * (1 + m_r[ith]);
+                w_left  = m_s[ith] * (1 + m_l[ith - 1]);
             } else {
                 res.split = target;
                 if (ith == m_t.size() - 1) {
@@ -972,15 +976,18 @@ namespace selectivity {
                     return res;
                 }
                 //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
-                first_right = m_t[ith] * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
+                //first_right = m_t[ith] * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
                 //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
-                first_left = m_t[ith] * ((1 + m_l[ith]) + m_sol_l[ith] * (1 + m_r[ith + 1]));
+                //first_left = m_t[ith] * ((1 + m_l[ith]) + m_sol_l[ith] * (1 + m_r[ith + 1]));
+                w_right = m_t[ith] * (1 + m_r[ith+1]);
+                w_left  = m_t[ith] * (1 + m_l[ith]);
+
             }
-            if (first_left <= first_right) {
-                res.weight = first_left;
+            if (w_left <= w_right) {
+                res.weight = w_left + w_right;
                 res.first_left = true;
             } else {
-                res.weight = first_right;
+                res.weight = w_left + w_right;
                 res.first_left = false;
             }
             return res;
@@ -989,7 +996,7 @@ namespace selectivity {
         info intersection(const uint64_t ith) {
             info res;
             res.split = intersect;
-            double seed, first_right, first_left;
+            double seed, w_right, w_left;
             /*if (m_s[ith + 1] < m_t[ith]) {
                 //double p = m_t[ith] / (double) (m_sigma);
                 seed = m_s[ith + 1]; //Seed
@@ -998,15 +1005,18 @@ namespace selectivity {
                 seed = m_t[ith]; //Seed
             }*/
             seed = m_intersection[ith].size();
+            std::cout << "Intersection size: " << seed << std::endl;
             //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
-            first_right = seed * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
+            //first_right = seed * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
             //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
-            first_left = seed * ((1 + m_l[ith]) + m_sol_l[ith] * (1 + m_r[ith + 1]));
-            if (first_left <= first_right) {
-                res.weight = first_left;
+            //first_left = seed * ((1 + m_l[ith]) + m_sol_l[ith] * (1 + m_r[ith + 1]));
+            w_right = m_t[ith] * (1 + m_r[ith+1]);
+            w_left  = m_t[ith] * (1 + m_l[ith]);
+            if (w_left <= w_right) {
+                res.weight = w_left + w_right;
                 res.first_left = true;
             } else {
-                res.weight = first_right;
+                res.weight = w_left + w_right;
                 res.first_left = false;
             }
             return res;
