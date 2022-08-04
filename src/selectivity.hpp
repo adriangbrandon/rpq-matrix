@@ -951,8 +951,8 @@ namespace selectivity {
         info simple(const uint64_t ith) {
             info res;
             double w_left, w_right;
-            std::cout << "Target with ith=" << ith << " size=" << m_t[ith] << std::endl;
-            std::cout << "Source with ith=" << ith << " size=" << m_s[ith] << std::endl;
+            //std::cout << "Target with ith=" << ith << " size=" << m_t[ith] << std::endl;
+            //std::cout << "Source with ith=" << ith << " size=" << m_s[ith] << std::endl;
             if (m_s[ith] < m_t[ith]) {
                 res.split = source;
                 if (ith == 0) {
@@ -1005,7 +1005,7 @@ namespace selectivity {
                 seed = m_t[ith]; //Seed
             }*/
             seed = m_intersection[ith].size();
-            std::cout << "Intersection size: " << seed << std::endl;
+            //std::cout << "Intersection size: " << seed << std::endl;
             //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
             //first_right = seed * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
             //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
