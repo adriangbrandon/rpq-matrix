@@ -1183,16 +1183,14 @@ namespace selectivity {
             seed = m_intersection[ith].size();
             //std::cout << "Intersection size: " << seed << std::endl;
             //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
-            //first_right = seed * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
+            first_right = seed * ((1 + m_r[ith + 1]) + std::min(seed, m_sol_r[ith + 1]) * (1 + m_l[ith]));
             //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
-            //first_left = seed * ((1 + m_l[ith]) + m_sol_l[ith] * (1 + m_r[ith + 1]));
-            w_right = m_t[ith] * (1 + m_r[ith+1]);
-            w_left  = m_t[ith] * (1 + m_l[ith]);
-            if (w_left <= w_right) {
-                res.weight = w_left + w_right;
+            first_left = seed * ((1 + m_l[ith - 1]) + std::min(seed, m_sol_l[ith - 1]) * (1 + m_r[ith]));
+            if (first_left <= first_right) {
+                res.weight = first_left;
                 res.first_left = true;
             } else {
-                res.weight = w_left + w_right;
+                res.weight = first_right;
                 res.first_left = false;
             }
             return res;
@@ -1483,7 +1481,7 @@ namespace selectivity {
         }
     };
 
-
+/*
     class h_sum_path3_intersection {
 
 
@@ -1536,9 +1534,9 @@ namespace selectivity {
                 }
             }
 
-            /*auto t1 = std::chrono::high_resolution_clock::now();
-            auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-            std::cout << "Time intersections: " << intersections << std::endl;*/
+            //auto t1 = std::chrono::high_resolution_clock::now();
+            //auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
+            //std::cout << "Time intersections: " << intersections << std::endl;
 
             // m_s.push_back(-1ULL);
             auto s = m_s.size();
@@ -1568,7 +1566,7 @@ namespace selectivity {
                 m_r[s-1-i] = (1+m_r[s-i])*m_d[s-1-i];
                 m_l[i] = (1+m_l[i-1])*m_i[i];
             }
-            /*
+            
             std::cout << "-----T-----" << std::endl;
             printVector(m_t);
             std::cout << "-----S-----" << std::endl;
@@ -1576,7 +1574,7 @@ namespace selectivity {
             std::cout << "-----L-----" << std::endl;
             printVector(m_l);
             std::cout << "-----R-----" << std::endl;
-            printVector(m_r);*/
+            printVector(m_r);
 
         }
 
@@ -1637,7 +1635,7 @@ namespace selectivity {
             return res;
         }
 
-    };
+    };*/
 
     /*class h_distsigma_path {
 
