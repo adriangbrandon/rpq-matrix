@@ -715,7 +715,7 @@ private:
         selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source, true};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
-        selectivity::h_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
+        selectivity::h_sum_path3_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size();++i){
             selectivity::info sel_info;
@@ -2471,8 +2471,8 @@ public:
                                      uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators,
                                      bool is_a_path, high_resolution_clock::time_point start ){
 
-        // std::cout << "rpq_l: " << rpq_l << std::endl;
-        // std::cout << "rpq_r: " << rpq_r << std::endl;
+         std::cout << "rpq_l: " << rpq_l << std::endl;
+         std::cout << "rpq_r: " << rpq_r << std::endl;
         if (!rpq_l.empty() && !rpq_r.empty()) {
 
             //3.Solve RPQ1 and RPQ2 by using the selected ranges of objects (RPQ1 and RPQ2 exist)

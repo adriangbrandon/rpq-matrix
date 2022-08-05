@@ -1010,6 +1010,182 @@ namespace selectivity {
             //first_right = seed * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
             //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
             //first_left = seed * ((1 + m_l[ith]) + m_sol_l[ith] * (1 + m_r[ith + 1]));
+            w_right = seed * (1 + m_r[ith+1]);
+            w_left  = seed * (1 + m_l[ith]);
+            if (w_left <= w_right) {
+                res.weight = w_left + w_right;
+                res.first_left = true;
+            } else {
+                res.weight = w_left + w_right;
+                res.first_left = false;
+            }
+            return res;
+        }
+
+        inline std::vector<uint64_t> get_elements_intersection(uint64_t i){
+            return m_intersection[i];
+        }
+    };
+
+
+    class h_sum_path3_intersection {
+
+
+    private:
+        std::vector<uint64_t> m_s;
+        std::vector<uint64_t> m_t;
+        std::vector<std::vector<uint64_t>> m_intersection;
+        std::vector<double> m_r;
+        std::vector<double> m_sol_r;
+        std::vector<double> m_l;
+        std::vector<double> m_sol_l;
+        uint64_t m_max_p;
+        uint64_t m_sigma;
+
+
+    public:
+        h_sum_path3_intersection(const std::vector<PairPredPos> &preds,
+                                 bwt_nose &L_S, bwt_type &wt_pred_s,
+                                 uint64_t maxP, uint64_t sigma) {
+
+
+            auto t0 = std::chrono::high_resolution_clock::now();
+            m_max_p = maxP;
+            m_sigma = sigma;
+            //m_t.push_back(-1ULL);
+            for (uint64_t i = 0; i < preds.size(); ++i) {
+                const auto& pair = preds[i];
+                auto v_target = distinct_values(L_S.get_C(pair.id_pred), L_S.get_C(pair.id_pred + 1) - 1, wt_pred_s);
+                m_t.push_back(v_target);
+
+                auto rev_id = reverse(pair.id_pred, m_max_p);
+                auto v_source = distinct_values(L_S.get_C(rev_id), L_S.get_C(rev_id + 1) - 1, wt_pred_s);
+                m_s.push_back(v_source);
+
+                if(i < preds.size()-1 && pair.pos == preds[i+1].pos-1){
+                    std::vector<std::array<uint64_t, 2ul>> ranges;
+                    auto Is_p1 = std::pair<uint64_t, uint64_t>(L_S.get_C(pair.id_pred), L_S.get_C(pair.id_pred + 1) - 1);
+                    auto Is_p2 = std::pair<uint64_t, uint64_t>(L_S.get_C(reverse(preds[i+1].id_pred, m_max_p)),
+                                                               L_S.get_C(reverse(preds[i+1].id_pred, m_max_p) + 1) - 1);
+                    ranges.push_back({Is_p1.first, Is_p1.second});
+                    ranges.push_back({Is_p2.first, Is_p2.second});
+                    m_intersection.emplace_back(L_S.intersect_nofreq(ranges));
+                }else{
+                    m_intersection.emplace_back(std::vector<uint64_t>());
+                }
+            }
+
+
+            /*auto t1 = std::chrono::high_resolution_clock::now();
+            auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
+            std::cout << "Time intersections: " << intersections << std::endl;*/
+            // m_s.push_back(-1ULL);
+            auto s = m_s.size();
+            std::vector<double> m_d(s), m_i(s);
+
+            for (uint64_t i = 0; i < s; ++i) {
+                m_d[i] = m_t[i] / (double) m_s[i];
+                m_i[i] = m_s[i] / (double) m_t[i];
+            }
+            m_sol_l.resize(s);
+            m_sol_r.resize(s);
+            m_sol_r[s - 1] = m_d[s - 1];
+            m_sol_l[0] = m_i[0];
+            m_l.resize(s);
+            m_r.resize(s);
+            m_r[s - 1] = m_d[s - 1];
+            m_l[0] = m_i[0];
+            for (uint64_t i = 1; i < s; ++i) {
+                //Solutions:
+                // m_sol_r[i]: multiplicity ratio of solutions from i to s-1
+                // m_sol_l[i]: multiplicity ratio of solutions from 0 to i
+                m_sol_r[s - 1 - i] = m_sol_r[s - i] * m_d[s - 1 - i];
+                m_sol_l[i] = m_sol_l[i - 1] * m_i[i];
+
+                //Paths:
+                //m_r: multiplicity ratio of paths from i to s-1
+                //m_l: multiplicity ratio of paths from 0 to i
+                m_r[s - 1 - i] = (1 + m_r[s - i]) * m_d[s - 1 - i];
+                m_l[i] = (1 + m_l[i - 1]) * m_i[i];
+            }
+            /*
+            std::cout << "-----T-----" << std::endl;
+            printVector(m_t);
+            std::cout << "-----S-----" << std::endl;
+            printVector(m_s);
+            std::cout << "-----L-----" << std::endl;
+            printVector(m_l);
+            std::cout << "-----R-----" << std::endl;
+            printVector(m_r);*/
+
+            auto t1 = std::chrono::high_resolution_clock::now();
+            auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
+            std::cout << "Decision: " << intersections << std::endl;
+
+        }
+
+
+        info simple(const uint64_t ith) {
+            info res;
+            double first_left, first_right;
+            //std::cout << "Target with ith=" << ith << " size=" << m_t[ith] << std::endl;
+            //std::cout << "Source with ith=" << ith << " size=" << m_s[ith] << std::endl;
+            if (m_s[ith] < m_t[ith]) {
+                res.split = source;
+                if (ith == 0) {
+                    //Seed * (1+PathsFactorRight)
+                    res.weight = m_s[ith] * (1 + m_r[ith]);
+                    res.first_left = false;
+                    return res;
+                }
+                //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
+                double seed = m_s[ith];
+                first_right = seed * ((1 + m_r[ith]) + std::min(seed, m_sol_r[ith]) * (1 + m_l[ith - 1]));
+                //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
+                first_left = seed * ((1 + m_l[ith - 1]) + std::min(seed, m_sol_l[ith - 1]) * (1 + m_r[ith]));
+
+            } else {
+                res.split = target;
+                if (ith == m_t.size() - 1) {
+                    //Seed * (1+PathsFactorLeft)
+                    res.weight = m_t[ith] * (1 + m_l[ith]);
+                    res.first_left = true;
+                    return res;
+                }
+                double seed = m_t[ith];
+                //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
+                first_right = seed * ((1 + m_r[ith + 1]) + std::min(seed, m_sol_r[ith + 1]) * (1 + m_l[ith]));
+                //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
+                first_left = seed * ((1 + m_l[ith]) + std::min(seed, m_sol_l[ith]) * (1 + m_r[ith + 1]));
+
+            }
+            if (first_left <= first_right) {
+                res.weight = first_left;
+                res.first_left = true;
+            } else {
+                res.weight = first_right;
+                res.first_left = false;
+            }
+            return res;
+        }
+
+        info intersection(const uint64_t ith) {
+            info res;
+            res.split = intersect;
+            double seed, first_right, first_left;
+            /*if (m_s[ith + 1] < m_t[ith]) {
+                //double p = m_t[ith] / (double) (m_sigma);
+                seed = m_s[ith + 1]; //Seed
+            } else {
+                //double p = m_s[ith+1] / (double) (m_sigma);
+                seed = m_t[ith]; //Seed
+            }*/
+            seed = m_intersection[ith].size();
+            //std::cout << "Intersection size: " << seed << std::endl;
+            //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
+            //first_right = seed * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
+            //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
+            //first_left = seed * ((1 + m_l[ith]) + m_sol_l[ith] * (1 + m_r[ith + 1]));
             w_right = m_t[ith] * (1 + m_r[ith+1]);
             w_left  = m_t[ith] * (1 + m_l[ith]);
             if (w_left <= w_right) {
@@ -1026,7 +1202,6 @@ namespace selectivity {
             return m_intersection[i];
         }
     };
-
 
     class h_sum_path_intersection {
 
