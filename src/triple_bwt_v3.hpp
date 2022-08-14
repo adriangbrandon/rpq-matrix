@@ -566,12 +566,12 @@ private:
         uint64_t c;
         //PART2: For each predicate, the values in L_S are obtained by using a backward step
         for (uint64_t i = 0; i < pred_vec.size(); i++) {
+            auto t2 = std::chrono::high_resolution_clock::now();
             interval = L_P.backward_step_test(I_p.left(), I_p.right(), pred_vec[i].first,
                                               pred_vec[i].second.first,
                                               pred_vec[i].second.second);
             c = L_S.get_C(pred_vec[i].first);
             std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> subj_vec;
-            auto t2 = std::chrono::high_resolution_clock::now();
             L_S.all_active_s_values_in_range_test<word_t>(c + interval.first, c + interval.second,
                                                           D_array, (word_t) A.next(current_D, pred_vec[i].first, BWD)
                     ,subj_vec);
@@ -580,6 +580,7 @@ private:
             std::cout << "2;" << part2 <<";" << i << ";" << interval.first << ";"
             << interval.second << ";" << subj_vec.size() << std::endl;
             //PART3: Map the range of each subject to the range of objects
+            t2 = std::chrono::high_resolution_clock::now();
             for (uint64_t j = 0; j < subj_vec.size(); j++) {
                 push_merge_interval(ist_container, subj_vec[j]);
                 if (A.atFinal(get<1>(subj_vec[j]), BWD)) {
@@ -590,6 +591,9 @@ private:
                     }
                 }
             }
+            t3 = std::chrono::high_resolution_clock::now();
+            auto part3 = std::chrono::duration_cast<std::chrono::nanoseconds>(t3-t2).count();
+            std::cout << "3;" << part3 << std::endl;
         }
 
     }
@@ -2560,6 +2564,9 @@ public:
                     time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r,
                                                      e,output_2, const_to_var_r, start);
                     t0 = std::chrono::high_resolution_clock::now();
+                    auto stop = high_resolution_clock::now();
+                    auto total_time = duration_cast<seconds>(stop - start).count();
+                    time_out = (total_time > TIME_OUT);
                     for (uint64_t i_r = 0; !time_out && i_r < output_2.size(); ++i_r) {
                         for (uint64_t i_l = 0; !time_out && i_l < output_1.size(); ++i_l) {
                             //Check duplicates
@@ -2567,8 +2574,8 @@ public:
                             if (it_set.second) {
                                 solution.emplace_back(output_1[i_l].first, output_2[i_r].second);
                             }
-                            auto stop = high_resolution_clock::now();
-                            auto total_time = duration_cast<seconds>(stop - start).count();
+                            stop = high_resolution_clock::now();
+                            total_time = duration_cast<seconds>(stop - start).count();
                             time_out = (total_time > TIME_OUT);
                         }
                     }
@@ -2576,7 +2583,7 @@ public:
                     output_1.clear();
                     t1 = std::chrono::high_resolution_clock::now();
                     auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-                    std::cout << "Add;" << t << std::endl;
+                    std::cout << "4;" << t << std::endl;
                 }
             }else{
                 for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
@@ -2589,6 +2596,9 @@ public:
                     time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l,
                                                      e, output_2, const_to_var_l, start);
                     t0 = std::chrono::high_resolution_clock::now();
+                    auto stop = high_resolution_clock::now();
+                    auto total_time = duration_cast<seconds>(stop - start).count();
+                    time_out = (total_time > TIME_OUT);
                     for (uint64_t i_l = 0; !time_out && i_l < output_2.size(); ++i_l) {
                         for (uint64_t i_r = 0; !time_out && i_r < output_1.size(); ++i_r) {
                             //Check duplicates
@@ -2596,8 +2606,8 @@ public:
                             if (it_set.second) {
                                 solution.emplace_back(output_2[i_l].first, output_1[i_r].second);
                             }
-                            auto stop = high_resolution_clock::now();
-                            auto total_time = duration_cast<seconds>(stop - start).count();
+                            stop = high_resolution_clock::now();
+                            total_time = duration_cast<seconds>(stop - start).count();
                             time_out = (total_time > TIME_OUT);
                         }
                     }
@@ -2605,7 +2615,7 @@ public:
                     output_1.clear();
                     t1 = std::chrono::high_resolution_clock::now();
                     auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-                    std::cout << "Add;" << t << std::endl;
+                    std::cout << "4;" << t << std::endl;
                 }
             }
 
