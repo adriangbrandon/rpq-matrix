@@ -226,7 +226,7 @@ int main(int argc, char **argv) {
                     }
                 }
                 stop = high_resolution_clock::now();
-                total_time = duration_cast<microseconds>(stop - start).count();
+                total_time = duration_cast<nanoseconds>(stop - start).count();
 
                 cout << q << ";" << query_output.size() << ";" << (uint64_t) (total_time) << endl;
             } else skip_flag = false;
