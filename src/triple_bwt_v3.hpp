@@ -2559,6 +2559,7 @@ public:
                     if (output_1.empty()) continue; //There is no solution
                     time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r,
                                                      e,output_2, const_to_var_r, start);
+                    t0 = std::chrono::high_resolution_clock::now();
                     for (uint64_t i_r = 0; !time_out && i_r < output_2.size(); ++i_r) {
                         for (uint64_t i_l = 0; !time_out && i_l < output_1.size(); ++i_l) {
                             //Check duplicates
@@ -2573,6 +2574,9 @@ public:
                     }
                     output_2.clear();
                     output_1.clear();
+                    t1 = std::chrono::high_resolution_clock::now();
+                    auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
+                    std::cout << "Add;" << t << std::endl;
                 }
             }else{
                 for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
@@ -2584,6 +2588,7 @@ public:
                     if (output_1.empty()) continue; //There is no solution
                     time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l,
                                                      e, output_2, const_to_var_l, start);
+                    t0 = std::chrono::high_resolution_clock::now();
                     for (uint64_t i_l = 0; !time_out && i_l < output_2.size(); ++i_l) {
                         for (uint64_t i_r = 0; !time_out && i_r < output_1.size(); ++i_r) {
                             //Check duplicates
@@ -2598,6 +2603,9 @@ public:
                     }
                     output_2.clear();
                     output_1.clear();
+                    t1 = std::chrono::high_resolution_clock::now();
+                    auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
+                    std::cout << "Add;" << t << std::endl;
                 }
             }
 
