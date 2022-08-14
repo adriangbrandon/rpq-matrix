@@ -226,10 +226,9 @@ int main(int argc, char **argv) {
                     }
                 }
                 stop = high_resolution_clock::now();
-                time_span = duration_cast<microseconds>(stop - start);
-                total_time = time_span.count();
+                total_time = duration_cast<microseconds>(stop - start).count();
 
-                cout << q << ";" << query_output.size() << ";" << (uint64_t) (total_time * 1000000000ULL) << endl;
+                cout << q << ";" << query_output.size() << ";" << (uint64_t) (total_time) << endl;
             } else skip_flag = false;
         } else {
             cout << q << ";0;0" << endl;

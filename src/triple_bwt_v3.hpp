@@ -553,32 +553,35 @@ private:
                                 uint64_t initial_object,
                                 Container &ist_container,
                                 std::vector<std::pair<uint64_t, uint64_t>> &solutions,
+                                uint64_t &c_p1, uint64_t &c_p2,
                                 bool const_to_var = true){
 
         //PART1: Finding predicates from the object whose range in L_p is I_p
         std::vector<std::pair<uint64_t, std::pair<uint64_t, uint64_t>>> pred_vec;
-        auto t0 = std::chrono::high_resolution_clock::now();
+        //auto t0 = std::chrono::high_resolution_clock::now();
         L_P.all_active_p_values_in_range_test<word_t>(I_p.left(), I_p.right(), B_array, current_D, pred_vec);
-        auto t1 = std::chrono::high_resolution_clock::now();
-        auto part1 = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-        std::cout << "1;" << part1 <<";" << pred_vec.size() << std::endl;
+        ++c_p1;
+        //auto t1 = std::chrono::high_resolution_clock::now();
+        //auto part1 = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
+        //std::cout << "1;" << part1 <<";" << pred_vec.size() << std::endl;
         std::pair<uint64_t, uint64_t> interval;
         uint64_t c;
         //PART2: For each predicate, the values in L_S are obtained by using a backward step
         for (uint64_t i = 0; i < pred_vec.size(); i++) {
+            ++c_p2;
             interval = L_P.backward_step_test(I_p.left(), I_p.right(), pred_vec[i].first,
                                               pred_vec[i].second.first,
                                               pred_vec[i].second.second);
             c = L_S.get_C(pred_vec[i].first);
             std::vector<std::tuple<uint64_t, word_t, std::pair<uint64_t, uint64_t>>> subj_vec;
-            auto t2 = std::chrono::high_resolution_clock::now();
+            //auto t2 = std::chrono::high_resolution_clock::now();
             L_S.all_active_s_values_in_range_test<word_t>(c + interval.first, c + interval.second,
                                                           D_array, (word_t) A.next(current_D, pred_vec[i].first, BWD)
                     ,subj_vec);
-            auto t3 = std::chrono::high_resolution_clock::now();
+            /*auto t3 = std::chrono::high_resolution_clock::now();
             auto part2 = std::chrono::duration_cast<std::chrono::nanoseconds>(t3-t2).count();
             std::cout << "2;" << part2 <<";" << i << ";" << interval.first << ";"
-            << interval.second << ";" << subj_vec.size() << std::endl;
+            << interval.second << ";" << subj_vec.size() << std::endl;*/
             //PART3: Map the range of each subject to the range of objects
             for (uint64_t j = 0; j < subj_vec.size(); j++) {
                 push_merge_interval(ist_container, subj_vec[j]);
