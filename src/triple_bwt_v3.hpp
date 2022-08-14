@@ -2725,8 +2725,12 @@ public:
                               uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path){
 
 
+        auto t0 = high_resolution_clock::now();
         RpqTree rpqTree(rpq, predicates_map, real_max_P);
         auto mand_data = rpqTree.getMandatoryData();
+        auto t1 = high_resolution_clock::now();
+        auto time_mand = std::chrono::duration_cast<nanoseconds>(t1-t0).count();
+        std::cout << "Time Mandatory: " << time_mand << std::endl;
         if(mand_data.empty()){
             //TODO. por ahora así, se me ocurre mejorar esto fijandonos en como crecen los multiplicadores
             // t/s y s/t (hablar con Gonzalo) Tengo bastantes dudas, porque si es opcional muchos casos
