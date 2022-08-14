@@ -553,14 +553,12 @@ private:
                                 uint64_t initial_object,
                                 Container &ist_container,
                                 std::vector<std::pair<uint64_t, uint64_t>> &solutions,
-                                uint64_t &c_p1, uint64_t &c_p2,
                                 bool const_to_var = true){
 
         //PART1: Finding predicates from the object whose range in L_p is I_p
         std::vector<std::pair<uint64_t, std::pair<uint64_t, uint64_t>>> pred_vec;
         //auto t0 = std::chrono::high_resolution_clock::now();
         L_P.all_active_p_values_in_range_test<word_t>(I_p.left(), I_p.right(), B_array, current_D, pred_vec);
-        ++c_p1;
         //auto t1 = std::chrono::high_resolution_clock::now();
         //auto part1 = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
         //std::cout << "1;" << part1 <<";" << pred_vec.size() << std::endl;
@@ -568,7 +566,6 @@ private:
         uint64_t c;
         //PART2: For each predicate, the values in L_S are obtained by using a backward step
         for (uint64_t i = 0; i < pred_vec.size(); i++) {
-            ++c_p2;
             interval = L_P.backward_step_test(I_p.left(), I_p.right(), pred_vec[i].first,
                                               pred_vec[i].second.first,
                                               pred_vec[i].second.second);
@@ -957,7 +954,7 @@ private:
             /*next_step_const_to_var(A, B_array, D_array, ist_top.current_D, ist_top.interval,
                                 initial_object, ist_container, solutions, const_to_var);*/
 
-            next_step_const_to_var_verbose(A, B_array, D_array, ist_top.current_D, ist_top.interval,
+            next_step_const_to_var(A, B_array, D_array, ist_top.current_D, ist_top.interval,
                                            initial_object, ist_container, solutions, const_to_var);
             stop = high_resolution_clock::now();
             time_span = duration_cast<microseconds>(stop - start);
