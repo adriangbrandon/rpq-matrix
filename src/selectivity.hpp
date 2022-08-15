@@ -42,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace selectivity {
 
     enum split_type {target, source, intersect};
+    enum query_type {var_var, const_var, var_const};
 
     inline uint64_t reverse(uint64_t id, uint64_t maxP){
         return (id > maxP) ? id - maxP : id + maxP;
@@ -869,7 +870,8 @@ namespace selectivity {
     public:
         h_sum_path2_intersection(const std::vector<PairPredPos> &preds,
                                     bwt_nose &L_S, bwt_type &wt_pred_s,
-                           uint64_t maxP, uint64_t sigma) {
+                                    uint64_t maxP, uint64_t sigma,
+                                    query_type q_type = var_var) {
 
 
             auto t0 = std::chrono::high_resolution_clock::now();
@@ -930,6 +932,12 @@ namespace selectivity {
                 //m_l: multiplicity ratio of paths from 0 to i
                 m_r[s - 1 - i] = (1 + m_r[s - i]) * m_d[s - 1 - i];
                 m_l[i] = (1 + m_l[i - 1]) * m_i[i];
+            }
+
+            if(q_type == const_var){
+                m_s[0] = 1;
+            }else if(q_type == var_const){
+                m_t[s-1] = 1;
             }
             /*
             std::cout << "-----T-----" << std::endl;
@@ -1220,7 +1228,7 @@ namespace selectivity {
     public:
         h_sum_path_intersection(const std::vector<PairPredPos> &preds,
                                  bwt_nose &L_S, bwt_type &wt_pred_s,
-                                 uint64_t maxP, uint64_t sigma) {
+                                 uint64_t maxP, uint64_t sigma, query_type q_type = var_var) {
 
             auto t0 = std::chrono::high_resolution_clock::now();
             m_preds = &preds;
@@ -1276,6 +1284,12 @@ namespace selectivity {
                 //m_l: multiplicity ratio of paths from 0 to i
                 m_r[s - 1 - i] = (1 + m_r[s - i]) * m_d[s - 1 - i];
                 m_l[i] = (1 + m_l[i - 1]) * m_i[i];
+            }
+
+            if(q_type == const_var){
+                m_s[0] = 1;
+            }else if(q_type == var_const){
+                m_t[s-1] = 1;
             }
 
             auto t1 = std::chrono::high_resolution_clock::now();

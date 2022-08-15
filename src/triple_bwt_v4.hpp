@@ -681,13 +681,14 @@ private:
                                                   MandatoryData &pos_pred_vec,
                                                   std::vector<uint64_t> &elements,
                                                   uint64_t &pred_l,
-                                                  uint64_t &pred_r){
+                                                  uint64_t &pred_r,
+                                                  selectivity::query_type q_type = selectivity::var_var){
 
         selectivity::info_preds sel_min{std::numeric_limits<double>::max(), selectivity::source,
                                         0, 0};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
-        selectivity::h_sum_path_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma);
+        selectivity::h_sum_path_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma, q_type);
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size();++i){
             selectivity::info_preds sel_info;

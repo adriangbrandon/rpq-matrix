@@ -59,7 +59,8 @@ int main(int argc, char **argv) {
     uint64_t s_id, o_id, n_line = 0, q = 0;
     bool flag_s, flag_o, skip_flag;
     std::vector<std::pair<uint64_t, uint64_t>> query_output;
-    std::vector<word_t> B_array(4 * graph.n_labels(), 0);
+    std::vector<word_t> B_array_l(4 * graph.n_labels(), 0);
+    std::vector<word_t> B_array_r(4 * graph.n_labels(), 0);
 
     high_resolution_clock::time_point start, stop;
     double total_time = 0.0;
@@ -212,14 +213,14 @@ int main(int argc, char **argv) {
             if (!skip_flag) {
                 if (!flag_s and !flag_o) {
                     std::cout << "<--------> Query: " << q << " <-------->" << std::endl;
-                    graph.rpq_var_to_var_split_all(query, pred_map, B_array, n_predicates, is_negated_pred,
+                    graph.rpq_var_to_var_split_all(query, pred_map, B_array_l, B_array_r, n_predicates, is_negated_pred,
                                             n_operators, false);
                 } else {    
                     if (flag_s) {
-                        graph.rpq_const_s_to_var_o_split_all(query, pred_map, B_array, s_id, n_predicates,
+                        graph.rpq_const_s_to_var_o_split_all(query, pred_map, B_array_l, B_array_r, s_id, n_predicates,
                                                    is_negated_pred, n_operators, is_a_path);
                     } else {
-                        graph.rpq_var_s_to_const_o_split_all(query, pred_map, B_array, o_id, n_predicates,
+                        graph.rpq_var_s_to_const_o_split_all(query, pred_map, B_array_l, B_array_r, o_id, n_predicates,
                                                    is_negated_pred, n_operators, is_a_path);
                     }
                 }
