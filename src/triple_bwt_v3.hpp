@@ -39,7 +39,7 @@
 #include "selectivity.hpp"
 
 #define ELEMENTS 0
-#define RUN_QUERY 1
+#define RUN_QUERY 0
 
 #ifdef CHECK_MEM
 #include <malloc_count/malloc_count.h>
