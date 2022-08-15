@@ -3485,7 +3485,7 @@ public:
             duration<double> time_span;
             start = high_resolution_clock::now();
             bool first_left;
-            std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, first_left, elements);
+            std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, first_left, elements, n_predicates);
             std::vector<std::pair<uint64_t, uint64_t>> solution;
 #ifdef CHECK_MEM
             MemProfile mem(profile_file.c_str(), 0.1, 1024);
