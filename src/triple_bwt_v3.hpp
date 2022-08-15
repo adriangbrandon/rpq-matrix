@@ -761,12 +761,14 @@ private:
                                                   MandatoryData &pos_pred_vec,
                                                   bool &first_left,
                                                   std::vector<uint64_t> &elements,
+                                                  uint64_t n_predicates,
                                                   selectivity::query_type q_type = selectivity::var_var){
 
         selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source, true};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
-        selectivity::h_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma, q_type);
+        selectivity::h_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P,
+                                                sigma, n_predicates, q_type);
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size();++i){
             selectivity::info sel_info;
@@ -811,13 +813,14 @@ private:
 
     std::pair<uint64_t, selectivity::info> pos_split_rpq(const MandatoryData &pos_pred_vec,
                                                      unordered_map<std::string, uint64_t> &predicates_map,
+                                                     uint64_t n_predicates,
                                                      selectivity::query_type q_type = selectivity::var_var){
 
 
         selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source, true};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
-        selectivity::h_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma, q_type);
+        selectivity::h_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma, n_predicates, q_type);
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size(); ++i){
             selectivity::info sel_info;
@@ -2710,7 +2713,7 @@ public:
             duration<double> time_span;
             start = high_resolution_clock::now();
             bool first_left;
-            std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, first_left, elements);
+            std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, first_left, elements, n_predicates);
             _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
                                         B_array, first_left, solution, n_predicates,
                                         is_negated_pred, n_operators, is_a_path, start);
@@ -2748,7 +2751,7 @@ public:
             duration<double> time_span;
             start = high_resolution_clock::now();
             bool first_left;
-            std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, first_left, elements);
+            std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, first_left, elements, n_predicates);
             _rpq_var_to_var_splits_done(rpq_l, rpq_r, elements, predicates_map,
                                         B_array_l, B_array_r, first_left, solution, n_predicates,
                                         is_negated_pred, n_operators, is_a_path, start);
@@ -2943,7 +2946,7 @@ public:
             duration<double> time_span;
             start = high_resolution_clock::now();
             std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, first_left,
-                                                    elements, selectivity::const_var );
+                                                    elements, n_predicates,selectivity::const_var );
             _rpq_const_to_var_splits_done(rpq_l, rpq_r, initial_object, elements, predicates_map,
                                           B_array, true, solution, n_predicates,
                                           is_negated_pred, n_operators, is_a_path, start);
@@ -2978,7 +2981,7 @@ public:
             start = high_resolution_clock::now();
             bool first_left;
             std::tie(rpq_l, rpq_r) = split_rpq(rpqTree, mand_data, first_left,
-                                               elements, selectivity::var_const);
+                                               elements, n_predicates, selectivity::var_const);
             _rpq_const_to_var_splits_done(rpq_l, rpq_r, initial_object, elements, predicates_map,
                                           B_array, false, solution, n_predicates,
                                           is_negated_pred, n_operators, is_a_path, start);
@@ -2995,7 +2998,7 @@ public:
         RpqTree rpqTree(rpq, predicates_map, real_max_P);
         auto pos_pred_vec = rpqTree.getMandatoryData();
 
-        auto a = pos_split_rpq(pos_pred_vec, predicates_map);
+        auto a = pos_split_rpq(pos_pred_vec, predicates_map, n_predicates);
 
         if(a.second.split == selectivity::intersect){
             std::cout << "Selectivity: " << a.first << "-th mandatory pred by intersecting " << std::endl;
@@ -3155,7 +3158,7 @@ public:
         RpqTree rpqTree(rpq, predicates_map, real_max_P);
         auto pos_pred_vec = rpqTree.getMandatoryData();
 
-        auto a = pos_split_rpq(pos_pred_vec, predicates_map, selectivity::const_var);
+        auto a = pos_split_rpq(pos_pred_vec, predicates_map, n_predicates,selectivity::const_var);
 
         if(a.second.split == selectivity::intersect){
             std::cout << "Selectivity: " << a.first << "-th mandatory pred by intersecting " << std::endl;
@@ -3313,7 +3316,7 @@ public:
         RpqTree rpqTree(rpq, predicates_map, real_max_P);
         auto pos_pred_vec = rpqTree.getMandatoryData();
 
-        auto a = pos_split_rpq(pos_pred_vec, predicates_map, selectivity::var_const);
+        auto a = pos_split_rpq(pos_pred_vec, predicates_map, n_predicates,selectivity::var_const);
 
         if(a.second.split == selectivity::intersect){
             std::cout << "Selectivity: " << a.first << "-th mandatory pred by intersecting " << std::endl;

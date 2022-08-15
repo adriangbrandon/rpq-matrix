@@ -168,6 +168,15 @@ namespace selectivity {
         std::cout << std::endl;
     }
 
+
+    template<class Type>
+    void printSize(std::vector<Type> &v){
+        for(const auto &a : v){
+            std::cout << a.size() << ", ";
+        }
+        std::cout << std::endl;
+    }
+
     class h_distinct_path {
 
 
@@ -871,6 +880,7 @@ namespace selectivity {
         h_sum_path2_intersection(const std::vector<PairPredPos> &preds,
                                     bwt_nose &L_S, bwt_type &wt_pred_s,
                                     uint64_t maxP, uint64_t sigma,
+                                    uint64_t n_predicates,
                                     query_type q_type = var_var) {
 
 
@@ -934,12 +944,14 @@ namespace selectivity {
                 m_l[i] = (1 + m_l[i - 1]) * m_i[i];
             }
 
-            if(q_type == const_var){
+            if(q_type == const_var && preds[0].pos == 0){
                 m_s[0] = 1;
-            }else if(q_type == var_const){
+            }
+
+            if(q_type == var_const && preds[s-1].pos == n_predicates-1){
                 m_t[s-1] = 1;
             }
-            /*
+
             std::cout << "-----T-----" << std::endl;
             printVector(m_t);
             std::cout << "-----S-----" << std::endl;
@@ -947,8 +959,9 @@ namespace selectivity {
             std::cout << "-----L-----" << std::endl;
             printVector(m_l);
             std::cout << "-----R-----" << std::endl;
-            printVector(m_r);*/
-
+            printVector(m_r);
+            std::cout << "----Int----" << std::endl;
+            printSize(m_intersection);
             auto t1 = std::chrono::high_resolution_clock::now();
             auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
             std::cout << "Decision: " << intersections << std::endl;
