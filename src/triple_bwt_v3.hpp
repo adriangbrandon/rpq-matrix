@@ -3014,7 +3014,10 @@ public:
 
         auto a = pos_split_rpq(pos_pred_vec, predicates_map, n_predicates);
 
-        if(a.second.split == selectivity::intersect){
+
+        if(a.second.split == selectivity::none){
+            std::cout << "Selectivity: solving query starting to " << (a.second.first_left ? "left" : "right") << std::endl;
+        }else if(a.second.split == selectivity::intersect){
             std::cout << "Selectivity: " << a.first << "-th mandatory pred by intersecting " << std::endl;
             std::cout << "Startitng with subquery: " << (a.second.first_left ? "left" : "right") << std::endl;
         }else if (a.second.split == selectivity::target){
