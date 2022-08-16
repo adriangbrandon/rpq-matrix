@@ -767,7 +767,7 @@ private:
         //selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source, true};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
-        selectivity::h_full_sum_path_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P,
+        selectivity::h_full_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P,
                                                     sigma, n_predicates, q_type);
 
         selectivity::info sel_min; //TODO: Probando
@@ -827,7 +827,7 @@ private:
         //selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source, true};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
-        selectivity::h_full_sum_path_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P,
+        selectivity::h_full_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P,
                                                     sigma, n_predicates, q_type);
         selectivity::info sel_min; //TODO: Probando
         if(q_type == selectivity::var_var){
