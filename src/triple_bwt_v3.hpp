@@ -764,11 +764,18 @@ private:
                                                   uint64_t n_predicates,
                                                   selectivity::query_type q_type = selectivity::var_var){
 
-        selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source, true};
+        //selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source, true};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
-        selectivity::h_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P,
-                                                sigma, n_predicates, q_type);
+        selectivity::h_full_sum_path_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P,
+                                                    sigma, n_predicates, q_type);
+
+        selectivity::info sel_min; //TODO: Probando
+        if(q_type == selectivity::var_var){
+            sel_min = h.full();
+        }else{
+            sel_min = {std::numeric_limits<double>::max(), selectivity::source, true};
+        }
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size();++i){
             selectivity::info sel_info;
@@ -817,10 +824,17 @@ private:
                                                      selectivity::query_type q_type = selectivity::var_var){
 
 
-        selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source, true};
+        //selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source, true};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
-        selectivity::h_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma, n_predicates, q_type);
+        selectivity::h_full_sum_path_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P,
+                                                    sigma, n_predicates, q_type);
+        selectivity::info sel_min; //TODO: Probando
+        if(q_type == selectivity::var_var){
+            sel_min = h.full();
+        }else{
+            sel_min = {std::numeric_limits<double>::max(), selectivity::source, true};
+        }
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size(); ++i){
             selectivity::info sel_info;
