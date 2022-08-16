@@ -1459,6 +1459,11 @@ namespace selectivity {
             return res;
         }
 
+
+        inline std::vector<uint64_t> get_elements_intersection(uint64_t i){
+            return m_intersection[i];
+        }
+
     };
 
 
