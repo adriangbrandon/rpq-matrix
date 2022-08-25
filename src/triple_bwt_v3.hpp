@@ -825,25 +825,25 @@ private:
         //selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source, true};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
-        selectivity::h_full_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P,
+        selectivity::h_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P,
                                                     sigma, n_predicates, q_type);
-        selectivity::info sel_min; //TODO: Probando
-        if(q_type == selectivity::var_var){
-            sel_min = h.full();
-        }else{
+        selectivity::info
             sel_min = {std::numeric_limits<double>::max(), selectivity::source, true};
-        }
+
         //1. Checking mandatory data
         for(uint64_t i = 0; i < pos_pred_vec.size(); ++i){
             selectivity::info sel_info;
+            sel_info = h.simple(i);
+            //3. Taking info with the smallest selectivity
+            if(sel_info.weight < sel_min.weight){
+                sel_min = sel_info;
+                i_split = i;
+            }
             //2. Intersection
             if(i+1 < pos_pred_vec.size()
-               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
+               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1) {
                 sel_info = h.intersection(i);
-            }else{
-                sel_info = h.simple(i);
             }
-            std::cout << "Weight of i=" << i << ": " << sel_info.weight << std::endl;
             //3. Taking info with the smallest selectivity
             if(sel_info.weight < sel_min.weight){
                 sel_min = sel_info;
