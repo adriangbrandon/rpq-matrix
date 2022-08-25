@@ -2546,7 +2546,6 @@ public:
         if (!rpq_l.empty() && !rpq_r.empty()) {
 
             //3.Solve RPQ1 and RPQ2 by using the selected ranges of objects (RPQ1 and RPQ2 exist)
-            auto t0 = std::chrono::high_resolution_clock::now();
             std::vector<std::pair<uint64_t, uint64_t>> output_1, output_2;
             int64_t p = 0;
             int64_t p_rev = rpq_r.size() - 1;
@@ -2564,9 +2563,6 @@ public:
             for (auto it = m_r.begin(); it != m_r.end(); it++) {
                 L_P.mark<word_t>(it->first, B_array_r, (word_t) it->second);
             }
-            auto t1 = std::chrono::high_resolution_clock::now();
-            auto time_init = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-            std::cout << "Init: " << time_init << std::endl;
             bool const_to_var_l = false;
             bool const_to_var_r = true;
             bool time_out = false;
@@ -2580,7 +2576,6 @@ public:
                     if (output_1.empty()) continue; //There is no solution
                     time_out = _rpq_const_s_to_var_o(A_r, predicates_map, B_array_r,
                                                      e,output_2, const_to_var_r, start);
-                    t0 = std::chrono::high_resolution_clock::now();
                     auto stop = high_resolution_clock::now();
                     auto total_time = duration_cast<seconds>(stop - start).count();
                     time_out = (total_time > TIME_OUT);
@@ -2598,9 +2593,6 @@ public:
                     }
                     output_2.clear();
                     output_1.clear();
-                    t1 = std::chrono::high_resolution_clock::now();
-                    auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-                    std::cout << "4;" << t << std::endl;
                 }
             }else{
                 for (uint64_t i = 0; !time_out && i < elements.size(); ++i) {
@@ -2612,7 +2604,6 @@ public:
                     if (output_1.empty()) continue; //There is no solution
                     time_out = _rpq_const_s_to_var_o(A_l, predicates_map, B_array_l,
                                                      e, output_2, const_to_var_l, start);
-                    t0 = std::chrono::high_resolution_clock::now();
                     auto stop = high_resolution_clock::now();
                     auto total_time = duration_cast<seconds>(stop - start).count();
                     time_out = (total_time > TIME_OUT);
@@ -2630,14 +2621,10 @@ public:
                     }
                     output_2.clear();
                     output_1.clear();
-                    t1 = std::chrono::high_resolution_clock::now();
-                    auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-                    std::cout << "4;" << t << std::endl;
                 }
             }
 
 
-            t0 = std::chrono::high_resolution_clock::now();
             //RPQ2: Unmark the NFA states
             for (auto it = m_l.begin(); it != m_l.end(); it++) {
                 L_P.unmark<word_t>(it->first, B_array_l);
@@ -2645,9 +2632,6 @@ public:
             for (auto it = m_r.begin(); it != m_r.end(); it++) {
                 L_P.unmark<word_t>(it->first, B_array_r);
             }
-            t1 = std::chrono::high_resolution_clock::now();
-            auto time_end = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-            std::cout << "End: " << time_end << std::endl;
 
         } else if (rpq_l.empty()) {
             int64_t p = rpq_r.size() - 1;
