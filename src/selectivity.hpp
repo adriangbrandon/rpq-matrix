@@ -952,7 +952,7 @@ namespace selectivity {
                 m_t[s-1] = 1;
             }
 
-            std::cout << "-----T-----" << std::endl;
+            /*std::cout << "-----T-----" << std::endl;
             printVector(m_t);
             std::cout << "-----S-----" << std::endl;
             printVector(m_s);
@@ -961,7 +961,7 @@ namespace selectivity {
             std::cout << "-----R-----" << std::endl;
             printVector(m_r);
             std::cout << "----Int----" << std::endl;
-            printSize(m_intersection);
+            printSize(m_intersection);*/
             auto t1 = std::chrono::high_resolution_clock::now();
             auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
             std::cout << "Decision: " << intersections << std::endl;
