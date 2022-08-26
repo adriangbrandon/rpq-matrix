@@ -779,6 +779,10 @@ private:
             }else {
                 sel_info = h.simple(i);
             }
+            if(sel_info.weight < sel_min.weight){
+                sel_min = sel_info;
+                i_split = i;
+            }
         }
 
         //Computing the elements and splitting the RPQ
