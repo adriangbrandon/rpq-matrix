@@ -1204,7 +1204,7 @@ namespace selectivity {
             double seed, w_right, w_left;
             seed = m_intersection[ith].size();
             w_right = seed * (m_r[ith+1]);
-            w_left  = seed * (m_l[ith-1]);
+            w_left  = seed * (m_l[ith]);
             res.weight = w_left + w_right;
             res.first_left = (w_left <= w_right);
             return res;
