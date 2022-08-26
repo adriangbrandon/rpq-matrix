@@ -1174,19 +1174,17 @@ namespace selectivity {
                 //Seed * (1+PathsFactorRight)
                 w_src_right = m_s[ith] * m_r[ith];
                 w_src_left = 0;
-                w_tgt_right = m_t[ith] * m_r[ith+1];
-                w_tgt_left = m_t[ith] * m_l[ith];
-            }else if (ith == m_t.size()-1){
-                w_tgt_left = m_t[ith] *  m_l[ith];
-                w_tgt_right = 0;
-                w_src_right = m_s[ith] * m_r[ith];
-                w_src_left = m_s[ith] * m_l[ith-1];
-            }else {
-                w_tgt_left = m_t[ith] *  m_l[ith];
-                w_tgt_right = m_t[ith] * m_r[ith+1];
+            }else{
                 w_src_right = m_s[ith] * m_r[ith];
                 w_src_left = m_s[ith] * m_l[ith-1];
             }
+             if (ith == m_t.size()-1) {
+                 w_tgt_left = m_t[ith] * m_l[ith];
+                 w_tgt_right = 0;
+             }else{
+                 w_tgt_left = m_t[ith] *  m_l[ith];
+                 w_tgt_right = m_t[ith] * m_r[ith+1];
+             }
             if(w_tgt_right + w_tgt_left > w_src_right + w_src_left){
                 res.split = source;
                 res.weight = w_src_right + w_src_left;
