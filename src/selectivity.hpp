@@ -1204,6 +1204,7 @@ namespace selectivity {
                     res.first_left = (w_tgt_left <= w_tgt_right);
                 }
             }
+            std::cout << "Simple: " << ith << " w=" << res.weight << " split=" << ((res.split == source) ? "src" : "tgt") << std::endl;
             return res;
         }
 
@@ -1216,6 +1217,7 @@ namespace selectivity {
             w_left  = seed * (m_l[ith]);
             res.weight = w_left + w_right;
             res.first_left = (w_left <= w_right);
+            std::cout << "Intersection: " << ith << " w=" << res.weight << std::endl;
             return res;
         }
 
