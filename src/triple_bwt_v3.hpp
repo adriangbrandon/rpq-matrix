@@ -783,7 +783,7 @@ private:
                 sel_min = sel_info;
                 i_split = i;
             }
-            
+
         }
 
         //Computing the elements and splitting the RPQ

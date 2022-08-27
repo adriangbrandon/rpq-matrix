@@ -1136,8 +1136,8 @@ namespace selectivity {
                 //Paths:
                 //m_r: multiplicity ratio of paths from i to s-1
                 //m_l: multiplicity ratio of paths from 0 to i
-                m_r[s - 1 - i] = m_r[s - i] * m_d[s - 1 - i];
-                m_l[i] = m_l[i - 1] * m_i[i];
+                m_r[s - 1 - i] = (1+m_r[s - i]) * m_d[s - 1 - i];
+                m_l[i] = (1+m_l[i - 1]) * m_i[i];
             }
 
             if(q_type == const_var && preds[0].pos == 0){
@@ -1172,18 +1172,18 @@ namespace selectivity {
             //std::cout << "Source with ith=" << ith << " size=" << m_s[ith] << std::endl;
             if (ith == 0) {
                 //Seed * (1+PathsFactorRight)
-                w_src_right = m_s[ith] * m_r[ith];
+                w_src_right = m_s[ith] * (1+m_r[ith]);
                 w_src_left = 0;
             }else{
-                w_src_right = m_s[ith] * m_r[ith];
-                w_src_left = m_s[ith] * m_l[ith-1];
+                w_src_right = m_s[ith] * (1+m_r[ith]);
+                w_src_left = m_s[ith] * (1+m_l[ith-1]);
             }
              if (ith == m_t.size()-1) {
-                 w_tgt_left = m_t[ith] * m_l[ith];
+                 w_tgt_left = m_t[ith] * (1+m_l[ith]);
                  w_tgt_right = 0;
              }else{
-                 w_tgt_left = m_t[ith] *  m_l[ith];
-                 w_tgt_right = m_t[ith] * m_r[ith+1];
+                 w_tgt_left = m_t[ith] *  (1+m_l[ith]);
+                 w_tgt_right = m_t[ith] * (1+m_r[ith+1]);
              }
             if(w_tgt_right + w_tgt_left > w_src_right + w_src_left){
                 res.split = source;
