@@ -767,17 +767,31 @@ private:
         //selectivity::info sel_min{std::numeric_limits<double>::max(), selectivity::source, true};
         uint64_t i_split = 0;
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
-        selectivity::h_sum_path2a_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P,
+        selectivity::h_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P,
                                                     sigma, n_predicates, q_type);
 
         selectivity::info sel_min = {std::numeric_limits<double>::max(), selectivity::source, true};
         selectivity::info sel_info;
         for(uint64_t i = 0; i < pos_pred_vec.size();++i){
-            if(i+1 < pos_pred_vec.size()
+            /*if(i+1 < pos_pred_vec.size()
                && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1) {
                 sel_info = h.intersection(i);
             }else {
                 sel_info = h.simple(i);
+            }
+            if(sel_info.weight < sel_min.weight){
+                sel_min = sel_info;
+                i_split = i;
+            }*/
+
+            sel_info = h.simple(i);
+            if(sel_info.weight < sel_min.weight){
+                sel_min = sel_info;
+                i_split = i;
+            }
+            if(i+1 < pos_pred_vec.size()
+               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1) {
+                sel_info = h.intersection(i);
             }
             if(sel_info.weight < sel_min.weight){
                 sel_min = sel_info;
