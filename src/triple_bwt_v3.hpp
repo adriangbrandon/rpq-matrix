@@ -773,7 +773,7 @@ private:
         selectivity::info sel_min = {std::numeric_limits<double>::max(), selectivity::source, true};
         selectivity::info sel_info;
         for(uint64_t i = 0; i < pos_pred_vec.size();++i){
-            /*if(i+1 < pos_pred_vec.size()
+            if(i+1 < pos_pred_vec.size()
                && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1) {
                 sel_info = h.intersection(i);
             }else {
@@ -782,21 +782,8 @@ private:
             if(sel_info.weight < sel_min.weight){
                 sel_min = sel_info;
                 i_split = i;
-            }*/
-
-            sel_info = h.simple(i);
-            if(sel_info.weight < sel_min.weight){
-                sel_min = sel_info;
-                i_split = i;
             }
-            if(i+1 < pos_pred_vec.size()
-               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1) {
-                sel_info = h.intersection(i);
-            }
-            if(sel_info.weight < sel_min.weight){
-                sel_min = sel_info;
-                i_split = i;
-            }
+            
         }
 
         //Computing the elements and splitting the RPQ

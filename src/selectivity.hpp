@@ -941,8 +941,8 @@ namespace selectivity {
                 //m_r[s - 1 - i] = (1 + m_r[s - i]) * m_d[s - 1 - i];
                 //m_l[i] = (1 + m_l[i - 1]) * m_i[i];
 
-                m_r[s - 1 - i] = (m_r[s - i]) * m_d[s - 1 - i];
-                m_l[i] = (m_l[i - 1]) * m_i[i];
+                m_r[s - 1 - i] = (1 +m_r[s - i]) * m_d[s - 1 - i];
+                m_l[i] = (1 + m_l[i - 1]) * m_i[i];
             }
 
             if(q_type == const_var && preds[0].pos == 0){
@@ -980,7 +980,7 @@ namespace selectivity {
                 if (ith == 0) {
                     //Seed * (1+PathsFactorRight)
                     //res.weight = m_s[ith] * (1 + m_r[ith]);
-                    res.weight = m_s[ith] * (m_r[ith]);
+                    res.weight = m_s[ith] * (1 + m_r[ith]);
                     res.first_left = false;
                     return res;
                 }
@@ -990,14 +990,14 @@ namespace selectivity {
                 //first_left = m_s[ith] * ((1 + m_l[ith - 1]) + m_sol_l[ith - 1] * (1 + m_r[ith]));
                 //w_right = m_s[ith] * (1 + m_r[ith]);
                 //w_left  = m_s[ith] * (1 + m_l[ith - 1]);
-                w_right = m_s[ith] * (m_r[ith]);
-                w_left  = m_s[ith] * (m_l[ith - 1]);
+                w_right = m_s[ith] * (1 +m_r[ith]);
+                w_left  = m_s[ith] * (1 +m_l[ith - 1]);
             } else {
                 res.split = target;
                 if (ith == m_t.size() - 1) {
                     //Seed * (1+PathsFactorLeft)
                     //res.weight = m_t[ith] * (1 + m_l[ith]);
-                    res.weight = m_t[ith] * ( m_l[ith]);
+                    res.weight = m_t[ith] * ( 1 + m_l[ith]);
                     res.first_left = true;
                     return res;
                 }
@@ -1007,8 +1007,8 @@ namespace selectivity {
                 //first_left = m_t[ith] * ((1 + m_l[ith]) + m_sol_l[ith] * (1 + m_r[ith + 1]));
                 //w_right = m_t[ith] * (1 + m_r[ith+1]);
                 //w_left  = m_t[ith] * (1 + m_l[ith]);
-                w_right = m_t[ith] * (m_r[ith+1]);
-                w_left  = m_t[ith] * (m_l[ith]);
+                w_right = m_t[ith] * (1 + m_r[ith+1]);
+                w_left  = m_t[ith] * (1 + m_l[ith]);
 
             }
             if (w_left <= w_right) {
@@ -1039,9 +1039,9 @@ namespace selectivity {
             //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
             //first_left = seed * ((1 + m_l[ith]) + m_sol_l[ith] * (1 + m_r[ith + 1]));
             //w_right = seed * (1 + m_r[ith+1]);
-            w_right = seed * (m_r[ith+1]);
+            w_right = seed * (1 +m_r[ith+1]);
             //w_left  = seed * (1 + m_l[ith]);
-            w_left  = seed * (m_l[ith]);
+            w_left  = seed * (1 +m_l[ith]);
             if (w_left <= w_right) {
                 res.weight = w_left + w_right;
                 res.first_left = true;

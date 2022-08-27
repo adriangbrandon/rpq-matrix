@@ -792,8 +792,8 @@ private:
         uint64_t sigma = (max_O > max_S) ? max_O : max_S;
         selectivity::h_sum_path2_intersection h(pos_pred_vec, L_S, wt_pred_s, real_max_P, sigma, n_predicates);
         //1. Checking mandatory data
-        for(uint64_t i = 0; i < pos_pred_vec.size();++i){
-            selectivity::info sel_info;
+       selectivity::info sel_info;
+       for(uint64_t i = 0; i < pos_pred_vec.size();++i){
             //2. Intersection
             if(i+1 < pos_pred_vec.size()
                 && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1){
