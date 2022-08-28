@@ -1608,7 +1608,7 @@ namespace selectivity {
 
         info intersection(const uint64_t ith) {
             info res;
-            res.split = intersect;
+            //res.split = intersect;
             double seed, w_right, w_left;
             /*if (m_s[ith + 1] < m_t[ith]) {
                 //double p = m_t[ith] / (double) (m_sigma);
@@ -1618,13 +1618,33 @@ namespace selectivity {
                 seed = m_t[ith]; //Seed
             }*/
             seed = m_intersection[ith].size();
+            if (m_s[ith] < seed) {
+                res.split = source;
+                if (ith == 0) {
+                    //Seed * (1+PathsFactorRight)
+                    res.weight = m_s[ith] * (1 + m_r[ith]);
+                    res.first_left = false;
+                    return res;
+                }
+                //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
+                //first_right = m_s[ith] * ((1 + m_r[ith]) + m_sol_r[ith] * (1 + m_l[ith - 1]));
+                //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
+                //first_left = m_s[ith] * ((1 + m_l[ith - 1]) + m_sol_l[ith - 1] * (1 + m_r[ith]));
+                w_right = m_s[ith] * (1 + m_r[ith]);
+                w_left  = m_s[ith] * (1 + m_l[ith - 1]);
+            }else{
+                res.split = intersect;
+                w_right = seed * (1 + m_r[ith+1]);
+                w_left  = seed * (1 + m_l[ith]);
+            }
+            /*seed = m_intersection[ith].size();
             //std::cout << "Intersection size: " << seed << std::endl;
             //Seed * ((1+PathsFactorRight) + SolutionsFactorRight * (1+PathsFactorLeft))
             //first_right = seed * ((1 + m_r[ith + 1]) + m_sol_r[ith + 1] * (1 + m_l[ith]));
             //Seed * ((1+PathsFactorLeft) + SolutionsFactorLeft * (1+PathsFactorRight))
             //first_left = seed * ((1 + m_l[ith]) + m_sol_l[ith] * (1 + m_r[ith + 1]));
             w_right = seed * (1 + m_r[ith+1]);
-            w_left  = seed * (1 + m_l[ith]);
+            w_left  = seed * (1 + m_l[ith]);*/
             if (w_left <= w_right) {
                 res.weight = w_left + w_right;
                 res.first_left = true;
