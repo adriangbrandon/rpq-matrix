@@ -78,18 +78,43 @@ PatternData rpqToPatternData(const std::string &rpq,
     return {pattern, map_id_to_pred, map_pred_to_str};
 }
 
+void RpqTree::mandatoryPlusTraversal(Tree *e, MandatoryData &md, int &last) {
+
+    Tree* left_node = e->e1;
+    Tree* right_node = e->e2;
+    while(left_node->type == CONC || left_node->type == PLUS){
+        left_node = left_node->e1;
+    }
+    while(right_node->type == CONC || right_node->type == PLUS){
+        if(right_node->type == CONC){
+            right_node = right_node->e2;
+        }else{
+            right_node = right_node->e1;
+        }
+    }
+    if(left_node->type == STR && right_node->type == STR) {
+        md.push_back({posToPred(left_node->pos), posToPred(right_node->pos), left_node->pos, right_node->pos});
+        last = right_node->pos;
+    }
+}
+
 void RpqTree::mandatoryTraversal(Tree* e, MandatoryData &md, int& last){
     if(e->type == STR){
-        /*if(!md.pos_pred.empty() && md.pos_pred.back().pos == e->pos-1){
-            md.c = true;
-        }*/
-        md.push_back({posToPred(e->pos), e->pos});
+        auto pred = posToPred(e->pos);
+        md.push_back({pred, pred, e->pos, e->pos});
         last = e->pos;
-    }else if(e->type == CONC || e->type == PLUS){
+    }else if(e->type == CONC){
         mandatoryTraversal(e->e1, md, last);
-        if(e->type == CONC){
-            mandatoryTraversal(e->e2, md, last);
+        mandatoryTraversal(e->e2, md, last);
+    }else if(e->type == PLUS){
+        if(e->e1->type == STR){
+            auto pred = posToPred(e->pos);
+            md.push_back({pred, pred, e->pos, e->pos});
+            last = e->pos;
+        }else if (e->e1->type == CONC){
+            mandatoryPlusTraversal(e->e1,  md, last);
         }
+
     }
 }
 

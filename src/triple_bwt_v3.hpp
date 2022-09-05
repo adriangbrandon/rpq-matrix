@@ -774,7 +774,7 @@ private:
         selectivity::info sel_info;
         for(uint64_t i = 0; i < pos_pred_vec.size();++i){
             if(i+1 < pos_pred_vec.size()
-               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1) {
+               && pos_pred_vec[i].pos_e == pos_pred_vec[i+1].pos_b-1) {
                 sel_info = h.intersection(i);
             }else {
                 sel_info = h.simple(i);
@@ -809,18 +809,18 @@ private:
             //auto pred = pos_pred_vec[i_split].id_pred;
             //get_elements_intersection(pred_rev, pred, elements);
             elements = h.get_elements_intersection(i_split);
-            return rpqTree.splitRpq(pos_pred_vec[i_split].pos);
+            return rpqTree.splitRpq(pos_pred_vec[i_split].pos_e);
         }else if (sel_min.split == selectivity::source){
             //Source of i_split is the splitting node
-            auto pred = pos_pred_vec[i_split].id_pred;
+            auto pred = pos_pred_vec[i_split].pred_b;
             auto pred_rev = pred_reverse(pred);
             get_elements(pred_rev, elements);
-            return rpqTree.splitRpq(pos_pred_vec[i_split].pos-1);
+            return rpqTree.splitRpq(pos_pred_vec[i_split].pos_b-1);
         }else{
             //Target of i_split is the splitting node
-            auto pred = pos_pred_vec[i_split].id_pred;
+            auto pred = pos_pred_vec[i_split].pred_e;
             get_elements(pred, elements);
-            return rpqTree.splitRpq(pos_pred_vec[i_split].pos);
+            return rpqTree.splitRpq(pos_pred_vec[i_split].pos_e);
         }
     }
 
@@ -851,7 +851,7 @@ private:
             }
             //2. Intersection
             if(i+1 < pos_pred_vec.size()
-               && pos_pred_vec[i].pos == pos_pred_vec[i+1].pos-1) {
+               && pos_pred_vec[i].pos_e == pos_pred_vec[i+1].pos_b-1) {
                 sel_info = h.intersection(i);
             }
             //3. Taking info with the smallest selectivity

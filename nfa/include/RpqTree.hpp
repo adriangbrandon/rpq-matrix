@@ -42,9 +42,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "regular.hpp"
 
 
-typedef struct {
+/*typedef struct {
     int id_pred;
     int pos;
+
+} PairPredPos;*/
+
+typedef struct {
+    int pred_b, pred_e;
+    int pos_b, pos_e;
+
 } PairPredPos;
 
 typedef struct std::vector<PairPredPos> MandatoryData;
@@ -59,6 +66,7 @@ class RpqTree {
 
 private:
 
+    void mandatoryPlusTraversal(Tree* e, MandatoryData &md, int& last);
     void mandatoryTraversal(Tree* e, MandatoryData &md, int& last);
 
     void splitTraversal(Tree* e, int split_pos, bool &left, std::string &rpq_l, std::string &rpq_r);
