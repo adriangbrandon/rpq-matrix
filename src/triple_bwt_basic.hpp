@@ -356,7 +356,6 @@ public:
     void save(string filename) {
         L_S.save(filename + ".bwts");
         L_P.save(filename + ".bwtp");
-        sdsl::store_to_file(wt_pred_s, filename+".wt_pred_s");
 
         std::ofstream ofs(filename + ".nTriples");
         ofs << nTriples << endl;
