@@ -225,6 +225,12 @@ int main(int argc, char **argv) {
                         graph.or_query_var_to_var(query, 3, bound, pred_map, query_output);
                     else if (is_or and n_predicates > 3)
                         graph.or_query_var_to_var(query, n_predicates, bound, pred_map, query_output);
+                    else if(n_predicates == 1 and n_operators == 0)
+                        graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                n_operators, false);
+                    else if (is_a_path and n_operators == 1)
+                        graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                n_operators, is_a_path);
                     else
                         graph.rpq_var_to_var_split(query, pred_map, B_array, B_array2, query_output, n_predicates,
                                                is_negated_pred, n_operators, is_a_path);
