@@ -979,6 +979,77 @@ public:
         }
     };
 
+    void or_query_var_to_var(const std::string &rpq, uint64_t n_or,
+                             unordered_map<std::string, uint64_t> &predicates_map,
+                             std::vector<std::pair<uint64_t, uint64_t>> &output) {
+        uint64_t i, i1, pred, /*pred_1, pred_2,*/ k, start, a, max_pos;
+        bool negated_pred/*, negated_p1, negated_p2*/;
+        std::vector<uint64_t> values_x, values_y;
+        std::pair<uint64_t, uint64_t> I_S;
+        uint64_t c, object;
+        std::unordered_set<std::pair<uint64_t, uint64_t>> o_set;
+        std::pair<std::unordered_set<std::pair<uint64_t, uint64_t>>::iterator, bool> ret;
+        std::vector<int64_t> pred_v;
+        std::vector<bool> negated_pred_v;
+        std::vector<std::pair<uint64_t, uint64_t>> I_S_v;
+
+        for (i1 = k = 0; k < n_or; k++) {
+            negated_pred_v.push_back(rpq.at(i1 + 1) == '%');
+            start = i1;
+            while (rpq.at(i1) != '>') ++i1;
+            if (negated_pred_v[k])
+                pred_v.push_back(predicates_map["<" + rpq.substr(start + 2, i1 - start - 1)]);
+            else
+                pred_v.push_back(predicates_map[rpq.substr(start, i1 - start + 1)]);
+
+            I_S_v.push_back(std::pair<uint64_t, uint64_t>(
+                    L_S.get_C(pred_v[k] + real_max_P),
+                    L_S.get_C(pred_v[k] + real_max_P + 1) - 1
+            ));
+            i1 += 2;
+        }
+
+        for (i1 = k = 0; k < n_or; k++) {
+            for (a = 0; a < n_or and pred_v[a] == -1; ++a);
+            max_pos = a;
+            for (++a; a < n_or; ++a) {
+                if (pred_v[a] == -1) continue;
+                if (I_S_v[a].second - I_S_v[a].first > I_S_v[max_pos].second - I_S_v[max_pos].first)
+                    max_pos = a;
+            }
+            pred = pred_v[max_pos];
+            I_S = I_S_v[max_pos];
+            negated_pred = negated_pred_v[max_pos];
+            pred_v[max_pos] = -1;
+            // Now extract all ?x values
+            values_x = L_S.all_values_in_range(I_S.first, I_S.second);
+            // For each ?x obtained, search for ?y p ?x using backward search
+            for (i = 0; i < values_x.size(); i++) {
+                object = values_x[i];
+                I_S = L_P.backward_step(L_P.get_C(object), L_P.get_C(object + 1) - 1, pred);
+                c = L_S.get_C(pred);
+                I_S.first += c;
+                I_S.second += c;
+                values_y.clear();
+                values_y = L_S.all_values_in_range(I_S.first, I_S.second);
+                if (negated_pred) {
+                    for (uint64_t j = 0; j < values_y.size(); ++j) {
+                        ret = o_set.insert(std::pair<uint64_t, uint64_t>(values_y[j], object));
+                        if (ret.second == true)
+                            output.push_back(std::pair<uint64_t, uint64_t>(values_y[j], object));
+                    }
+                } else {
+                    for (uint64_t j = 0; j < values_y.size(); ++j) {
+                        ret = o_set.insert(std::pair<uint64_t, uint64_t>(object, values_y[j]));
+                        if (ret.second == true)
+                            output.push_back(std::pair<uint64_t, uint64_t>(object, values_y[j]));
+                    }
+                }
+            }
+
+        }
+    };
+
 
     // Solves single-predicate queries (with no operator, except ^)
     void single_predicate_query(uint64_t predicate, uint64_t object, uint64_t query_type,

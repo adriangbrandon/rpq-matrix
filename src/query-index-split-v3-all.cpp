@@ -220,11 +220,11 @@ int main(int argc, char **argv) {
                         graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
                                                 n_operators, false);
                     else if (query_type == "|")
-                        graph.or_query_var_to_var(query, 2, bound, pred_map, query_output);
+                        graph.or_query_var_to_var(query, 2, pred_map, query_output);
                     else if (query_type == "||")
-                        graph.or_query_var_to_var(query, 3, bound, pred_map, query_output);
+                        graph.or_query_var_to_var(query, 3, pred_map, query_output);
                     else if (is_or and n_predicates > 3)
-                        graph.or_query_var_to_var(query, n_predicates, bound, pred_map, query_output);
+                        graph.or_query_var_to_var(query, n_predicates, pred_map, query_output);
                     else if(n_predicates == 1 and n_operators == 0)
                         graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
                                                 n_operators, false);
