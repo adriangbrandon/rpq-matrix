@@ -991,7 +991,7 @@ private:
             time_span = duration_cast<microseconds>(stop - start);
             total_time = time_span.count();
             if (total_time > TIME_OUT) {
-                std::cout << "Time: " << total_time << std::endl;
+                //std::cout << "Time: " << total_time << std::endl;
                 return true;
             }
         }
@@ -1033,7 +1033,7 @@ private:
             time_span = duration_cast<microseconds>(stop - start);
             total_time = time_span.count();
             if (total_time > TIME_OUT) {
-                std::cout << "Time: " << total_time << std::endl;
+                //std::cout << "Time: " << total_time << std::endl;
                 return true;
             }
             if(found){
@@ -2551,8 +2551,8 @@ public:
                                      uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators,
                                      bool is_a_path, high_resolution_clock::time_point start ){
 
-         std::cout << "rpq_l: " << rpq_l << std::endl;
-         std::cout << "rpq_r: " << rpq_r << std::endl;
+        // std::cout << "rpq_l: " << rpq_l << std::endl;
+         //std::cout << "rpq_r: " << rpq_r << std::endl;
         if (!rpq_l.empty() && !rpq_r.empty()) {
 
             //3.Solve RPQ1 and RPQ2 by using the selected ranges of objects (RPQ1 and RPQ2 exist)
@@ -2698,12 +2698,12 @@ public:
 
 
 
-        auto t0 = high_resolution_clock::now();
+        //auto t0 = high_resolution_clock::now();
         RpqTree rpqTree(rpq, predicates_map, real_max_P);
         auto mand_data = rpqTree.getMandatoryData();
-        auto t1 = high_resolution_clock::now();
-        auto time_mand = std::chrono::duration_cast<nanoseconds>(t1-t0).count();
-        std::cout << "Time Mandatory: " << time_mand << std::endl;
+        //auto t1 = high_resolution_clock::now();
+        //auto time_mand = std::chrono::duration_cast<nanoseconds>(t1-t0).count();
+        //std::cout << "Time Mandatory: " << time_mand << std::endl;
         if(mand_data.empty()){
             rpq_var_to_var_so(rpq, predicates_map, B_array, solution,
                               n_predicates, is_negated_pred, n_operators, is_a_path);
@@ -2733,12 +2733,12 @@ public:
                               uint64_t n_predicates, bool is_negated_pred, uint64_t n_operators, bool is_a_path){
 
 
-        auto t0 = high_resolution_clock::now();
+        //auto t0 = high_resolution_clock::now();
         RpqTree rpqTree(rpq, predicates_map, real_max_P);
         auto mand_data = rpqTree.getMandatoryData();
-        auto t1 = high_resolution_clock::now();
-        auto time_mand = std::chrono::duration_cast<nanoseconds>(t1-t0).count();
-        std::cout << "Time Mandatory: " << time_mand << std::endl;
+        //auto t1 = high_resolution_clock::now();
+        //auto time_mand = std::chrono::duration_cast<nanoseconds>(t1-t0).count();
+        //std::cout << "Time Mandatory: " << time_mand << std::endl;
         if(mand_data.empty()){
             rpq_var_to_var_so(rpq, predicates_map, B_array_l, solution,
                               n_predicates, is_negated_pred, n_operators, is_a_path);
