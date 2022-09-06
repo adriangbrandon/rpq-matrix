@@ -993,6 +993,7 @@ public:
         std::vector<bool> negated_pred_v;
         std::vector<std::pair<uint64_t, uint64_t>> I_S_v;
 
+        auto start_time = high_resolution_clock::now();
         for (i1 = k = 0; k < n_or; k++) {
             negated_pred_v.push_back(rpq.at(i1 + 1) == '%');
             start = i1;
@@ -1009,7 +1010,11 @@ public:
             i1 += 2;
         }
 
-        for (i1 = k = 0; k < n_or; k++) {
+
+        auto stop = high_resolution_clock::now();
+        auto total_time = duration_cast<seconds>(stop - start_time).count();
+        bool time_out = (total_time > TIME_OUT);
+        for (i1 = k = 0; !time_out && k < n_or; k++) {
             for (a = 0; a < n_or and pred_v[a] == -1; ++a);
             max_pos = a;
             for (++a; a < n_or; ++a) {
@@ -1023,8 +1028,11 @@ public:
             pred_v[max_pos] = -1;
             // Now extract all ?x values
             values_x = L_S.all_values_in_range(I_S.first, I_S.second);
+            stop = high_resolution_clock::now();
+            total_time = duration_cast<seconds>(stop - start_time).count();
+            time_out = (total_time > TIME_OUT);
             // For each ?x obtained, search for ?y p ?x using backward search
-            for (i = 0; i < values_x.size(); i++) {
+            for (i = 0; i < values_x.size() && !time_out; i++) {
                 object = values_x[i];
                 I_S = L_P.backward_step(L_P.get_C(object), L_P.get_C(object + 1) - 1, pred);
                 c = L_S.get_C(pred);
@@ -1033,16 +1041,22 @@ public:
                 values_y.clear();
                 values_y = L_S.all_values_in_range(I_S.first, I_S.second);
                 if (negated_pred) {
-                    for (uint64_t j = 0; j < values_y.size(); ++j) {
+                    for (uint64_t j = 0; !time_out && j < values_y.size(); ++j) {
                         ret = o_set.insert(std::pair<uint64_t, uint64_t>(values_y[j], object));
                         if (ret.second == true)
                             output.push_back(std::pair<uint64_t, uint64_t>(values_y[j], object));
+                        stop = high_resolution_clock::now();
+                        total_time = duration_cast<seconds>(stop - start_time).count();
+                        time_out = (total_time > TIME_OUT);
                     }
                 } else {
-                    for (uint64_t j = 0; j < values_y.size(); ++j) {
+                    for (uint64_t j = 0; !time_out && j < values_y.size(); ++j) {
                         ret = o_set.insert(std::pair<uint64_t, uint64_t>(object, values_y[j]));
                         if (ret.second == true)
                             output.push_back(std::pair<uint64_t, uint64_t>(object, values_y[j]));
+                        stop = high_resolution_clock::now();
+                        total_time = duration_cast<seconds>(stop - start_time).count();
+                        time_out = (total_time > TIME_OUT);
                     }
                 }
             }

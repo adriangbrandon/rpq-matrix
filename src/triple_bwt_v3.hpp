@@ -1123,8 +1123,7 @@ public:
 
     void or_query_var_to_var(const std::string &rpq, uint64_t n_or,
                              unordered_map<std::string, uint64_t> &predicates_map,
-                             std::vector<std::pair<uint64_t, uint64_t>> &output,
-                             high_resolution_clock::time_point start_time) {
+                             std::vector<std::pair<uint64_t, uint64_t>> &output) {
         uint64_t i, i1, pred, /*pred_1, pred_2,*/ k, start, a, max_pos;
         bool negated_pred/*, negated_p1, negated_p2*/;
         std::vector<uint64_t> values_x, values_y;
@@ -1136,6 +1135,7 @@ public:
         std::vector<bool> negated_pred_v;
         std::vector<std::pair<uint64_t, uint64_t>> I_S_v;
 
+        auto start_time = high_resolution_clock::now();
         for (i1 = k = 0; k < n_or; k++) {
             negated_pred_v.push_back(rpq.at(i1 + 1) == '%');
             start = i1;
@@ -1170,9 +1170,9 @@ public:
             pred_v[max_pos] = -1;
             // Now extract all ?x values
             values_x = L_S.all_values_in_range(I_S.first, I_S.second);
-             stop = high_resolution_clock::now();
-             total_time = duration_cast<seconds>(stop - start_time).count();
-             time_out = (total_time > TIME_OUT);
+            stop = high_resolution_clock::now();
+            total_time = duration_cast<seconds>(stop - start_time).count();
+            time_out = (total_time > TIME_OUT);
             // For each ?x obtained, search for ?y p ?x using backward search
             for (i = 0; i < values_x.size() && !time_out; i++) {
                 object = values_x[i];
@@ -1205,6 +1205,7 @@ public:
 
         }
     };
+
 
 
     // Solves single-predicate queries (with no operator, except ^)
