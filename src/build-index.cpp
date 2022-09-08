@@ -1,5 +1,5 @@
 #include <iostream>
-#include "triple_bwt.hpp"
+#include "triple_bwt_v3.hpp"
 #include <fstream>
 #include <sdsl/construct.hpp>
 
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     memory_monitor::start();
     auto start = timer::now();
     
-    ring_rpq A(D);
+    ring_rpq_bfs A(D);
     auto stop = timer::now();
     memory_monitor::stop();
     cout << "  Index built " << (float)A.size()/input_size << " bytes per triple" << endl;

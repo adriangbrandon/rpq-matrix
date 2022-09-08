@@ -882,7 +882,7 @@ namespace selectivity {
                                     query_type q_type = var_var) {
 
 
-            auto t0 = std::chrono::high_resolution_clock::now();
+            //auto t0 = std::chrono::high_resolution_clock::now();
             m_max_p = maxP;
             m_sigma = sigma;
             //m_t.push_back(-1ULL);
@@ -963,9 +963,10 @@ namespace selectivity {
             printVector(m_r);
             std::cout << "----Int----" << std::endl;
             printSize(m_intersection);*/
-            auto t1 = std::chrono::high_resolution_clock::now();
+            /*auto t1 = std::chrono::high_resolution_clock::now();
             auto intersections = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-            std::cout << "Decision: " << intersections << std::endl;
+            std::cout << "Decision: " << intersections << std::endl;*/
+            std::cout << "Mandatory" << std::endl;
 
         }
 

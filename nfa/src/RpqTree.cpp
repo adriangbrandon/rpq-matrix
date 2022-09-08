@@ -108,9 +108,9 @@ void RpqTree::mandatoryTraversal(Tree* e, MandatoryData &md, int& last){
         mandatoryTraversal(e->e2, md, last);
     }else if(e->type == PLUS){
         if(e->e1->type == STR){
-            auto pred = posToPred(e->pos);
-            md.push_back({pred, pred, e->pos, e->pos});
-            last = e->pos;
+            auto pred = posToPred(e->e1->pos);
+            md.push_back({pred, pred, e->e1->pos, e->e1->pos});
+            last = e->e1->pos;
         }else if (e->e1->type == CONC){
             mandatoryPlusTraversal(e->e1,  md, last);
         }
