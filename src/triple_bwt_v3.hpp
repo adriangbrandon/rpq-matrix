@@ -2813,6 +2813,9 @@ public:
 
 
     void rpq_var_to_var_split(const std::string &rpq,
+                              const std::string &query_type,
+                              const uint64_t first_pred,
+                              const uint64_t last_pred,
                               unordered_map<std::string, uint64_t> &predicates_map,  // ToDo: esto debería ser una variable miembro de la clase
                               std::vector<word_t> &B_array_l,
                               std::vector<word_t> &B_array_r,
@@ -2827,8 +2830,18 @@ public:
         //auto time_mand = std::chrono::duration_cast<nanoseconds>(t1-t0).count();
         //std::cout << "Time Mandatory: " << time_mand << std::endl;
         if(mand_data.empty()){
-            rpq_var_to_var_so(rpq, predicates_map, B_array_l, solution,
-                              n_predicates, is_negated_pred, n_operators, is_a_path);
+            if (query_type[query_type.size() - 1] == '*' and query_type[0] != '*')
+                rpq_var_to_var_so(rpq, predicates_map, B_array_l, solution, n_predicates, is_negated_pred,
+                                        n_operators, false);
+            else if (query_type[0] == '*' or query_type[0] == '+')
+                rpq_var_to_var_os(rpq, predicates_map, B_array_l, solution, n_predicates, is_negated_pred,
+                                        n_operators, false);
+            else if (pred_distinct_values(first_pred) <= pred_distinct_values(pred_reverse(last_pred)))
+                rpq_var_to_var_so(rpq, predicates_map, B_array_l, solution, n_predicates, is_negated_pred,
+                                        n_operators, is_a_path);
+            else
+                rpq_var_to_var_os(rpq, predicates_map, B_array_l, solution, n_predicates, is_negated_pred,
+                                  n_operators, is_a_path);
         }else{
             std::string rpq_l, rpq_r;
             std::vector<uint64_t> elements;
