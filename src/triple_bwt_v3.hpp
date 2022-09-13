@@ -2836,7 +2836,7 @@ public:
             else if (query_type[0] == '*' or query_type[0] == '+')
                 rpq_var_to_var_os(rpq, predicates_map, B_array_l, solution, n_predicates, is_negated_pred,
                                         n_operators, false);
-            else if (pred_distinct_values(first_pred) <= pred_distinct_values(pred_reverse(last_pred)))
+            else if (pred_selectivity(first_pred) <= pred_selectivity(last_pred))
                 rpq_var_to_var_so(rpq, predicates_map, B_array_l, solution, n_predicates, is_negated_pred,
                                         n_operators, is_a_path);
             else
