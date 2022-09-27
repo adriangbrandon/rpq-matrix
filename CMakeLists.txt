@@ -111,6 +111,9 @@ target_link_libraries(yago2s-nt-uris sdsl divsufsort divsufsort64)
 add_executable(yago2s-to-nt src/yago2s-to-nt.cpp)
 target_link_libraries(yago2s-to-nt sdsl divsufsort divsufsort64)
 
+add_executable(yago2s-prepare src/yago2s-prepare.cpp)
+target_link_libraries(yago2s-prepare sdsl divsufsort divsufsort64)
+
 
 add_executable(split-memory-bfs src/split-memory-bfs.cpp)
 target_link_libraries(split-memory-bfs sdsl divsufsort divsufsort64 nfa malloc_count)
