@@ -113,7 +113,7 @@ void get_id_uri(const std::string &line, std::string &id, std::string &uri){
 std::pair<bool, std::string> fix_prefix(const std::string &uri, const std::string &prefix, const std::string &p_uri){
     auto pos = uri.find(prefix);
     if(pos == std::string::npos) return {false, ""};
-    return {true, std::regex_replace(uri, std::regex(prefix), p_uri)};
+    return {true, "<" + std::regex_replace(uri, std::regex(prefix), p_uri) + ">"};
 }
 
 std::string base(const std::string &uri, const std::string &uri_base){
