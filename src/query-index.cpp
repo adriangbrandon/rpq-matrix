@@ -60,6 +60,7 @@ int main(int argc, char **argv) {
     bool flag_s, flag_o, skip_flag;
     std::vector<std::pair<uint64_t, uint64_t>> query_output;
     std::vector<word_t> B_array(4 * graph.n_labels(), 0);
+    std::vector<word_t> B_array2(4 * graph.n_labels(), 0);
 
     high_resolution_clock::time_point start, stop;
     double total_time = 0.0;
