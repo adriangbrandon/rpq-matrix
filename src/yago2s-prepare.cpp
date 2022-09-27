@@ -88,11 +88,7 @@ void vector_to_file(const std::string &file_name, std::vector<spo_triple> &vec){
 }
 
 bool is_literal(const std::string &uri){
-    return (uri.find("<\"") == 0);
-}
-
-std::string get_literal(const std::string &literal){
-    return literal.substr(1, literal.size()-2);
+    return (uri.find("\"") == 0);
 }
 
 bool is_uri(const std::string &uri){
@@ -130,10 +126,8 @@ std::string transform(const std::string &uri,
                       const std::vector<std::pair<std::string, std::string>>& prefixes,
                       const std::string &uri_base){
 
-    if(is_uri(uri)){
+    if(is_uri(uri) || is_literal(uri)){
         return uri;
-    }else if (is_literal(uri)){
-        return get_literal(uri);
     }else{
         for(const auto &p : prefixes){
             auto fix = fix_prefix(uri, p.first, p.second);
