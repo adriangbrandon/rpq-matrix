@@ -156,7 +156,7 @@ int main(int argc, char **argv)
         if(it != hash_table_adj_lists.end()){
             for(const auto& nn : adj_lists[it->second]){
                 if(!visited[nn.second]){
-                    nodes.push(nn.second);
+                    nodes.push(nn.second); //nn.second object
                     BFS_node(nn.first, nn.second, hash_table, subjects);
                     visited[nn.second]=true;
                     ++n_visited;

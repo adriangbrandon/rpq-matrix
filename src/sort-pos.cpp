@@ -83,19 +83,19 @@ int main(int argc, char **argv)
     data_ifs.close();
     std::sort(D.begin(), D.end(), sortby_pos);
 
-    uint64_t p1, o1;
+    uint64_t p1, s1;
     uint64_t lb, line = 0;
-    p1 = o1 = lb = 0;
+    p1 = s1 = lb = 0;
     while(line < D.size()){
         s = get<0>(D[line]);
         p = get<1>(D[line]);
         o = get<2>(D[line]);
-        if(line > 0 && (p != p1 || o != o1)){
+        if(line > 0 && (p != p1 || s != s1)){
             intervals.emplace_back(lb, line-1);
             lb = line;
         }
         p1 = p;
-        o1 = o;
+        s1 = s;
         ++line;
     }
     if (line> 0) intervals.emplace_back(lb, line-1);
@@ -122,23 +122,22 @@ int main(int argc, char **argv)
     std::sort(intervals.begin(), intervals.end(), sortby_interval);
 
     std::cout << "Intervals are sorted." << std::endl;
-
     uint64_t so = 1;
     for(const auto& interval : intervals){
         for(auto i = interval.first; i <= interval.second; ++i){
-            s = get<0>(D[i]);
-            if(so_hashtable.find(s) == so_hashtable.end()){
-                so_hashtable.insert({s, so});
+            o = get<2>(D[i]);
+            if(so_hashtable.find(o) == so_hashtable.end()){
+                so_hashtable.insert({o, so});
                 ++so;
             }
         }
     }
 
-    std::cout << "Check objects." << std::endl;
+    std::cout << "Check subjects." << std::endl;
     for(const auto& interval : intervals){
-        o = get<2>(D[interval.first]);
-        if(so_hashtable.find(o) == so_hashtable.end()){
-            so_hashtable.insert({o, so});
+        s = get<0>(D[interval.first]);
+        if(so_hashtable.find(s) == so_hashtable.end()){
+            so_hashtable.insert({s, so});
             ++so;
         }
     }
@@ -166,7 +165,6 @@ int main(int argc, char **argv)
     std::cout << "Triples are printed." << std::endl;
     D.clear();
     D.shrink_to_fit();
-
 
     std::ifstream so_ifs(so_file);
     std::ofstream so_ofs(out_so);
