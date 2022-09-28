@@ -59,7 +59,7 @@ bool sortby_pso(const spo_triple &a, const spo_triple &b)
 bool sortby_interval(const pair<uint64_t, uint64_t> &a,
                      const pair<uint64_t, uint64_t> &b)
 {
-    return (a.second - a.first < b.second - b.first);
+    return (a.second - a.first > b.second - b.first);
 }
 
 int main(int argc, char **argv)
