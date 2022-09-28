@@ -44,13 +44,13 @@ bool sortby_triple(const spo_triple &a, const spo_triple &b)
     return get<0>(a) < get<0>(b);
 }
 
-bool sortby_pos(const spo_triple &a, const spo_triple &b)
+bool sortby_pso(const spo_triple &a, const spo_triple &b)
 {
     if(get<1>(a) == get<1>(b)){
-        if(get<2>(a) == get<2>(b)){
-            return get<0>(a) < get<0>(b);
+        if(get<0>(a) == get<0>(b)){
+            return get<2>(a) < get<2>(b);
         }
-        return get<2>(a) < get<2>(b);
+        return get<0>(a) < get<0>(b);
     }
     return get<1>(a) < get<1>(b);
 }
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
         D.emplace_back(spo_triple(s, p, o));
     } while (!data_ifs.eof());
     data_ifs.close();
-    std::sort(D.begin(), D.end(), sortby_pos);
+    std::sort(D.begin(), D.end(), sortby_pso);
 
     uint64_t p1, s1;
     uint64_t lb, line = 0;
