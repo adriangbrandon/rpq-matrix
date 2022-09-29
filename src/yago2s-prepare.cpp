@@ -116,6 +116,12 @@ std::pair<bool, std::string> fix_prefix(const std::string &uri, const std::strin
     return {true, "<" + std::regex_replace(uri, std::regex(prefix), p_uri) + ">"};
 }
 
+std::pair<bool, std::string> fix_literal_prefix(const std::string &uri, const std::string &prefix, const std::string &p_uri){
+    auto pos = uri.find(prefix);
+    if(pos == std::string::npos) return {false, ""};
+    return {true,  std::regex_replace(uri, std::regex(prefix), p_uri)};
+}
+
 std::string base(const std::string &uri, const std::string &uri_base){
     auto str_aux = uri.substr(1, uri.size()-2);
     return "<" + uri_base + str_aux + ">";
@@ -126,7 +132,15 @@ std::string transform(const std::string &uri,
                       const std::vector<std::pair<std::string, std::string>>& prefixes,
                       const std::string &uri_base){
 
-    if(is_uri(uri) || is_literal(uri)){
+    if(is_uri(uri)) {
+        return uri;
+    }else if (is_literal(uri)){
+        for(const auto &p : prefixes){
+            auto fix = fix_prefix(uri, p.first, p.second);
+            if(fix.first){
+                return fix.second;
+            }
+        }
         return uri;
     }else{
         for(const auto &p : prefixes){
