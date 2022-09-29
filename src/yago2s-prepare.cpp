@@ -119,6 +119,8 @@ std::pair<bool, std::string> fix_prefix(const std::string &uri, const std::strin
 std::pair<bool, std::string> fix_literal_prefix(const std::string &uri, const std::string &prefix, const std::string &p_uri){
     auto pos = uri.find(prefix);
     if(pos == std::string::npos) return {false, ""};
+    auto end_literal = uri.rfind('\"');
+    if(pos < end_literal) return {false, ""};
     auto new_uri = std::regex_replace(uri, std::regex(prefix), p_uri);
     auto p = new_uri.find("http://");
     auto s1 = new_uri.substr(0, p);
@@ -160,7 +162,7 @@ std::string transform(const std::string &uri,
 int main(int argc, char **argv){
 
     if(argc != 3){
-        std::cout << argv[0] << " <input.ttl> <output>";
+        std::cout << argv[0] << " <input.ttl> <output>" << std::endl;
         std::cout << "<input.ttl> Turtle file." << std::endl;
         std::cout << "<output> Output file that stores the triples as ids." << std::endl;
         std::cout << "The executable outputs in the stdout <input.ttl> in nt format." << std::endl;
