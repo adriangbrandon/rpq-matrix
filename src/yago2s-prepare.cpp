@@ -88,7 +88,7 @@ void vector_to_file(const std::string &file_name, std::vector<spo_triple> &vec){
 }
 
 bool is_literal(const std::string &uri){
-    return (uri.find("\"") == 0);
+    return (uri.find('\"') == 0);
 }
 
 bool is_uri(const std::string &uri){
@@ -119,7 +119,7 @@ std::pair<bool, std::string> fix_prefix(const std::string &uri, const std::strin
 std::pair<bool, std::string> fix_literal_prefix(const std::string &uri, const std::string &prefix, const std::string &p_uri){
     auto pos = uri.find(prefix);
     if(pos == std::string::npos) return {false, ""};
-    auto end_literal = uri.rfind('\"');
+    auto end_literal = uri.find('\"', 1);
     if(pos < end_literal) return {false, ""};
     auto new_uri = std::regex_replace(uri, std::regex(prefix), p_uri);
     auto p = new_uri.find("http://");
