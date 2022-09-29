@@ -120,9 +120,9 @@ std::pair<bool, std::string> fix_literal_prefix(const std::string &uri, const st
     auto pos = uri.find(prefix);
     if(pos == std::string::npos) return {false, ""};
     auto new_uri = std::regex_replace(uri, std::regex(prefix), p_uri);
-    auto p = uri.find("http://");
-    auto s1 = uri.substr(0, p);
-    auto s2 = uri.substr(p);
+    auto p = new_uri.find("http://");
+    auto s1 = new_uri.substr(0, p);
+    auto s2 = new_uri.substr(p);
     return {true,  s1 + "<" + s2 + ">"};
 }
 
@@ -140,7 +140,7 @@ std::string transform(const std::string &uri,
         return uri;
     }else if (is_literal(uri)){
         for(const auto &p : prefixes){
-            auto fix = fix_prefix(uri, p.first, p.second);
+            auto fix = fix_literal_prefix(uri, p.first, p.second);
             if(fix.first){
                 return fix.second;
             }
