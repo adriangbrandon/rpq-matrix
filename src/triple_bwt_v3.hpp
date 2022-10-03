@@ -16,8 +16,8 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TRIPLE_L
-#define TRIPLE_L
+#ifndef TRIPLE_L_V3
+#define TRIPLE_L_V3
 
 #include <cstdint>
 #include <chrono>
@@ -348,7 +348,7 @@ public:
         //cout << "L_S.size() = " << L_S.size() << " bytes" << endl;
         //cout << "L_P.size() = " << L_P.size() << " bytes" << endl;
         //cout << "nTriples = " << nTriples << endl;
-        return L_S.size() + L_P.size();
+        return L_S.size() + L_P.size() + sdsl::size_in_bytes(wt_pred_s);
     }
 
     uint64_t n_triples() {
