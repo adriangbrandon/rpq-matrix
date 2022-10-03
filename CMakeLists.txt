@@ -117,6 +117,9 @@ target_link_libraries(yago2s-prepare sdsl divsufsort divsufsort64)
 add_executable(size-index src/size-index.cpp)
 target_link_libraries(size-index sdsl divsufsort divsufsort64)
 
+add_executable(size-basic-index src/size-basic-index.cpp)
+target_link_libraries(size-basic-index sdsl divsufsort divsufsort64)
+
 add_executable(split-memory-bfs src/split-memory-bfs.cpp)
 target_link_libraries(split-memory-bfs sdsl divsufsort divsufsort64 nfa malloc_count)
 target_compile_definitions(split-memory-bfs PRIVATE CHECK_MEM=1)

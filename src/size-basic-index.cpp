@@ -31,8 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Created by Adrián on 3/10/22.
 //
 
-#include "triple_bwt_v3.hpp"
-
+#include "triple_bwt_basic.hpp"
 
 int main(int argc, char **argv) {
 
@@ -43,7 +42,7 @@ int main(int argc, char **argv) {
     std::string file = argv[1];
     std::string type = argv[2];
 
-    ring_rpq_bfs graph;
+    ring_rpq_basic_bfs graph;
     graph.load(file);
     cout << "  Index loaded " << (float) graph.size() / (graph.n_triples() / 2) << " bytes per triple" << endl;
 
