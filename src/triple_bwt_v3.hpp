@@ -515,6 +515,7 @@ public:
             }
 
             util::bit_compress(new_S);
+            util::bit_compress(pred_S);
             L_S = bwt_nose(new_S, new_C_S);
             construct_im(wt_pred_s, pred_S);
             if (verbose) cout << "... [done]" << endl;
