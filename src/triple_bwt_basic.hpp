@@ -438,7 +438,7 @@ public:
         M_O.shrink_to_fit();
         M_P.shrink_to_fit();
 
-        if (verbose) cout << "... [done]\n  > Sorting out triples in OSP order";
+        if (verbose) cout << "... [done]\n  > Sorting out triples in OSP order" << flush;
         // Sorts the triples in OSP order
         sort(D.begin(), D.end(), [](const spo_triple& a,
                                     const spo_triple& b) { return std::tie(std::get<2>(a), std::get<0>(a), std::get<1>(a))
@@ -461,20 +461,20 @@ public:
             new_C_P.shrink_to_fit();
             M_O.clear();
             if (verbose) cout << "... [done]" << endl;
-            if (verbose) cout << "  > Building bwtp";
+            if (verbose) cout << "  > Building bwtp" << flush;
             int_vector<> new_P(n+1);
             new_P[0] = 0;
             for (i=1; i<=n; i++)
                 new_P[i] = std::get<1>(D[i-1]);
-            util::bit_compress(new_P);
+            //util::bit_compress(new_P);
 
             L_P = bwt(new_P, new_C_P);
-            if (verbose) cout << "... [done]" << endl;
         }
 
-        if (verbose) cout << "... [done]\n  > Stable sorting out triples in POS order";
+        if (verbose) cout << "... [done]\n  > Stable sorting out triples in POS order" << flush;
         stable_sort(D.begin(), D.end(), [](const spo_triple& a,
                                            const spo_triple& b) {return std::get<1>(a) < std::get<1>(b);});
+        if (verbose) cout << "... [done]" << endl;
 
         //Building BWT_S
         {
@@ -491,12 +491,12 @@ public:
             new_C_S.shrink_to_fit();
             M_P.clear();
             if (verbose) cout << "... [done]" << endl;
-            if (verbose) cout << "  > Building bwts";
+            if (verbose) cout << "  > Building bwts" << flush;
             int_vector<> new_S(n+1);
             new_S[0] = 0;
             for (i=1; i<=n; i++)
                 new_S[i] = std::get<0>(D[i-1]);
-            util::bit_compress(new_S);
+            //util::bit_compress(new_S);
 
             L_S = bwt_nose(new_S, new_C_S);
             if (verbose) cout << "... [done]" << endl;
