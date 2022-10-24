@@ -53,6 +53,9 @@ add_subdirectory(external/malloc_count)
 add_executable(build-index src/build-index.cpp)
 target_link_libraries(build-index sdsl divsufsort divsufsort64 nfa)
 
+add_executable(build-index-basic src/build-index-basic.cpp)
+target_link_libraries(build-index-basic sdsl divsufsort divsufsort64 nfa)
+
 add_executable(query-index src/query-index.cpp)
 target_link_libraries(query-index sdsl divsufsort divsufsort64 nfa)
 

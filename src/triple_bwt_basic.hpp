@@ -76,7 +76,7 @@ public:
     ring_rpq() { ; }
 
     // Assumes the triples have been stored in a vector<spo_triple>
-    ring_rpq(vector<spo_triple>& D, bool verbose = true)
+    /*ring_rpq(vector<spo_triple>& D, bool verbose = true)
     {
         uint64_t i, pos_c;
         vector<spo_triple>::iterator it, triple_begin, triple_end;
@@ -330,6 +330,179 @@ public:
             C_P.clear();
             C_P.shrink_to_fit();
         }
+        if (verbose) cout << "-- Index constructed successfully" << endl;
+    };*/
+
+    // Assumes the triples have been stored in a vector<spo_triple>
+    ring_rpq(vector<spo_triple>& D, bool verbose = true)
+    {
+        uint64_t i, pos_c;
+        vector<spo_triple>::iterator it, triple_begin, triple_end;
+        uint64_t n;
+
+        // for every triple, adds its reverse (using a predicate
+        // shifted by max_P, so 1 becomes max_P+1 in the reverse,
+        // and so on)
+
+        uint64_t d = D.size();
+        spo_triple triple_aux;
+
+        max_S = get<0>(D[0]);
+        max_P = get<1>(D[0]);
+        max_O = get<2>(D[0]);
+
+        for (i = 1; i < D.size(); i++) {
+            if (max_S < get<0>(D[i])) max_S = get<0>(D[i]);
+            if (max_P < get<1>(D[i])) max_P = get<1>(D[i]);
+            if (max_O < get<2>(D[i])) max_O = get<2>(D[i]);
+        }
+
+        real_max_P = max_P;
+
+        if (verbose) cout << "  > Adding inverted edges";
+        for (uint64_t i = 0; i < d; i++) {
+            triple_aux = D[i];
+            D.push_back(spo_triple(get<2>(D[i]), get<1>(D[i]), get<0>(D[i])));
+            get<0>(D[i]) = get<0>(triple_aux);
+            get<1>(D[i]) = get<1>(D[i]) + real_max_P;
+            get<2>(D[i]) = get<2>(triple_aux);
+        }
+        D.shrink_to_fit();
+
+        if (verbose) cout << "... [done]" << endl;
+        max_S = get<0>(D[0]);
+        max_P = get<1>(D[0]);
+        max_O = get<2>(D[0]);
+
+        for (i = 1; i < D.size(); i++) {
+            if (max_S < get<0>(D[i])) max_S = get<0>(D[i]);
+            if (max_P < get<1>(D[i])) max_P = get<1>(D[i]);
+            if (max_O < get<2>(D[i])) max_O = get<2>(D[i]);
+        }
+
+        {
+            bit_vector bv_s(max_S + 1, 0);
+            for (i = 0; i < D.size(); i++) {
+                bv_s[get<0>(D[i])] = 1;
+            }
+
+            bit_vector bv_o(max_O + 1, 0);
+            for (i = 0; i < D.size(); i++) {
+                bv_o[get<2>(D[i])] = 1;
+            }
+
+            uint64_t _c = 0;
+            for (i = 1; i < max_S + 1; i++) {
+                if (!bv_s[i]) {
+                    D.push_back(spo_triple(i, max_P + 1, max_O + 1));
+                    _c++;
+                }
+            }
+            //cout << _c << " nodes are no subjects" << endl;
+
+            _c = 0;
+            for (i = 1; i < max_O + 1; i++) {
+                if (!bv_o[i]) {
+                    D.push_back(spo_triple(max_O + 1, max_P + 1, i));
+                    _c++;
+                }
+            }
+
+            //cout << _c << " nodes are no objects" << endl;
+        }
+
+        max_S++;
+        max_O++;
+        max_P++;
+
+        triple_begin = D.begin();
+        triple_end = D.end();
+
+        if (verbose) cout << "  > Triples set = " << D.size() * sizeof(spo_triple) << " bytes" << endl;
+        fflush(stdout);
+
+
+        n = nTriples = triple_end - triple_begin;
+
+        if (verbose) cout << "  > Determining number of elements per symbol";
+        fflush(stdout);
+        uint64_t alphabet_SO = (max_S < max_O) ? max_O : max_S;
+
+        std::vector<uint32_t> M_O(alphabet_SO + 1, 0), M_P(max_P + 1, 0);
+
+        for (i = 0; i < D.size(); i++) {
+            M_O[std::get<2>(D[i])]++;
+            M_P[std::get<1>(D[i])]++;
+        }
+
+        M_O.shrink_to_fit();
+        M_P.shrink_to_fit();
+
+        if (verbose) cout << "... [done]\n  > Sorting out triples in OSP order";
+        // Sorts the triples in OSP order
+        sort(D.begin(), D.end(), [](const spo_triple& a,
+                                    const spo_triple& b) { return std::tie(std::get<2>(a), std::get<0>(a), std::get<1>(a))
+                                                                  < std::tie(std::get<2>(b), std::get<0>(b), std::get<1>(b));});
+        if (verbose) cout << "... [done]" << endl;
+
+        //Building BWT_P
+
+        {
+            vector<uint64_t> new_C_P;
+            if (verbose) cout << "  > Building C_P";
+            uint64_t cur_pos = 1;
+            new_C_P.push_back(0);  // Dummy value
+            new_C_P.push_back(cur_pos);
+            for (uint64_t c = 2; c <= alphabet_SO; c++) {
+                cur_pos += M_O[c-1];
+                new_C_P.push_back(cur_pos);
+            }
+            new_C_P.push_back(n+1);
+            new_C_P.shrink_to_fit();
+            M_O.clear();
+            if (verbose) cout << "... [done]" << endl;
+            if (verbose) cout << "  > Building bwtp";
+            int_vector<> new_P(n+1);
+            new_P[0] = 0;
+            for (i=1; i<=n; i++)
+                new_P[i] = std::get<1>(D[i-1]);
+            util::bit_compress(new_P);
+
+            L_P = bwt(new_P, new_C_P);
+            if (verbose) cout << "... [done]" << endl;
+        }
+
+        if (verbose) cout << "... [done]\n  > Stable sorting out triples in POS order";
+        stable_sort(D.begin(), D.end(), [](const spo_triple& a,
+                                           const spo_triple& b) {return std::get<1>(a) < std::get<1>(b);});
+
+        //Building BWT_S
+        {
+            vector<uint64_t> new_C_S;
+            if (verbose) cout << "  > Building C_S";
+            uint64_t cur_pos = 1;
+            new_C_S.push_back(0);  // Dummy value
+            new_C_S.push_back(cur_pos);
+            for (uint64_t c = 2; c <= max_P; c++) {
+                cur_pos += M_P[c-1];
+                new_C_S.push_back(cur_pos);
+            }
+            new_C_S.push_back(n+1);
+            new_C_S.shrink_to_fit();
+            M_P.clear();
+            if (verbose) cout << "... [done]" << endl;
+            if (verbose) cout << "  > Building bwts";
+            int_vector<> new_S(n+1);
+            new_S[0] = 0;
+            for (i=1; i<=n; i++)
+                new_S[i] = std::get<0>(D[i-1]);
+            util::bit_compress(new_S);
+
+            L_S = bwt_nose(new_S, new_C_S);
+            if (verbose) cout << "... [done]" << endl;
+        }
+
+
         if (verbose) cout << "-- Index constructed successfully" << endl;
     };
 
