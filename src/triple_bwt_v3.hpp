@@ -471,7 +471,7 @@ public:
             new_P[0] = 0;
             for (i=1; i<=n; i++)
                 new_P[i] = std::get<1>(D[i-1]);
-            //util::bit_compress(new_P);
+            util::bit_compress(new_P);
 
             L_P = bwt(new_P, new_C_P);
         }
@@ -514,7 +514,7 @@ public:
                 }
             }
 
-            //util::bit_compress(new_S);
+            util::bit_compress(new_S);
             L_S = bwt_nose(new_S, new_C_S);
             construct_im(wt_pred_s, pred_S);
             if (verbose) cout << "... [done]" << endl;
