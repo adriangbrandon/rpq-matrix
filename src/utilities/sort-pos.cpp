@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Created by Adrián on 7/4/22.
 //
-#include "../triple_bwt.hpp"
+#include "../Config.hpp"
 
 
 bool sortby_triple(const spo_triple &a, const spo_triple &b)

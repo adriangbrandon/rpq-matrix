@@ -35,7 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
-#include "../triple_bwt.hpp"
+#include <regex>
+#include "../Config.hpp"
 
 inline bool valid_line(std::string &line){
     return !line.empty() && line[0] != '@' && line[0] != '#';
