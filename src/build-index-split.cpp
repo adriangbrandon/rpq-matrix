@@ -1,5 +1,5 @@
 #include <iostream>
-#include "ring_rpq_basic.hpp"
+#include "ring_rpq_split.hpp"
 #include <fstream>
 #include <sdsl/construct.hpp>
 
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     memory_monitor::start();
     auto start = timer::now();
     
-    ring_rpq_basic_bfs A(D);
+    ring_rpq_bfs A(D);
     auto stop = timer::now();
     memory_monitor::stop();
     cout << "  Index built " << (float)A.size()/input_size << " bytes per triple" << endl;

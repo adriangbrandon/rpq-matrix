@@ -1,5 +1,5 @@
 #include <iostream>
-#include "ring_rpq_split.hpp"
+#include "ring_rpq_basic.hpp"
 #include <fstream>
 #include <sdsl/construct.hpp>
 
@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    ring_rpq_bfs graph;
+    ring_rpq_basic_bfs graph;
 
     graph.load(string(argv[1]));
 
@@ -60,7 +60,6 @@ int main(int argc, char **argv) {
     bool flag_s, flag_o, skip_flag;
     std::vector<std::pair<uint64_t, uint64_t>> query_output;
     std::vector<word_t> B_array(4 * graph.n_labels(), 0);
-    std::vector<word_t> B_array2(4 * graph.n_labels(), 0);
 
     high_resolution_clock::time_point start, stop;
     double total_time = 0.0;
@@ -216,6 +215,11 @@ int main(int argc, char **argv) {
                     if (query_type.size() == 0)
                         graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
                                                 n_operators, false);
+                    else if (query_type == "/*")
+                        /*graph.rpq_var_to_var_os(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                n_operators, false);*/
+                        graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                n_operators, false);
                     else if (query_type == "+" or query_type == "*")
                         graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
                                                 n_operators, false);
@@ -225,21 +229,30 @@ int main(int argc, char **argv) {
                         graph.or_query_var_to_var(query, 3, pred_map, query_output);
                     else if (is_or and n_predicates > 3)
                         graph.or_query_var_to_var(query, n_predicates, pred_map, query_output);
-                    else if(n_predicates == 1 and n_operators == 0)
+                    else if (query_type[query_type.size() - 1] == '*' and query_type[0] != '*')
+                        /*graph.rpq_var_to_var_os(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                n_operators, false);*/
                         graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
                                                 n_operators, false);
-                    else if (is_a_path and n_operators == 1)
+                    else if (query_type[0] == '*' or query_type[0] == '+')
+                        /*graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                n_operators, false);*/
+                        graph.rpq_var_to_var_os(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                n_operators, false);
+                    else if (graph.pred_selectivity(first_pred_id) <= graph.pred_selectivity(last_pred_id))
                         graph.rpq_var_to_var_so(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
                                                 n_operators, is_a_path);
+                        /*graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                   n_operators, is_a_path, bound);*/
                     else
-                        graph.rpq_var_to_var_split(query, query_type, first_pred_id, last_pred_id, pred_map,
-                                                   B_array, B_array2, query_output, n_predicates,
-                                                   is_negated_pred, n_operators, is_a_path);
+                        graph.rpq_var_to_var_os(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                                n_operators, is_a_path);
+                        /*graph.rpq_var_to_var_split(query, pred_map, B_array, query_output, n_predicates, is_negated_pred,
+                                               n_operators, is_a_path, bound);*/
                 } else {
                     if (flag_s) {
                         graph.rpq_const_s_to_var_o(query, pred_map, B_array, s_id, query_output, n_predicates,
                                                    is_negated_pred, n_operators, is_a_path);
-
                     } else {
                         graph.rpq_var_s_to_const_o(query, pred_map, B_array, o_id, query_output, n_predicates,
                                                    is_negated_pred, n_operators, is_a_path);

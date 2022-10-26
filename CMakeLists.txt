@@ -42,91 +42,32 @@ else()
 endif()
 
 include_directories(~/include
-        ${CMAKE_HOME_DIRECTORY}/nfa/include
-        ${CMAKE_HOME_DIRECTORY}/external/malloc_count/include)
+        ${CMAKE_HOME_DIRECTORY}/nfa/include)
 
 link_directories(~/lib)
 
 add_subdirectory(nfa)
-add_subdirectory(external/malloc_count)
 
-add_executable(build-index src/build-index.cpp)
-target_link_libraries(build-index sdsl divsufsort divsufsort64 nfa)
+add_executable(build-index-split src/build-index-split.cpp)
+target_link_libraries(build-index-split sdsl divsufsort divsufsort64 nfa)
 
 add_executable(build-index-basic src/build-index-basic.cpp)
 target_link_libraries(build-index-basic sdsl divsufsort divsufsort64 nfa)
 
-add_executable(query-index src/query-index.cpp)
-target_link_libraries(query-index sdsl divsufsort divsufsort64 nfa)
+add_executable(query-index-basic src/query-index-basic.cpp)
+target_link_libraries(query-index-basic sdsl divsufsort divsufsort64 nfa)
 
 add_executable(query-index-split src/query-index-split.cpp)
 target_link_libraries(query-index-split sdsl divsufsort divsufsort64 nfa)
 
-add_executable(split-benchmark src/split-benchmark.cpp)
-target_link_libraries(split-benchmark sdsl divsufsort divsufsort64 nfa)
-
-add_executable(split-benchmark_v3 src/split-benchmark_v3.cpp)
-target_link_libraries(split-benchmark_v3 sdsl divsufsort divsufsort64 nfa)
-
-
-add_executable(query-index-split_v3 src/query-index-split_v3.cpp)
-target_link_libraries(query-index-split_v3 sdsl divsufsort divsufsort64 nfa)
-
-add_executable(query-index-baseline src/query-index-baseline.cpp)
-target_link_libraries(query-index-baseline sdsl divsufsort divsufsort64 nfa)
-
-add_executable(query-index-split-v3-all src/query-index-split-v3-all.cpp)
-target_link_libraries(query-index-split-v3-all sdsl divsufsort divsufsort64 nfa)
-
-add_executable(query-index-split-v4-all src/query-index-split-v4-all.cpp)
-target_link_libraries(query-index-split-v4-all sdsl divsufsort divsufsort64 nfa)
-
-add_executable(query-index-split_v3_v1 src/query-index-split_v3_1.cpp)
-target_link_libraries(query-index-split_v3_v1 sdsl divsufsort divsufsort64 nfa)
-
-add_executable(query-index-split_v4 src/query-index-split_v4.cpp)
-target_link_libraries(query-index-split_v4 sdsl divsufsort divsufsort64 nfa)
-
-add_executable(sort-dict src/sort-pos.cpp)
+add_executable(sort-dict src/utilities/sort-pos.cpp)
 target_link_libraries(sort-dict sdsl divsufsort divsufsort64 nfa)
 
-add_executable(sort-dict-bfs src/sort-pos-bfs.cpp)
+add_executable(sort-dict-bfs src/utilities/sort-pos-bfs.cpp)
 target_link_libraries(sort-dict-bfs sdsl divsufsort divsufsort64 nfa)
 
-add_executable(mandatory src/mandatory.cpp)
-target_link_libraries(mandatory sdsl divsufsort divsufsort64 nfa)
+add_executable(queries-prepare src/utilities/queries-prepare.cpp)
+target_link_libraries(queries-prepare sdsl divsufsort divsufsort64 nfa)
 
-add_executable(intersection_or src/intersection_or.cpp)
-target_link_libraries(intersection_or sdsl divsufsort divsufsort64 nfa)
-
-add_executable(pre-query src/pre-query.cpp)
-target_link_libraries(pre-query sdsl divsufsort divsufsort64 nfa)
-
-add_executable(prepare-yago2s src/prepare-yago2s.cpp)
-target_link_libraries(prepare-yago2s sdsl divsufsort divsufsort64 nfa)
-
-add_executable(prepare-queries-yago2s src/prepare-queries-yago2s.cpp)
-target_link_libraries(prepare-queries-yago2s sdsl divsufsort divsufsort64 nfa)
-
-add_executable(yago2s-nt-uris src/yago2s-nt-uris.cpp)
-target_link_libraries(yago2s-nt-uris sdsl divsufsort divsufsort64)
-
-add_executable(yago2s-to-nt src/yago2s-to-nt.cpp)
-target_link_libraries(yago2s-to-nt sdsl divsufsort divsufsort64)
-
-add_executable(yago2s-prepare src/yago2s-prepare.cpp)
+add_executable(yago2s-prepare src/utilities/yago2s-prepare.cpp)
 target_link_libraries(yago2s-prepare sdsl divsufsort divsufsort64)
-
-add_executable(size-index src/size-index.cpp)
-target_link_libraries(size-index sdsl divsufsort divsufsort64)
-
-add_executable(size-basic-index src/size-basic-index.cpp)
-target_link_libraries(size-basic-index sdsl divsufsort divsufsort64)
-
-add_executable(split-memory-bfs src/split-memory-bfs.cpp)
-target_link_libraries(split-memory-bfs sdsl divsufsort divsufsort64 nfa malloc_count)
-target_compile_definitions(split-memory-bfs PRIVATE CHECK_MEM=1)
-
-add_executable(split-memory-dfs src/split-memory-dfs.cpp)
-target_link_libraries(split-memory-dfs sdsl divsufsort divsufsort64 nfa malloc_count)
-target_compile_definitions(split-memory-dfs PRIVATE CHECK_MEM=1)
