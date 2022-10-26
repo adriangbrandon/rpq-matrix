@@ -10,7 +10,7 @@ The queries are available in `data`:
 - `data/wikidata/paths-split-73.tsv`: the queries used in the second benchmark on Wikidata dataset to check the performance of splitting RPQs into sub-RPQs.
 - `data/wikidata/paths.tsv`: the queries of the the second benchmar on YAGO2s.
 
-The datasets are available here: [Datasets](http://compact-leapfrog.tk/files/wikidata-enumerated.dat.gz). For each dataset there are two configurations:
+The datasets are available here: [datasets](http://compact-leapfrog.tk/files/wikidata-enumerated.dat.gz). For each dataset there are two configurations:
 
 - `<name>.tar.gz`: this file contains the data (*.dat*) and the dictionaries for subjects/objects (*.dat.SO*) and predicates (*.dat.P*).
 - `<name>.bfs.tar.gz`: as the previous file, but the subject/object identifiers are ordering by traversing the graph following a BFS search.
