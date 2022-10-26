@@ -2,36 +2,42 @@
 
 Repository for the prototype source code of the paper Time- and Space-Efficient Regular Path Queries on Graphs. This is just a prototype version aiming at reproducing the experiments of the paper. A final version will be added soon.
 
-## Queries and graph
+### Queries and graph
 
-The queries are available in data/paths.tsv of this repository.
+The queries are available in `data`:
 
-The data used are available here: [Wikidata (about 1000M triples)](http://compact-leapfrog.tk/files/wikidata-enumerated.dat.gz).
+- `data/wikidata/paths.tsv`: the queries of the first benchmark and they can be run on Wikidata dataset.
+- `data/wikidata/paths-split-73.tsv`: the queries used in the second benchmark on Wikidata dataset to check the performance of splitting RPQs into sub-RPQs.
+- `data/wikidata/paths.tsv`: the queries of the the second benchmar on YAGO2s.
 
-## Instructions
+The datasets are available here: [Datasets](http://compact-leapfrog.tk/files/wikidata-enumerated.dat.gz). For each dataset there are two configurations:
 
-To run our code, please install an extended version of the library SDSL. Go to this [this repository](https://github.com/darroyue/sdsl-lite) and follow the instructions.
+- `<name>.tar.gz`: this file contains the data (*.dat*) and the dictionaries for subjects/objects (*.dat.SO*) and predicates (*.dat.P*).
+- `<name>.bfs.tar.gz`: as the previous file, but the subject/object identifiers are ordering by traversing the graph following a BFS search.
+
+Once any `<name>.tar.gz` or `<name>.bfs.tar.gz` is decompressed, their files have to be kept in the same path.
+### Instructions
+
+To run our code, please install an extended version of the library SDSL. Go to this [this repository](https://github.com/adriangbrandon/sdsl-lite) and follow the instructions.
 
 After the extended version of SDSL is installed, clone this repository and follow these steps:
 
-1. Compile the source code by first moving to the directory that contains the code, and then execute: 
 ```Bash
-bash build.sh
+git clone https://github.com/adriangbrandon/Ring-RPQ.git
+cd Ring-RPQ
+mkdir build
+cd build
+cmake ..
+make
 ```
-This shall create two executable files: build-index and query-index.
 
-2. Download the version of Wikidata used in the paper (note the original triples have been enumerated):
-[Wikidata (about 1000M triples)](http://compact-leapfrog.tk/files/wikidata-enumerated.dat.gz) and uncompress it.
+This shall create several executables:
 
-3. To build the index run:
-```Bash
-./build-index <path-to-wikidata-file> 
-```
-This will create the index on the same directory were the wikidata file is. Keep all these files in the same directory.
+- `build-index-basic <path_to_dat>`: given a path to the file *.dat*, it builds in the same folder our **Ring** or **RingA** system depending on
+the kind of dataset you are choosing. In case of using `<name>.tar.gz` you will obtain **Ring**. Otherwise, using the dataset of `<name>.bfs.tar.gz`, it builds the **RingA**.
+- `build-index-split <path_to_dat>`: given a path to the *.dat* from a dataset `<name>.bfs.tar.gz` it builds the **RingAB** in the same folder.
 
-4. Move files data/wikidata-enumerated.dat.P and data/wikidata-enumerated.dat.SO to the directory were the index is stored. Please keep these file names, or change them acordingly, keeping the same prefix for all of them.   
+**IMPORTANT:** Keep all the files in the same directory.
 
-5. To run queries, do as follows:
-```Bash
-./query-index <path-to-index-file> data/paths.tsv 
-```
+- `query-index-basic <path_to_dat> <path_to_queries>`: given a path to the *.dat* from a dataset and a path to the queries, it runs those queries on **Ring** or **RingA** and computes their elapsed time.
+- `query-index-split <path_to_dat> <path_to_queries>`: given a path to the *.dat* from a dataset and a path to the queries, it runs those queries on **RingAB** and computes their elapsed time.
