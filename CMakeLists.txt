@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 2.8.7)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(AppendCompilerFlags)
-project(Ring-RPQ)
-set(CMAKE_PROJECT_NAME "Ring RPQ")
+set(CMAKE_OSX_ARCHITECTURES x86_64)
+project(Matrix-RPQ)
+set(CMAKE_PROJECT_NAME "Matrix RPQ")
 
 #Change to "Debug" when you need it
 set(CMAKE_BUILD_TYPE "Release")
@@ -42,32 +43,16 @@ else()
 endif()
 
 include_directories(~/include
-        ${CMAKE_HOME_DIRECTORY}/nfa/include)
+        ${CMAKE_HOME_DIRECTORY}/nfa/include
+        ${CMAKE_HOME_DIRECTORY}/matrix_gn/include)
 
 link_directories(~/lib)
 
 add_subdirectory(nfa)
-
-add_executable(build-index-split src/build-index-split.cpp)
-target_link_libraries(build-index-split sdsl divsufsort divsufsort64 nfa)
-
-add_executable(build-index-basic src/build-index-basic.cpp)
-target_link_libraries(build-index-basic sdsl divsufsort divsufsort64 nfa)
-
-add_executable(query-index-basic src/query-index-basic.cpp)
-target_link_libraries(query-index-basic sdsl divsufsort divsufsort64 nfa)
+add_subdirectory(matrix_gn)
 
 add_executable(query-index-split src/query-index-split.cpp)
 target_link_libraries(query-index-split sdsl divsufsort divsufsort64 nfa)
 
-add_executable(sort-dict src/utilities/sort-pos.cpp)
-target_link_libraries(sort-dict sdsl divsufsort divsufsort64 nfa)
-
-add_executable(sort-dict-bfs src/utilities/sort-pos-bfs.cpp)
-target_link_libraries(sort-dict-bfs sdsl divsufsort divsufsort64 nfa)
-
-add_executable(queries-prepare src/utilities/queries-prepare.cpp)
-target_link_libraries(queries-prepare sdsl divsufsort divsufsort64 nfa)
-
-add_executable(yago2s-prepare src/utilities/yago2s-prepare.cpp)
-target_link_libraries(yago2s-prepare sdsl divsufsort divsufsort64)
+add_executable(query src/query.cpp)
+target_link_libraries(query matrix_gn nfa)
