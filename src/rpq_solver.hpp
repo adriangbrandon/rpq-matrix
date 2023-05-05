@@ -93,19 +93,29 @@ namespace rpq {
                     if (parentType == OOR){
                         res = std::move(rl);
                     }else{
-                        it_type it1, it2;
-                        it1 = it2 = rl.begin();
-                        ++it2;
-                        matrix tmp = matSum(it1->m, it2->m);
-                        if(it1->is_tmp) matDestroy(it1->m);
-                        if(it2->is_tmp) matDestroy(it2->m);
-                        while(++it2 != rl.end()){
-                            matrix aux = matSum(tmp, it2->m);
-                            if(it2->is_tmp) matDestroy(it2->m);
-                            matDestroy(tmp);
-                            tmp = aux;
+                        it_type it1, it2, it1_min, it2_min;
+                        while(rl.size() > 1){//Check if there is only one element
+                            it1 = it2 = rl.begin();
+                            ++it2;
+                            uint64_t min = UINT64_MAX, weight;
+                            while(it2 != rl.end()){
+                                weight = std::min(matSpace(it1->m), matSpace(it2->m));
+                                if(min > weight){
+                                    it1_min = it1;
+                                    it2_min = it2;
+                                    min = weight;
+                                }
+                                ++it1; ++it2;
+                            }
+                            matrix tmp = matSum(it1_min->m, it2_min->m);
+                            if(it1_min->is_tmp) matDestroy(it1_min->m);
+                            if(it2_min->is_tmp) matDestroy(it2_min->m);
+
+                            rl.insert(it1_min, data_type{tmp, true});
+                            rl.erase(it1_min);
+                            rl.erase(it2_min);
                         }
-                        res.insert(res.begin(), data_type{tmp, true});
+                        res = std::move(rl);
                     }
                     break;
                 }
