@@ -3,18 +3,21 @@ set(CMAKE_OSX_ARCHITECTURES x86_64)
 project(MatrixGN)
 set(CMAKE_PROJECT_NAME "MatrixGN")
 #set(CMAKE_COMPILER_IS_GNUCXX)
-
-set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_OSX_ARCHITECTURES x86_64)
 
 include_directories(./include)
 
 set(SOURCES
+        include/basics.h
+        include/utilstime.h
         include/bitvector.h
         include/k2tree.h
         include/matrix.h
+        src/basics.c
         src/bitvector.c
         src/k2tree.c
         src/matrix.c
+        src/utilstime.c
         )
 
 # Flags

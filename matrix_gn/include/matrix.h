@@ -4,6 +4,8 @@
 
 #include "k2tree.h"
 
+static uint64_t time_t1;
+
 typedef struct s_matrix {
    uint64_t elems; // how many filled cells
    uint logside; // log(max(width,height)
@@ -67,7 +69,7 @@ uint64_t matCollect32 (matrix M, uint32_t r1, uint32_t r2,
 matrix matSum (matrix A, matrix B);
 
         // version with one row or one column, or both
-matrix matSum1 (matrix A, matrix B, uint64_t rowA, uint64_t colB);
+matrix matSum1 (matrix A, matrix B, uint64_t row, uint64_t col);
 
         // (boolean) product of two matrices, assumed to be of the same side
         // only rowA of A and colB of B are considered if not fullSide

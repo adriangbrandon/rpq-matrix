@@ -52,7 +52,8 @@ typedef struct
 	   for searching */
 
 regularData *regularPreproc(const char *pat, Tree *tree, Tree **pos);
-regularData *regularPreprocBInv(const char *pat, Tree *tree, Tree **pos, std::vector<int> &pos_pred);
+regularData *regularPreprocBInv(const char *pat, Tree *tree, Tree **pos,
+                                std::vector<int> &pos_pred);
 
 
 /* Frees P */

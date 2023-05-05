@@ -71,8 +71,8 @@ private:
 
     void splitTraversal(Tree* e, int split_pos, bool &left, std::string &rpq_l, std::string &rpq_r);
 
-    int posToPred(int pos);
     std::string posToPredStr(int p);
+    int posToPred(int pos);
 public:
 
     RpqTree();
@@ -87,6 +87,11 @@ public:
     std::pair<std::string, std::string> splitRpq(int p);
 
     int patternPredicates();
+
+    Tree* root();
+
+    int getPred(int pos);
+
 
 
 

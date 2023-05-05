@@ -106,12 +106,12 @@ k2tree k2create (uint64_t n, uint nbits, uint64_t *coords)
      uint64_t i,len;
      uint64_t *coords2;
 
-     T = (k2tree)malloc(sizeof(struct s_k2tree));
+     T = (k2tree)myalloc(sizeof(struct s_k2tree));
      T->nlevels = nbits;
-     B = (uint64_t*)malloc(((4*(1+n*nbits)+w-1)/w)*sizeof(uint64_t));
+     B = (uint64_t*)myalloc(((4*(1+n*nbits)+w-1)/w)*sizeof(uint64_t));
      size = n+1;
-     Q = (queue*)malloc(size*sizeof(queue));
-     if (n != 0) coords2 = (uint64_t*)malloc(2*n*sizeof(uint64_t));
+     Q = (queue*)myalloc(size*sizeof(queue));
+     coords2 = (uint64_t*)myalloc(2*n*sizeof(uint64_t));
      Q[0].coords1 = coords; Q[0].coords2 = coords2;
      Q[0].n = n; Q[0].level = nbits-1;
      head = 0; tail = 1; 
@@ -122,9 +122,9 @@ k2tree k2create (uint64_t n, uint nbits, uint64_t *coords)
 	  head = (head+1)%size;
 	  len += 4;
 	}
-     if (n != 0) free (coords2);
-     free(Q); Q = NULL; // safety
-     B = (uint64_t*)realloc(B,((len+w-1)/w)*sizeof(uint64_t));
+     myfree (coords2);
+     myfree(Q); Q = NULL; // safety
+     B = (uint64_t*)myrealloc(B,((len+w-1)/w)*sizeof(uint64_t));
      T->B = bitsCreateFrom(B,len,1);
      B = NULL; // safety
      bitsRankPreprocess(T->B,rankK);
@@ -137,12 +137,12 @@ k2tree k2create32 (uint64_t n, uint nbits, uint32_t *coords)
      uint64_t i,len;
      uint32_t *coords2;
 
-     T = (k2tree)malloc(sizeof(struct s_k2tree));
+     T = (k2tree)myalloc(sizeof(struct s_k2tree));
      T->nlevels = nbits;
-     B = (uint64_t*)malloc(((4*(1+n*nbits)+w-1)/w)*sizeof(uint64_t));
+     B = (uint64_t*)myalloc(((4*(1+n*nbits)+w-1)/w)*sizeof(uint64_t));
      size = n+1;
-     Q32 = (queue32*)malloc(size*sizeof(queue32));
-     if (n != 0) coords2 = (uint32_t*)malloc(2*n*sizeof(uint32_t));
+     Q32 = (queue32*)myalloc(size*sizeof(queue32));
+     coords2 = (uint32_t*)myalloc(2*n*sizeof(uint32_t));
      Q32[0].coords1 = coords; Q32[0].coords2 = coords2;
      Q32[0].n = n; Q32[0].level = nbits-1;
      head = 0; tail = 1; 
@@ -153,9 +153,9 @@ k2tree k2create32 (uint64_t n, uint nbits, uint32_t *coords)
 	  head = (head+1)%size;
 	  len += 4;
 	}
-     if (n != 0) free (coords2);
-     free(Q32); Q32 = NULL; // safety
-     B = (uint64_t*)realloc(B,((len+w-1)/w)*sizeof(uint64_t));
+     myfree (coords2);
+     myfree(Q32); Q32 = NULL; // safety
+     B = (uint64_t*)myrealloc(B,((len+w-1)/w)*sizeof(uint64_t));
      T->B = bitsCreateFrom(B,len,1);
      B = NULL; // safety
      bitsRankPreprocess(T->B,rankK);
@@ -167,7 +167,7 @@ k2tree k2create32 (uint64_t n, uint nbits, uint32_t *coords)
 
 k2tree k2createFrom (uint nlevels, uint64_t len, void *bits, uint own)
 
-   { k2tree T = (k2tree)malloc(sizeof(struct s_k2tree));
+   { k2tree T = (k2tree)myalloc(sizeof(struct s_k2tree));
      T->nlevels = nlevels;
      T->B = bitsCreateFrom(bits,len,own);
      bitsRankPreprocess(T->B,rankK);
@@ -180,14 +180,14 @@ void k2destroy (k2tree T)
 
    { if (T == NULL) return;
      bitsDestroy (T->B);
-     free(T);
+     myfree(T);
    }
 
         // creates a new copy of T, with its own data
 
 k2tree k2copy (k2tree T)
 
-   { k2tree C = (k2tree)malloc(sizeof(struct s_k2tree));
+   { k2tree C = (k2tree)myalloc(sizeof(struct s_k2tree));
      *C = *T;
       C->B = bitsCopy(T->B);
       return C;
@@ -206,7 +206,7 @@ void k2save (k2tree T, FILE *file)
 k2tree k2load (FILE *file)
 
     { k2tree T;
-      T = (k2tree)malloc(sizeof(struct s_k2tree));
+      T = (k2tree)myalloc(sizeof(struct s_k2tree));
       fread (&T->nlevels,sizeof(uint),1,file);
       T->B = bitsLoad(file);
       bitsRankPreprocess(T->B,rankK);
@@ -370,9 +370,9 @@ uint64_t *k2merge (uint64_t *treeA, uint64_t lenA,
      uint64_t elems,size;
      queue2 *Q;
 
-     treeM = (uint64_t*)malloc(((lenA+lenB+w-1)/w)*sizeof(uint64_t));
+     treeM = (uint64_t*)myalloc(((lenA+lenB+w-1)/w)*sizeof(uint64_t));
      size = lenA + lenB + 1;
-     Q = (queue2*)malloc(size*sizeof(queue2));
+     Q = (queue2*)myalloc(size*sizeof(queue2));
      ptr = ptrA = ptrB = 0;
      elems = 0;
      head = 0; tail = 1;
@@ -428,8 +428,8 @@ uint64_t *k2merge (uint64_t *treeA, uint64_t lenA,
 	     }
 	  head = (head+1)%size;
         }
-     free(Q); Q = NULL; // safety
-     treeM = (uint64_t*)realloc(treeM,((ptr+w-1)/w)*sizeof(uint64_t));
+     myfree(Q); Q = NULL; // safety
+     treeM = (uint64_t*)myrealloc(treeM,((ptr+w-1)/w)*sizeof(uint64_t));
      *telems = elems;
      *len = ptr;
      return treeM;
@@ -457,9 +457,9 @@ uint64_t *k2mergeT (uint64_t *treeA, uint64_t lenA, k2tree B,
      level = k2levels(B);
      lenB = bitsLength(k2bits(B));
 
-     treeM = (uint64_t*)malloc(((lenA+lenB+w-1)/w)*sizeof(uint64_t));
+     treeM = (uint64_t*)myalloc(((lenA+lenB+w-1)/w)*sizeof(uint64_t));
      size = lenA + lenB + 1;
-     Q = (queue3*)malloc(size*sizeof(queue3));
+     Q = (queue3*)myalloc(size*sizeof(queue3));
      ptr = ptrA = 0;
      elems = 0;
      head = 0; tail = 1;
@@ -520,8 +520,8 @@ uint64_t *k2mergeT (uint64_t *treeA, uint64_t lenA, k2tree B,
 	     }
 	  head = (head+1)%size;
         }
-     free(Q); Q = NULL; // safety
-     treeM = (uint64_t*)realloc(treeM,((ptr+w-1)/w)*sizeof(uint64_t));
+     myfree(Q); Q = NULL; // safety
+     treeM = (uint64_t*)myrealloc(treeM,((ptr+w-1)/w)*sizeof(uint64_t));
      *telems = elems;
      *len = ptr;
      return treeM;

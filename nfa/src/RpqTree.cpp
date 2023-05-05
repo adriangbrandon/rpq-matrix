@@ -223,6 +223,15 @@ int RpqTree::patternPredicates() {
     return patternData.id_to_pred.size();
 }
 
+int RpqTree::getPred(int p){
+    return patternData.id_to_pred[pos_id[p]];
+}
+
+Tree *RpqTree::root() {
+    return this->tree;
+}
+
+
 /*std::pair<std::string, std::string> RpqTree::splitRpq(const std::string &rpq, int p_split){
     int i = 0, j = 0, p = 0;
     while(i < m){
@@ -247,6 +256,8 @@ int RpqTree::patternPredicates() {
     res.second = rpq.substr(j);
     return res;
 }*/
+
+
 
 RpqTree::~RpqTree() {
     freeTree(tree);

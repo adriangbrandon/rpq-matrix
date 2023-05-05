@@ -17,10 +17,9 @@ extern inline uint popcount (uint64_t y)
 bitvector bitsCreate (uint64_t n)
 
     { bitvector B;
-      B = (bitvector)malloc(sizeof(struct s_bitvector));
+      B = (bitvector)myalloc(sizeof(struct s_bitvector));
       B->size = n;
-      if (n == 0) B->data = NULL;
-      else B->data = (uint64_t*)malloc(((n+w-1)/w)*sizeof(uint64_t));
+      B->data = (uint64_t*)myalloc(((n+w-1)/w)*sizeof(uint64_t));
       B->owned = 1;
       B->k = 0;
       B->S = NULL;
@@ -34,7 +33,7 @@ bitvector bitsCreate (uint64_t n)
 bitvector bitsCreateFrom (void *data, uint64_t n, uint own)
 
     { bitvector B;
-      B = (bitvector)malloc(sizeof(struct s_bitvector));
+      B = (bitvector)myalloc(sizeof(struct s_bitvector));
       B->size = n;
       if (n == 0) B->data = NULL;
       else B->data = (uint64_t*)data;
@@ -49,10 +48,10 @@ bitvector bitsCreateFrom (void *data, uint64_t n, uint own)
 void bitsDestroy (bitvector B)
 
     { if (B != NULL) 
-         { if (B->owned && (B->data != NULL)) free(B->data);
-           if (B->S != NULL) free(B->S);
+         { if (B->owned) myfree(B->data);
+           myfree(B->S);
 	   B->data = NULL; B->S = NULL; // for safety
-      	   free(B);
+      	   myfree(B);
 	 }
     }
 
@@ -61,16 +60,16 @@ void bitsDestroy (bitvector B)
 bitvector bitsCopy (bitvector B)
 
    { uint64_t siz;
-     bitvector C = (bitvector)malloc(sizeof(struct s_bitvector));
+     bitvector C = (bitvector)myalloc(sizeof(struct s_bitvector));
      *C = *B;
      if (B->data != NULL)
         { siz = ((C->size+w-1)/w)*sizeof(uint64_t);
-	  C->data = (uint64_t*)malloc(siz);
+	  C->data = (uint64_t*)myalloc(siz);
           memcpy(C->data,B->data,siz);
 	}
      if (B->S != NULL)
         { siz = ((B->size+C->k*w-1)/(C->k*w))*sizeof(uint64_t);
-          C->S = (uint64_t*)malloc(siz);
+          C->S = (uint64_t*)myalloc(siz);
           memcpy(C->S,B->S,siz);
 	}
      C->owned = 1;
@@ -92,10 +91,10 @@ void bitsSave (bitvector B, FILE *file)
 bitvector bitsLoad (FILE *file)
 
     { bitvector B;
-      B = (bitvector)malloc(sizeof(struct s_bitvector));
+      B = (bitvector)myalloc(sizeof(struct s_bitvector));
       fread (&B->size,sizeof(uint64_t),1,file);
       if (B->size == 0) B->data = NULL;
-      else { B->data = (uint64_t*)malloc(((B->size+w-1)/w)*sizeof(uint64_t));
+      else { B->data = (uint64_t*)myalloc(((B->size+w-1)/w)*sizeof(uint64_t));
 	     fread (B->data,sizeof(uint64_t),(B->size+w-1)/w,file);
 	   }
       B->owned = 1;
@@ -162,8 +161,8 @@ void bitsRankPreprocess (bitvector B, uint64_t k)
       uint64_t acc;
       n = B->size;
       if (n == 0) return;
-      if (B->S != NULL) free(B->S); // a previous preprocessing
-      B->S = (uint64_t*)malloc(((n+k*w-1)/(k*w))*sizeof(uint64_t));
+      myfree(B->S); // a possible previous preprocessing
+      B->S = (uint64_t*)myalloc(((n+k*w-1)/(k*w))*sizeof(uint64_t));
       B->k = k;
       acc = 0;
       for (i=0;i<(n+w-1)/w;i++)

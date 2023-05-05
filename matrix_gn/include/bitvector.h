@@ -4,15 +4,7 @@
 
 	// supports bitvectors of size up to 2^64-1
 
-#include <stdint.h>
-
-#include <stdio.h>
-
-typedef unsigned char byte;
-typedef unsigned uint;
-#define w (8*sizeof(uint64_t))
-#define min(x,y) (((x)<(y))?(x):(y))
-#define max(x,y) (((x)>(y))?(x):(y))
+#include "basics.h"
 
 typedef struct s_bitvector {
     uint64_t size; // number of bits
