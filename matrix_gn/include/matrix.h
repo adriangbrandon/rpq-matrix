@@ -4,7 +4,6 @@
 
 #include "k2tree.h"
 
-static uint64_t time_t1;
 
 typedef struct s_matrix {
    uint64_t elems; // how many filled cells

@@ -40,7 +40,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <inttypes.h>
 #include <stdio.h>
 
-#define TIMEOUT 600
+#define TIMEOUT 600000000000
+
+static uint64_t beg;
+static uint64_t end;
+
+void user_beg();
+void user_end();
+uint64_t user_diff();
 
 uint64_t user_now();
 uint64_t system_now();

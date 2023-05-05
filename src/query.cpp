@@ -181,8 +181,8 @@ int main(int argc, char **argv) {
             std::cout << i << ";0;0" << std::endl;
         }else{
             std::cerr << query << std::endl;
-            time_t1 = user_now();
-            auto t1 = std::chrono::high_resolution_clock::now();
+            user_beg();
+           // auto t1 = std::chrono::high_resolution_clock::now();
             matrix m;
             if(!flag_o && !flag_s){
                 m = solver.solve_var_to_var(query);
@@ -194,9 +194,10 @@ int main(int argc, char **argv) {
                 m = solver.solve_con_to_con(query, s_id, o_id);
             }
             elems = matDims (m,NULL,NULL,NULL);
-            auto t2 = std::chrono::high_resolution_clock::now();
-            auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
-            std::cout << i << ";" << elems << ";" << (t) << std::endl;
+            //auto t2 = std::chrono::high_resolution_clock::now();
+            user_end();
+            //auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+            std::cout << i << ";" << elems << ";" << user_diff() << std::endl;
         }
         ++i;
     }while(!ifs_q.eof());
