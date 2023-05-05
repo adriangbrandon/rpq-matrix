@@ -10,8 +10,8 @@ typedef unsigned char byte;
 typedef unsigned uint;
 
 #define w (8*sizeof(uint64_t))
-#define min(x,y) (((x)<(y))?(x):(y))
-#define max(x,y) (((x)>(y))?(x):(y))
+#define mmin(x,y) (((x)<(y))?(x):(y))
+#define mmax(x,y) (((x)>(y))?(x):(y))
 
 void *myalloc (size_t n);
 void *myrealloc (void *p, size_t n);

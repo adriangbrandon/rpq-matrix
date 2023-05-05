@@ -30,7 +30,7 @@ matrix matCreate (uint64_t height, uint64_t width, uint64_t n, uint64_t *cells)
 { matrix mat = (matrix)myalloc(sizeof(struct s_matrix));
     mat->width = width ? width : 1;
     mat->height = height ? height : 1;
-    mat->logside = numbits(max(width,height)-1);
+    mat->logside = numbits(mmax(width,height)-1);
     mat->elems = n;
     mat->transposed = 0;
     if (n == 0) mat->tree = NULL;
@@ -43,7 +43,7 @@ matrix matCreate32 (uint64_t height, uint64_t width, uint64_t n, uint32_t *cells
 { matrix mat = (matrix)myalloc(sizeof(struct s_matrix));
     mat->width = width ? width : 1;
     mat->height = height ? height : 1;
-    mat->logside = numbits(max(width,height)-1);
+    mat->logside = numbits(mmax(width,height)-1);
     mat->elems = n;
     mat->transposed = 0;
     if (n == 0) mat->tree = NULL;
@@ -66,7 +66,7 @@ matrix matEmpty (uint64_t height, uint64_t width)
 { matrix mat = (matrix)myalloc(sizeof(struct s_matrix));
     mat->width = width ? width : 1;
     mat->height = height ? height : 1;
-    mat->logside = numbits(max(width,height)-1);
+    mat->logside = numbits(mmax(width,height)-1);
     mat->elems = 0;
     mat->transposed = 0;
     mat->tree = NULL;
@@ -254,16 +254,16 @@ matrix matSum (matrix A, matrix B)
         M->tree = k2createFrom (k2levels(A->tree),len,sum,1);
     }
     if (A->transposed == B->transposed)
-    { M->width = max(A->width,B->width);
-        M->height = max(A->height,B->height);
+    { M->width = mmax(A->width,B->width);
+        M->height = mmax(A->height,B->height);
     }
     else if (A->elems > B->elems) // the transposition of A dominates
-    { M->width = max(A->width,B->height);
-        M->height = max(A->height,B->width);
+    { M->width = mmax(A->width,B->height);
+        M->height = mmax(A->height,B->width);
     }
     else // A->elems <= B->elems, the transposition of B dominates
-    { M->width = max(B->width,A->height);
-        M->height = max(B->height,A->width);
+    { M->width = mmax(B->width,A->height);
+        M->height = mmax(B->height,A->width);
     }
     return M;
 }
@@ -480,7 +480,7 @@ matrix matSum1 (matrix A, matrix B, uint64_t row, uint64_t col)
     M = (matrix)myalloc(sizeof(struct s_matrix));
     M->logside = A->logside;
     matDims(A,NULL,&wA,&hA); matDims(B,NULL,&wB,&hB);
-    M->width = max(wA,wB); M->height = max(hA,hB);
+    M->width = mmax(wA,wB); M->height = mmax(hA,hB);
     M->transposed = 0;
     mapA = A->transposed ? mapTr : mapId;
     mapB = B->transposed ? mapTr : mapId;
@@ -692,7 +692,7 @@ matrix matClos (matrix A, uint pos)
 
     A->transposed = 0; // may be slightly more cache-friendly
     if (!pos)
-    { Id = matId(max(A->width,A->height));
+    { Id = matId(mmax(A->width,A->height));
         M = matSum(A,Id);
         matDestroy(Id);
         A = M;
@@ -724,7 +724,7 @@ static matrix matClosRow (matrix A, uint pos, uint64_t row, uint64_t *coltest)
 
 { matrix Id,M,P,S,Ar,E;
     uint64_t elems;
-    uint64_t dim = max(A->height,A->width);
+    uint64_t dim = mmax(A->height,A->width);
 
     if (pos)
     { E = matEmpty(dim,dim);
@@ -763,7 +763,7 @@ static matrix matClosRow (matrix A, uint pos, uint64_t row, uint64_t *coltest)
 matrix matClos1 (matrix A, uint pos, uint64_t row, uint64_t col)
 
 { uint64_t nrow,ncol;
-    uint64_t side = max(A->width,A->height);
+    uint64_t side = mmax(A->width,A->height);
     uint64_t cell[2];
     uint64_t test;
     matrix M;

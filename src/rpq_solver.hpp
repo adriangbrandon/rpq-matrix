@@ -63,7 +63,7 @@ namespace rpq {
                             ++it2;
                             uint64_t min = UINT64_MAX, weight;
                             while(it2 != rl.end()){
-                                weight = min(matSpace(it1->m), matSpace(it2->m));
+                                weight = std::min(matSpace(it1->m), matSpace(it2->m));
                                 if(min > weight){
                                     it1_min = it1;
                                     it2_min = it2;
@@ -132,7 +132,7 @@ namespace rpq {
                 {
                     list_type ll;
                     traversal(rpqTree, node->e1, QUESTION, ll);
-                    matrix Id = matId(max(ll.front().m->height,ll.front().m->width));
+                    matrix Id = matId(std::max(ll.front().m->height,ll.front().m->width));
                     matrix tmp = matSum(ll.front().m, Id);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
@@ -225,7 +225,7 @@ namespace rpq {
                 {
                     list_type ll;
                     traversal_col_fixed(rpqTree, node->e1, QUESTION, col, ll);
-                    matrix Id = matId(max(ll.front().m->height,ll.front().m->width));
+                    matrix Id = matId(std::max(ll.front().m->height,ll.front().m->width));
                     matrix tmp = matSum1(ll.front().m, Id, fullSide, col);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
@@ -318,7 +318,7 @@ namespace rpq {
                 {
                     list_type ll;
                     traversal_row_fixed(rpqTree, node->e1, QUESTION, row, ll);
-                    matrix Id = matId(max(ll.front().m->height,ll.front().m->width));
+                    matrix Id = matId(std::max(ll.front().m->height,ll.front().m->width));
                     matrix tmp = matSum1(ll.front().m, Id, row, fullSide);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
@@ -411,7 +411,7 @@ namespace rpq {
                 {
                     list_type ll;
                     traversal_row_col_fixed(rpqTree, node->e1, QUESTION, row, col, ll);
-                    matrix Id = matId(max(ll.front().m->height,ll.front().m->width));
+                    matrix Id = matId(std::max(ll.front().m->height,ll.front().m->width));
                     matrix tmp = matSum1(ll.front().m, Id, row, col);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);

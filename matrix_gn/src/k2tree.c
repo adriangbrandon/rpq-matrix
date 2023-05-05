@@ -280,22 +280,22 @@ static uint64_t collect (k2tree T, k2node u, uint level,
      lim = ((uint64_t)1)<<level;
      if ((r1 < lim) && (c1 < lim) && k2hasChild(T,u,0))
 	{ count = collect(T,k2child(T,u,0),level,
-			   r1,min(r2,lim-1),c1,min(c2,lim-1),
+			   r1,mmin(r2,lim-1),c1,mmin(c2,lim-1),
 			   roffs,coffs,buffer,count,cr);
 	}
      if ((r1 < lim) && (c2 >= lim) && k2hasChild(T,u,1))
 	{ count = collect(T,k2child(T,u,1),level,
-			   r1,min(r2,lim-1),max(c1,lim)-lim,c2-lim,
+			   r1,mmin(r2,lim-1),mmax(c1,lim)-lim,c2-lim,
 			   roffs,coffs+lim,buffer,count,cr);
 	}
      if ((r2 >= lim) && (c1 < lim) && k2hasChild(T,u,2))
 	{ count = collect(T,k2child(T,u,2),level,
-			   max(r1,lim)-lim,r2-lim,c1,min(c2,lim-1),
+			   mmax(r1,lim)-lim,r2-lim,c1,mmin(c2,lim-1),
 			   roffs+lim,coffs,buffer,count,cr);
 	}
      if ((r2 >= lim) && (c2 >= lim) && k2hasChild(T,u,3))
 	{ count = collect(T,k2child(T,u,3),level,
-			   max(r1,lim)-lim,r2-lim,max(c1,lim)-lim,c2-lim,
+			   mmax(r1,lim)-lim,r2-lim,mmax(c1,lim)-lim,c2-lim,
 			   roffs+lim,coffs+lim,buffer,count,cr);
 	}
      return count;
@@ -324,22 +324,22 @@ static uint64_t collect32 (k2tree T, k2node u, uint level,
      lim = ((uint64_t)1)<<level;
      if ((r1 < lim) && (c1 < lim) && k2hasChild(T,u,0))
 	{ count = collect32(T,k2child(T,u,0),level,
-			   r1,min(r2,lim-1),c1,min(c2,lim-1),
+			   r1,mmin(r2,lim-1),c1,mmin(c2,lim-1),
 			   roffs,coffs,buffer,count,cr);
 	}
      if ((r1 < lim) && (c2 >= lim) && k2hasChild(T,u,1))
 	{ count = collect32(T,k2child(T,u,1),level,
-			   r1,min(r2,lim-1),max(c1,lim)-lim,c2-lim,
+			   r1,mmin(r2,lim-1),mmax(c1,lim)-lim,c2-lim,
 			   roffs,coffs+lim,buffer,count,cr);
 	}
      if ((r2 >= lim) && (c1 < lim) && k2hasChild(T,u,2))
 	{ count = collect32(T,k2child(T,u,2),level,
-			   max(r1,lim)-lim,r2-lim,c1,min(c2,lim-1),
+			   mmax(r1,lim)-lim,r2-lim,c1,mmin(c2,lim-1),
 			   roffs+lim,coffs,buffer,count,cr);
 	}
      if ((r2 >= lim) && (c2 >= lim) && k2hasChild(T,u,3))
 	{ count = collect32(T,k2child(T,u,3),level,
-			   max(r1,lim)-lim,r2-lim,max(c1,lim)-lim,c2-lim,
+			   mmax(r1,lim)-lim,r2-lim,mmax(c1,lim)-lim,c2-lim,
 			   roffs+lim,coffs+lim,buffer,count,cr);
 	}
      return count;

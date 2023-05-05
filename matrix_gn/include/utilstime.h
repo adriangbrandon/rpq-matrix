@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <stdio.h>
 
 #define TIMEOUT 600
