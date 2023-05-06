@@ -122,7 +122,7 @@ bool parse_query(std::string &line,
                 }
 
                 if (map_P.find(s_aux_3) != map_P.end()) {
-                    //std::cout << s_aux_3 << " id: " << map_P[s_aux_3] << std::endl;
+                    std::cout << s_aux_3 << " id: " << map_P[s_aux_3] << std::endl;
                     query += s_aux_2;
                 } else {
                     //cout << q << ";0;0" << endl;

@@ -58,7 +58,8 @@ namespace rpq {
                         res = std::move(rl);
                     }else{
                         it_type it1, it2, it1_min, it2_min;
-                        while(rl.size() > 1){//Check if there is only one element
+                        matrix tmp;
+                        while(rl.size() > 2){//Check size if there are more than three elements
                             it1 = it2 = rl.begin();
                             ++it2;
                             uint64_t min = UINT64_MAX, weight;
@@ -71,7 +72,7 @@ namespace rpq {
                                 }
                                 ++it1; ++it2;
                             }
-                            matrix tmp = matMult(it1_min->m, it2_min->m);
+                            tmp = matMult(it1_min->m, it2_min->m);
                             if(it1_min->is_tmp) matDestroy(it1_min->m);
                             if(it2_min->is_tmp) matDestroy(it2_min->m);
 
@@ -79,7 +80,12 @@ namespace rpq {
                             rl.erase(it1_min);
                             rl.erase(it2_min);
                         }
-                        res = std::move(rl);
+                        it1_min = it2_min = rl.begin();
+                        ++it2_min;
+                        tmp = matMult(it1_min->m, it2_min->m);
+                        if(it1_min->is_tmp) matDestroy(it1_min->m);
+                        if(it2_min->is_tmp) matDestroy(it2_min->m);
+                        res.insert(res.begin(), data_type{tmp, true});
                     }
                     break;
                 }
@@ -94,17 +100,17 @@ namespace rpq {
                         res = std::move(rl);
                     }else{
                         it_type it1, it2, it1_min, it2_min;
-                        while(rl.size() > 1){//Check if there is only one element
+                        matrix tmp;
+                        while(rl.size() > 2){//Check size if there are more than three elements
                             it1 = it2 = rl.begin();
                             uint64_t min = UINT64_MAX, weight;
                             while(it1 != rl.end()){
                                 weight = matSpace(it1->m);
                                 if(min > weight){
                                     it1_min = it1;
-                                    //it2_min = it2;
                                     min = weight;
                                 }
-                                ++it1; //++it2;
+                                ++it1;
                             }
                             min = UINT64_MAX;
                             while(it2 != rl.end()){
@@ -117,7 +123,7 @@ namespace rpq {
                                 }
                                 ++it2;
                             }
-                            matrix tmp = matSum(it1_min->m, it2_min->m);
+                            tmp = matSum(it1_min->m, it2_min->m);
                             if(it1_min->is_tmp) matDestroy(it1_min->m);
                             if(it2_min->is_tmp) matDestroy(it2_min->m);
 
@@ -125,7 +131,13 @@ namespace rpq {
                             rl.erase(it1_min);
                             rl.erase(it2_min);
                         }
-                        res = std::move(rl);
+
+                        it1_min = it2_min = rl.begin();
+                        ++it2_min;
+                        tmp = matSum(it1_min->m, it2_min->m);
+                        if(it1_min->is_tmp) matDestroy(it1_min->m);
+                        if(it2_min->is_tmp) matDestroy(it2_min->m);
+                        res.insert(res.begin(), data_type{tmp, true});
                     }
                     break;
                 }
@@ -206,18 +218,43 @@ namespace rpq {
                     if (parentType == OOR){
                         res = std::move(rl);
                     }else{
-                        it_type it1, it2;
-                        it1 = it2 = rl.begin();
-                        ++it2;
-                        matrix tmp = matSum1(it1->m, it2->m, fullSide, col);
-                        if(it1->is_tmp) matDestroy(it1->m);
-                        if(it2->is_tmp) matDestroy(it2->m);
-                        while(++it2 != rl.end()){
-                            matrix aux = matSum1(tmp, it2->m, fullSide, col);
-                            if(it2->is_tmp) matDestroy(it2->m);
-                            matDestroy(tmp);
-                            tmp = aux;
+                        matrix tmp;
+                        it_type it1, it2, it1_min, it2_min;
+                        while(rl.size() > 2) {//Check if there a
+                            it1 = it2 = rl.begin();
+                            uint64_t min = UINT64_MAX, weight;
+                            while (it1 != rl.end()) {
+                                weight = matSpace(it1->m);
+                                if (min > weight) {
+                                    it1_min = it1;
+                                    min = weight;
+                                }
+                                ++it1; //++it2;
+                            }
+                            min = UINT64_MAX;
+                            while (it2 != rl.end()) {
+                                if (it2 != it1_min) {
+                                    weight = matSpace(it2->m);
+                                    if (min > weight) {
+                                        it2_min = it2;
+                                        min = weight;
+                                    }
+                                }
+                                ++it2;
+                            }
+                            tmp = matSum1(it1_min->m, it2_min->m, fullSide, col);
+                            if (it1_min->is_tmp) matDestroy(it1_min->m);
+                            if (it2_min->is_tmp) matDestroy(it2_min->m);
+
+                            rl.insert(it1_min, data_type{tmp, true});
+                            rl.erase(it1_min);
+                            rl.erase(it2_min);
                         }
+                        it1_min = it2_min = rl.begin();
+                        ++it2_min;
+                        tmp = matSum1(it1_min->m, it2_min->m, fullSide, col);
+                        if(it1_min->is_tmp) matDestroy(it1_min->m);
+                        if(it2_min->is_tmp) matDestroy(it2_min->m);
                         res.insert(res.begin(), data_type{tmp, true});
                     }
                     break;
@@ -275,8 +312,8 @@ namespace rpq {
                     if (parentType == CONC){
                         res = std::move(rl);
                     }else{
-                        rev_it_type it1, it2;
-                        it1 = it2 = rl.rbegin(); //last_element
+                        auto it2 = rl.rbegin(); //last element
+                        auto it1 = rl.rbegin(); //last element
                         ++it2; //last element -1
                         matrix tmp = matMult1(it2->m, row,it1->m, fullSide);
                         while(++it2 != rl.rend()){
@@ -289,7 +326,6 @@ namespace rpq {
                     }
                     break;
                 }
-
                 case OOR:
                 {
                     list_type ll, rl;
@@ -299,18 +335,44 @@ namespace rpq {
                     if (parentType == OOR){
                         res = std::move(rl);
                     }else{
-                        it_type it1, it2;
-                        it1 = it2 = rl.begin();
-                        ++it2;
-                        matrix tmp = matSum1(it1->m, it2->m, row, fullSide);
-                        if(it1->is_tmp) matDestroy(it1->m);
-                        if(it2->is_tmp) matDestroy(it2->m);
-                        while(++it2 != rl.end()){
-                            matrix aux = matSum1(tmp, it2->m, row, fullSide);
-                            if(it2->is_tmp) matDestroy(it2->m);
-                            matDestroy(tmp);
-                            tmp = aux;
+
+                        matrix tmp;
+                        it_type it1, it2, it1_min, it2_min;
+                        while(rl.size() > 2) {//Check if there a
+                            it1 = it2 = rl.begin();
+                            uint64_t min = UINT64_MAX, weight;
+                            while (it1 != rl.end()) {
+                                weight = matSpace(it1->m);
+                                if (min > weight) {
+                                    it1_min = it1;
+                                    min = weight;
+                                }
+                                ++it1; //++it2;
+                            }
+                            min = UINT64_MAX;
+                            while (it2 != rl.end()) {
+                                if (it2 != it1_min) {
+                                    weight = matSpace(it2->m);
+                                    if (min > weight) {
+                                        it2_min = it2;
+                                        min = weight;
+                                    }
+                                }
+                                ++it2;
+                            }
+                            tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
+                            if (it1_min->is_tmp) matDestroy(it1_min->m);
+                            if (it2_min->is_tmp) matDestroy(it2_min->m);
+
+                            rl.insert(it1_min, data_type{tmp, true});
+                            rl.erase(it1_min);
+                            rl.erase(it2_min);
                         }
+                        it1_min = it2_min = rl.begin();
+                        ++it2_min;
+                        tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
+                        if(it1_min->is_tmp) matDestroy(it1_min->m);
+                        if(it2_min->is_tmp) matDestroy(it2_min->m);
                         res.insert(res.begin(), data_type{tmp, true});
                     }
                     break;
