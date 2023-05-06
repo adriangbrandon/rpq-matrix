@@ -96,16 +96,26 @@ namespace rpq {
                         it_type it1, it2, it1_min, it2_min;
                         while(rl.size() > 1){//Check if there is only one element
                             it1 = it2 = rl.begin();
-                            ++it2;
                             uint64_t min = UINT64_MAX, weight;
-                            while(it2 != rl.end()){
-                                weight = std::min(matSpace(it1->m), matSpace(it2->m));
+                            while(it1 != rl.end()){
+                                weight = matSpace(it1->m);
                                 if(min > weight){
                                     it1_min = it1;
-                                    it2_min = it2;
+                                    //it2_min = it2;
                                     min = weight;
                                 }
-                                ++it1; ++it2;
+                                ++it1; //++it2;
+                            }
+                            min = UINT64_MAX;
+                            while(it2 != rl.end()){
+                                if(it2 != it1_min ){
+                                    weight = matSpace(it2->m);
+                                    if(min > weight){
+                                        it2_min = it2;
+                                        min = weight;
+                                    }
+                                }
+                                ++it2;
                             }
                             matrix tmp = matSum(it1_min->m, it2_min->m);
                             if(it1_min->is_tmp) matDestroy(it1_min->m);
