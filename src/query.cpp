@@ -177,6 +177,8 @@ int main(int argc, char **argv) {
         bool flag_s, flag_o;
         int s_id, o_id;
         bool ok = parse_query(line, solver.map_SO, solver.map_P, query, flag_s, s_id, flag_o, o_id);
+        std::cout << "OID: " << o_id << std::endl;
+        std::cout << "SID: " << s_id << std::endl;
         if(!ok){
             std::cout << i << ";0;0" << std::endl;
         }else{
@@ -198,6 +200,7 @@ int main(int argc, char **argv) {
             user_end();
             //auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
             std::cout << i << ";" << elems << ";" << user_diff() << std::endl;
+            matDestroy(m); //Free matrix
         }
         ++i;
     }while(!ifs_q.eof());

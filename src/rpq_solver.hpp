@@ -557,6 +557,16 @@ namespace rpq {
             }
             std::cout << " done." << std::endl;
 
+
+            matrix tmp = matSum(m_matrices[159], m_matrices[412]);
+            std::cout << "Sum: " << tmp->elems << std::endl;
+            matrix b = matClos1(tmp, 0, fullSide, 1721);
+            std::cout << "Clos1: " << b->elems << std::endl;
+
+            tmp = matSum1(m_matrices[159], m_matrices[412], fullSide, 1721);
+            std::cout << "Sum1: " << tmp->elems << std::endl;
+            b = matClos1(tmp, 0, fullSide, 1721);
+            std::cout << "Clos1: " << b->elems << std::endl;
         }
 
         matrix solve_var_to_var(std::string &query){

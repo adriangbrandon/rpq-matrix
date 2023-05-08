@@ -486,7 +486,10 @@ matrix matSum1 (matrix A, matrix B, uint64_t row, uint64_t col)
     mapB = B->transposed ? mapTr : mapId;
     sum = k2sum1 (A->tree,B->tree,row,col,&len,&M->elems);
     if (M->elems == 0) M->tree = NULL;
-    else M->tree = k2createFrom (k2levels(A->tree),len,sum,1);
+    else {
+        uint nlevels = (A->tree != NULL) ? k2levels(A->tree) : k2levels(B->tree);
+        M->tree = k2createFrom (nlevels, len,sum,1);
+    }
     return M;
 }
 
