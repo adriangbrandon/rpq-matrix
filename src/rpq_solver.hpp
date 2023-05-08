@@ -189,7 +189,8 @@ namespace rpq {
                 {
                     list_type ll, rl;
                     traversal(rpqTree, node->e1, CONC, ll);
-                    traversal_col_fixed(rpqTree, node->e2, CONC, col, rl);
+                    traversal(rpqTree, node->e2, CONC, rl);
+                    //traversal_col_fixed(rpqTree, node->e2, CONC, col, rl);
                     rl.splice(rl.begin(), ll);
                     if (parentType == CONC){
                         res = std::move(rl);
@@ -262,7 +263,7 @@ namespace rpq {
                 case STAR:
                 {
                     list_type ll;
-                    traversal_col_fixed(rpqTree, node->e1, STAR, col, ll);
+                    traversal(rpqTree, node->e1, STAR, ll);
                     matrix tmp = matClos1(ll.front().m, 0, fullSide, col);
                     // std::cout << "STAR : " << ll.front() << std::endl;
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
@@ -272,7 +273,7 @@ namespace rpq {
                 case PLUS:
                 {
                     list_type ll;
-                    traversal_col_fixed(rpqTree, node->e1, PLUS, col, ll);
+                    traversal(rpqTree, node->e1, PLUS, ll);
                     matrix tmp = matClos1(ll.front().m, 1, fullSide, col);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
                     res.insert(res.begin(), data_type{tmp, true});
@@ -306,8 +307,8 @@ namespace rpq {
                 case CONC:
                 {
                     list_type ll, rl;
-                    traversal_row_fixed(rpqTree, node->e1, CONC, row, ll);
-                    traversal_row_fixed(rpqTree, node->e2, CONC, row, rl);
+                    traversal(rpqTree, node->e1, CONC, ll);
+                    traversal(rpqTree, node->e2, CONC, rl);
                     rl.splice(rl.begin(), ll);
                     if (parentType == CONC){
                         res = std::move(rl);
@@ -330,7 +331,7 @@ namespace rpq {
                 {
                     list_type ll, rl;
                     traversal_row_fixed(rpqTree, node->e1, OOR, row, ll);
-                    traversal(rpqTree, node->e2, OOR, rl);
+                    traversal_row_fixed(rpqTree, node->e2, OOR, row, rl);
                     rl.splice(rl.begin(), ll);
                     if (parentType == OOR){
                         res = std::move(rl);
@@ -380,7 +381,7 @@ namespace rpq {
                 case STAR:
                 {
                     list_type ll;
-                    traversal_row_fixed(rpqTree, node->e1, STAR, row, ll);
+                    traversal(rpqTree, node->e1, STAR, ll);
                     matrix tmp = matClos1(ll.front().m, 0, row, fullSide);
                     // std::cout << "STAR : " << ll.front() << std::endl;
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
@@ -390,7 +391,7 @@ namespace rpq {
                 case PLUS:
                 {
                     list_type ll;
-                    traversal_row_fixed(rpqTree, node->e1, PLUS, row, ll);
+                    traversal(rpqTree, node->e1, PLUS, ll);
                     matrix tmp = matClos1(ll.front().m, 1, row, fullSide);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
                     res.insert(res.begin(), data_type{tmp, true});

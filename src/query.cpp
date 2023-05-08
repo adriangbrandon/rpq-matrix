@@ -122,7 +122,7 @@ bool parse_query(std::string &line,
                 }
 
                 if (map_P.find(s_aux_3) != map_P.end()) {
-                    std::cout << s_aux_3 << " id: " << map_P[s_aux_3] << std::endl;
+                    //std::cout << s_aux_3 << " id: " << map_P[s_aux_3] << std::endl;
                     query += s_aux_2;
                 } else {
                     //cout << q << ";0;0" << endl;
@@ -177,8 +177,8 @@ int main(int argc, char **argv) {
         bool flag_s, flag_o;
         int s_id, o_id;
         bool ok = parse_query(line, solver.map_SO, solver.map_P, query, flag_s, s_id, flag_o, o_id);
-        std::cout << "OID: " << o_id << std::endl;
-        std::cout << "SID: " << s_id << std::endl;
+        //std::cout << "OID: " << o_id << std::endl;
+        //std::cout << "SID: " << s_id << std::endl;
         if(!ok){
             std::cout << i << ";0;0" << std::endl;
         }else{
