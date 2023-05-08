@@ -60,6 +60,7 @@ boolean getAclass(const char *pat, int *i, Mask *B, int l, std::vector<int> &pos
 #define CONC 3
 #define QUESTION 4
 #define PLUS 5
+#define ROOT 99
 
 typedef struct sTree
 {
