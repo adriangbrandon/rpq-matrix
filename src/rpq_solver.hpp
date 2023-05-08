@@ -42,7 +42,7 @@ namespace rpq {
             switch(node->type) {
                 case STR:{
                     auto pred = rpqTree->getPred(node->pos);
-                    res.insert(res.begin(), data_type{m_matrices[pred], false});
+                    res.insert(res.begin(), data_type{m_matrices[pred], false, false});
                     break;
                 }
                 case CONC:
@@ -73,7 +73,7 @@ namespace rpq {
                             if(it1_min->is_tmp) matDestroy(it1_min->m);
                             if(it2_min->is_tmp) matDestroy(it2_min->m);
 
-                            rl.insert(it1_min, data_type{tmp, true});
+                            rl.insert(it1_min, data_type{tmp, true, false});
                             rl.erase(it1_min);
                             rl.erase(it2_min);
                         }
@@ -82,7 +82,7 @@ namespace rpq {
                         tmp = matMult(it1_min->m, it2_min->m);
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
-                        res.insert(res.begin(), data_type{tmp, true});
+                        res.insert(res.begin(), data_type{tmp, true, false});
                     }
                     break;
                 }
@@ -124,7 +124,7 @@ namespace rpq {
                             if(it1_min->is_tmp) matDestroy(it1_min->m);
                             if(it2_min->is_tmp) matDestroy(it2_min->m);
 
-                            rl.insert(it1_min, data_type{tmp, true});
+                            rl.insert(it1_min, data_type{tmp, true, false});
                             rl.erase(it1_min);
                             rl.erase(it2_min);
                         }
@@ -134,7 +134,7 @@ namespace rpq {
                         tmp = matSum(it1_min->m, it2_min->m);
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
-                        res.insert(res.begin(), data_type{tmp, true});
+                        res.insert(res.begin(), data_type{tmp, true, false});
                     }
                     break;
                 }
@@ -145,7 +145,7 @@ namespace rpq {
                     matrix tmp = matClos(ll.front().m, 0);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
                    // std::cout << "STAR : " << ll.front() << std::endl;
-                    res.insert(res.begin(), data_type{tmp, true});
+                    res.insert(res.begin(), data_type{tmp, true, false});
                     break;
                 }
                 case PLUS:
@@ -154,7 +154,7 @@ namespace rpq {
                     traversal(rpqTree, node->e1, PLUS, ll);
                     matrix tmp = matClos(ll.front().m, 1);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true});
+                    res.insert(res.begin(), data_type{tmp, true, false});
                     break;
                 }
                 case QUESTION:
@@ -165,7 +165,7 @@ namespace rpq {
                     matrix tmp = matSum(ll.front().m, Id);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true});
+                    res.insert(res.begin(), data_type{tmp, true, false});
                     break;
                 }
             }
