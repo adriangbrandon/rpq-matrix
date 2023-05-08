@@ -189,8 +189,8 @@ namespace rpq {
                 {
                     list_type ll, rl;
                     traversal(rpqTree, node->e1, CONC, ll);
-                    traversal(rpqTree, node->e2, CONC, rl);
-                    //traversal_col_fixed(rpqTree, node->e2, CONC, col, rl);
+                    //traversal(rpqTree, node->e2, CONC, rl);
+                    traversal_col_fixed(rpqTree, node->e2, CONC, col, rl);
                     rl.splice(rl.begin(), ll);
                     if (parentType == CONC){
                         res = std::move(rl);
@@ -307,7 +307,7 @@ namespace rpq {
                 case CONC:
                 {
                     list_type ll, rl;
-                    traversal(rpqTree, node->e1, CONC, ll);
+                    traversal_row_fixed(rpqTree, node->e1, CONC, row,ll);
                     traversal(rpqTree, node->e2, CONC, rl);
                     rl.splice(rl.begin(), ll);
                     if (parentType == CONC){
@@ -559,7 +559,7 @@ namespace rpq {
             std::cout << " done." << std::endl;
 
 
-            matrix tmp = matSum(m_matrices[159], m_matrices[412]);
+           /* matrix tmp = matSum(m_matrices[159], m_matrices[412]);
             std::cout << "Sum: " << tmp->elems << std::endl;
             matrix b = matClos1(tmp, 0, fullSide, 1721);
             std::cout << "Clos1: " << b->elems << std::endl;
@@ -567,7 +567,7 @@ namespace rpq {
             tmp = matSum1(m_matrices[159], m_matrices[412], fullSide, 1721);
             std::cout << "Sum1: " << tmp->elems << std::endl;
             b = matClos1(tmp, 0, fullSide, 1721);
-            std::cout << "Clos1: " << b->elems << std::endl;
+            std::cout << "Clos1: " << b->elems << std::endl;*/
         }
 
         matrix solve_var_to_var(std::string &query){
