@@ -183,9 +183,7 @@ int main(int argc, char **argv) {
             std::cout << i << ";0;0" << std::endl;
         }else{
             std::cerr << query << std::endl;
-            if(flag_o && flag_s){
-                std::cout << i << ";0;0" << std::endl;
-            }else {
+
                 user_beg();
                 // auto t1 = std::chrono::high_resolution_clock::now();
                 matrix m;
@@ -195,6 +193,8 @@ int main(int argc, char **argv) {
                     m = solver.solve_var_to_con(query, o_id);
                 } else if (!flag_o && flag_s) {
                     m = solver.solve_con_to_var(query, s_id);
+                } else{
+                    m = solver.solve_con_to_con(query, s_id, o_id);
                 }
                 elems = matDims(m, NULL, NULL, NULL);
                 //auto t2 = std::chrono::high_resolution_clock::now();
@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
                 //auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
                 std::cout << i << ";" << elems << ";" << user_diff() << std::endl;
                 matDestroy(m); //Free matrix
-            }
+
         }
         ++i;
     }while(!ifs_q.eof());

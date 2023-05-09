@@ -259,8 +259,11 @@ namespace rpq {
                         }
                         it1_min = it2_min = rl.begin();
                         ++it2_min;
-                        //tmp = matSum1(it1_min->m, it2_min->m, fullSide, col);
-                        tmp = matSum(it1_min->m, it2_min->m);
+                        if(it1_min->is_fixed && it2_min->is_fixed){
+                            tmp = matSum(it1_min->m, it2_min->m);
+                        }else{
+                            tmp = matSum1(it1_min->m, it2_min->m, fullSide, col);
+                        }
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
                         res.insert(res.begin(), data_type{tmp, true, true});
@@ -388,7 +391,11 @@ namespace rpq {
                         it1_min = it2_min = rl.begin();
                         ++it2_min;
                         //tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
-                        tmp = matSum(it1_min->m, it2_min->m);
+                        if(it1_min->is_fixed && it2_min->is_fixed){
+                            tmp = matSum(it1_min->m, it2_min->m);
+                        }else{
+                            tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
+                        }
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
                         res.insert(res.begin(), data_type{tmp, true, true});
@@ -428,22 +435,49 @@ namespace rpq {
             }
         }
 
-        /*void traversal_row_col_fixed(RpqTree* rpqTree, Tree* node, int parentType, int row, int col, list_type &res){
+        void traversal_row_col_fixed(RpqTree* rpqTree, Tree* node, int parentType, int row, int col, list_type &res){
             switch(node->type) {
                 case STR:{
                     auto pred = rpqTree->getPred(node->pos);
                     matrix a = m_matrices[pred];
-                    matrix e = matEmpty(a->height, a->width);
-                    matrix m = matSum1(a, e, row, col);
-                    res.insert(res.begin(), data_type{m, true});
-                    matDestroy(e);
+                    if(parentType == OOR){
+                        res.insert(res.begin(), data_type{a, false, false});
+                    }else {
+                        matrix e = matEmpty(a->height, a->width);
+                        matrix m = matSum1(a, e, row, col);
+                        res.insert(res.begin(), data_type{m, true, true});
+                        matDestroy(e);
+                    }
+                    break;
+                }
+                case CONC:
+                {
+                    list_type ll, rl;
+                    traversal_row_fixed(rpqTree, node->e1, CONC, row,ll);
+                    traversal_col_fixed(rpqTree, node->e2, CONC, col, rl);
+                    rl.splice(rl.begin(), ll);
+                    if (parentType == CONC){
+                        res = std::move(rl);
+                    }else{
+                        auto it2 = rl.rbegin(); //last element
+                        auto it1 = rl.rbegin(); //last element
+                        ++it2; //last element -1
+                        matrix tmp = matMult1(it2->m, row,it1->m, col);
+                        while(++it2 != rl.rend()){
+                            matrix aux = matMult1(it2->m, row,tmp, col);
+                            if(it2->is_tmp) matDestroy(it2->m);
+                            matDestroy(tmp);
+                            tmp = aux;
+                        }
+                        res.insert(res.begin(), data_type{tmp, true, true});
+                    }
                     break;
                 }
                 case OOR:
                 {
                     list_type ll, rl;
-                    traversal_row_fixed(rpqTree, node->e1, OOR, row, ll);
-                    traversal_col_fixed(rpqTree, node->e2, OOR, col, rl);
+                    traversal_row_col_fixed(rpqTree, node->e1, OOR, row, col, ll);
+                    traversal_row_col_fixed(rpqTree, node->e2, OOR, row, col, rl);
                     rl.splice(rl.begin(), ll);
                     if (parentType == OOR){
                         res = std::move(rl);
@@ -474,7 +508,11 @@ namespace rpq {
                                 ++it2;
                             }
                             //tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
-                            tmp = matSum(it1_min->m, it2_min->m);
+                            if(it1_min->is_fixed && it2_min->is_fixed){
+                                tmp = matSum(it1_min->m, it2_min->m);
+                            }else{
+                                tmp = matSum1(it1_min->m, it2_min->m, row, col);
+                            }
                             if (it1_min->is_tmp) matDestroy(it1_min->m);
                             if (it2_min->is_tmp) matDestroy(it2_min->m);
 
@@ -485,32 +523,13 @@ namespace rpq {
                         it1_min = it2_min = rl.begin();
                         ++it2_min;
                         //tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
-                        tmp = matSum(it1_min->m, it2_min->m);
+                        if(it1_min->is_fixed && it2_min->is_fixed){
+                            tmp = matSum(it1_min->m, it2_min->m);
+                        }else{
+                            tmp = matSum1(it1_min->m, it2_min->m, row, col);
+                        }
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
-                        res.insert(res.begin(), data_type{tmp, true});
-                    }
-                    break;
-
-                    list_type ll, rl;
-                    traversal_row_fixed(rpqTree, node->e1, OOR, row, ll);
-                    traversal_col_fixed(rpqTree, node->e2, OOR, col, rl);
-                    rl.splice(rl.begin(), ll);
-                    if (parentType == OOR){
-                        res = std::move(rl);
-                    }else{
-                        it_type it1, it2;
-                        it1 = it2 = rl.begin();
-                        ++it2;
-                        matrix tmp = matSum1(it1->m, it2->m, row, col);
-                        if(it1->is_tmp) matDestroy(it1->m);
-                        if(it2->is_tmp) matDestroy(it2->m);
-                        while(++it2 != rl.end()){
-                            matrix aux = matSum1(tmp, it2->m, row, col);
-                            if(it2->is_tmp) matDestroy(it2->m);
-                            matDestroy(tmp);
-                            tmp = aux;
-                        }
                         res.insert(res.begin(), data_type{tmp, true});
                     }
                     break;
@@ -518,7 +537,7 @@ namespace rpq {
                 case STAR:
                 {
                     list_type ll;
-                    traversal_row_col_fixed(rpqTree, node->e1, STAR, row, col, ll);
+                    traversal(rpqTree, node->e1, STAR, ll);
                     matrix tmp = matClos1(ll.front().m, 0, row, col);
                     // std::cout << "STAR : " << ll.front() << std::endl;
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
@@ -528,7 +547,7 @@ namespace rpq {
                 case PLUS:
                 {
                     list_type ll;
-                    traversal_row_col_fixed(rpqTree, node->e1, PLUS, row, col, ll);
+                    traversal(rpqTree, node->e1, PLUS, ll);
                     matrix tmp = matClos1(ll.front().m, 1, row, col);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
                     res.insert(res.begin(), data_type{tmp, true});
@@ -546,7 +565,7 @@ namespace rpq {
                     break;
                 }
             }
-        }*/
+        }
 
         std::string file_name(const uint i, const std::string &index){
             std::stringstream ss;
@@ -638,7 +657,7 @@ namespace rpq {
         matrix solve_con_to_con(std::string &query, int s_id, int o_id){
             list_type res;
             RpqTree rpqTree(query, map_P, SIZE);
-           // traversal_row_col_fixed(&rpqTree, rpqTree.root(), ROOT, s_id, o_id, res);
+            traversal_row_col_fixed(&rpqTree, rpqTree.root(), ROOT, s_id, o_id, res);
             return res.front().m;
         }
 
