@@ -176,7 +176,7 @@ namespace rpq {
                 case STR:{
                     auto pred = rpqTree->getPred(node->pos);
                     matrix a = m_matrices[pred];
-                    if(parentType == OOR){
+                    if(parentType != ROOT){
                         res.insert(res.begin(), data_type{a, false, false});
                     }else {
                         matrix e = matEmpty(a->height, a->width);
@@ -190,7 +190,6 @@ namespace rpq {
                 {
                     list_type ll, rl;
                     traversal(rpqTree, node->e1, CONC, ll);
-                    //traversal(rpqTree, node->e2, CONC, rl);
                     traversal_col_fixed(rpqTree, node->e2, CONC, col, rl);
                     rl.splice(rl.begin(), ll);
                     if (parentType == CONC){
@@ -199,9 +198,14 @@ namespace rpq {
                         auto it2 = rl.rbegin(); //last element
                         auto it1 = rl.rbegin(); //last element
                         ++it2; //last element -1
-                        matrix tmp = matMult1(it2->m, fullSide,it1->m, col);
+                        matrix tmp, aux;
+                        if(it1->is_fixed){
+                            tmp = matMult(it2->m, it1->m);
+                        }else{
+                            tmp = matMult1(it2->m, fullSide,it1->m, col);
+                        }
                         while(++it2 != rl.rend()){
-                            matrix aux = matMult1(it2->m, fullSide,tmp, col);
+                            aux = matMult(it2->m, tmp); //tmp is already fixed
                             if(it2->is_tmp) matDestroy(it2->m);
                             matDestroy(tmp);
                             tmp = aux;
@@ -308,7 +312,7 @@ namespace rpq {
                 case STR:{
                     auto pred = rpqTree->getPred(node->pos);
                     matrix a = m_matrices[pred];
-                    if(parentType == OOR){
+                    if(parentType != ROOT){
                         res.insert(res.begin(), data_type{a, false, false});
                     }else {
                         matrix e = matEmpty(a->height, a->width);
@@ -327,12 +331,17 @@ namespace rpq {
                     if (parentType == CONC){
                         res = std::move(rl);
                     }else{
-                        auto it2 = rl.rbegin(); //last element
-                        auto it1 = rl.rbegin(); //last element
-                        ++it2; //last element -1
-                        matrix tmp = matMult1(it2->m, row,it1->m, fullSide);
-                        while(++it2 != rl.rend()){
-                            matrix aux = matMult1(it2->m, row,tmp, fullSide);
+                        auto it2 = rl.begin(); //first element
+                        auto it1 = rl.begin(); //first element
+                        ++it2; //first element +1
+                        matrix tmp, aux;
+                        if(it1->is_fixed){
+                            tmp = matMult(it1->m, it2->m);
+                        }else{
+                            tmp = matMult1(it1->m, row,it2->m, fullSide);
+                        }
+                        while(++it2 != rl.end()){
+                            aux = matMult(tmp, it2->m);
                             if(it2->is_tmp) matDestroy(it2->m);
                             matDestroy(tmp);
                             tmp = aux;
@@ -440,7 +449,7 @@ namespace rpq {
                 case STR:{
                     auto pred = rpqTree->getPred(node->pos);
                     matrix a = m_matrices[pred];
-                    if(parentType == OOR){
+                    if(parentType != ROOT){
                         res.insert(res.begin(), data_type{a, false, false});
                     }else {
                         matrix e = matEmpty(a->height, a->width);
@@ -459,12 +468,17 @@ namespace rpq {
                     if (parentType == CONC){
                         res = std::move(rl);
                     }else{
-                        auto it2 = rl.rbegin(); //last element
-                        auto it1 = rl.rbegin(); //last element
-                        ++it2; //last element -1
-                        matrix tmp = matMult1(it2->m, row,it1->m, col);
-                        while(++it2 != rl.rend()){
-                            matrix aux = matMult1(it2->m, row,tmp, col);
+                        auto it2 = rl.begin(); //first element
+                        auto it1 = rl.begin(); //first element
+                        ++it2; //first element +1
+                        matrix tmp, aux;
+                        if(it1->is_fixed){
+                            tmp = matMult(it1->m, it2->m);
+                        }else{
+                            tmp = matMult1(it1->m, row,it2->m, col);
+                        }
+                        while(++it2 != rl.end()){
+                            aux = matMult(it1->m,tmp);
                             if(it2->is_tmp) matDestroy(it2->m);
                             matDestroy(tmp);
                             tmp = aux;
@@ -621,16 +635,6 @@ namespace rpq {
             }
             std::cout << " done." << std::endl;
 
-
-           /* matrix tmp = matSum(m_matrices[159], m_matrices[412]);
-            std::cout << "Sum: " << tmp->elems << std::endl;
-            matrix b = matClos1(tmp, 0, fullSide, 1721);
-            std::cout << "Clos1: " << b->elems << std::endl;
-
-            tmp = matSum1(m_matrices[159], m_matrices[412], fullSide, 1721);
-            std::cout << "Sum1: " << tmp->elems << std::endl;
-            b = matClos1(tmp, 0, fullSide, 1721);
-            std::cout << "Clos1: " << b->elems << std::endl;*/
         }
 
         matrix solve_var_to_var(std::string &query){

@@ -63,15 +63,41 @@ void matDestroy (matrix M)
 // creates an empty matrix
 matrix matEmpty (uint64_t height, uint64_t width)
 
-{ matrix mat = (matrix)myalloc(sizeof(struct s_matrix));
-    mat->width = width ? width : 1;
-    mat->height = height ? height : 1;
-    mat->logside = numbits(mmax(width,height)-1);
-    mat->elems = 0;
-    mat->transposed = 0;
-    mat->tree = NULL;
-    return mat;
-}
+   { matrix mat = (matrix)myalloc(sizeof(struct s_matrix));
+     mat->width = width ? width : 1;
+     mat->height = height ? height : 1;
+     mat->logside = numbits(mmax(width,height)-1);
+     mat->elems = 0;
+     mat->transposed = 0;
+     mat->tree = NULL;
+     return mat;
+   }
+
+        // creates a matrix with cell row,col
+
+matrix matOne (uint64_t height, uint64_t width, uint64_t row, uint64_t col)
+
+   { matrix mat = (matrix)myalloc(sizeof(struct s_matrix));
+     uint64_t *data;
+     uint64_t sig,ptr;
+     int bit,len,words;
+     mat->width = width;
+     mat->height = height;
+     len = mat->logside = numbits(mmax(width,height)-1);
+     mat->elems = 1;
+     mat->transposed = 0;
+     words = (4*len+w-1)/w;
+     data = (uint64_t*)myalloc(words*sizeof(uint64_t));
+     for (ptr=0;ptr<words;ptr++) data[ptr] = 0;
+     ptr = 0;
+     for (bit=len-1;bit>=0;bit--)
+	 { sig = 1 << (2*((row >> bit) & 1) + ((col >> bit) & 1));
+	   data[ptr/w] |= sig << (ptr%w);
+	   ptr += 4;
+	 }
+     mat->tree = k2createFrom(len,ptr,data,1);
+     return mat;
+   }
 
 // creates an identity matrix
 
@@ -268,13 +294,6 @@ matrix matSum (matrix A, matrix B)
     return M;
 }
 
-// version with one row or one column, or both
-
-static uint mapId[] = { 0, 1, 2, 3 };
-static uint mapTr[] = { 0, 2, 1, 3 };
-
-static uint *mapA,*mapB;
-
 // copies len bits starting at *src + psrc
 // to tgt from bit position ptgt
 // WARNING: leave at least one extra word to spare in tgt
@@ -322,6 +341,11 @@ static void copyBits (uint64_t *tgt, uint64_t ptgt,
     }
     *tgt = old;
 }
+
+static uint mapId[] = { 0, 1, 2, 3 };
+static uint mapTr[] = { 0, 2, 1, 3 };
+
+static uint *mapA,*mapB;
 
 typedef struct {
     uint64_t *tree,*levels;
@@ -473,25 +497,30 @@ matrix matSum1 (matrix A, matrix B, uint64_t row, uint64_t col)
 
     if ((row == fullSide) && (col == fullSide)) return matSum(A,B);
 
-    if (A->logside != B->logside)
-    { fprintf(stderr,"Error: sum of matrices of different side\n");
-        exit(1);
-    }
-    M = (matrix)myalloc(sizeof(struct s_matrix));
-    M->logside = A->logside;
-    matDims(A,NULL,&wA,&hA); matDims(B,NULL,&wB,&hB);
-    M->width = mmax(wA,wB); M->height = mmax(hA,hB);
-    M->transposed = 0;
-    mapA = A->transposed ? mapTr : mapId;
-    mapB = B->transposed ? mapTr : mapId;
-    sum = k2sum1 (A->tree,B->tree,row,col,&len,&M->elems);
-    if (M->elems == 0) M->tree = NULL;
-    else {
-        uint nlevels = (A->tree != NULL) ? k2levels(A->tree) : k2levels(B->tree);
-        M->tree = k2createFrom (nlevels, len,sum,1);
-    }
-    return M;
-}
+     if (A->logside != B->logside)
+        { fprintf(stderr,"Error: sum of matrices of different side\n");
+          exit(1);
+        }
+     matDims(A,NULL,&wA,&hA); matDims(B,NULL,&wB,&hB);
+
+     if ((row != fullSide) && (col != fullSide)) // just one cell
+        { if (matAccess(A,row,col) || matAccess(B,row,col))
+	     return matOne(mmax(hA,hB), mmax(wA,wB),row,col);
+	  else return matEmpty(mmax(hA,hB), mmax(wA,wB));
+        }
+
+     M = (matrix)myalloc(sizeof(struct s_matrix));
+     M->logside = A->logside;
+     M->width = mmax(wA,wB); M->height = mmax(hA,hB);
+     M->transposed = 0;
+     mapA = A->transposed ? mapTr : mapId;
+     mapB = B->transposed ? mapTr : mapId;
+     sum = k2sum1 (A->tree,B->tree,row,col,&len,&M->elems);
+     if (M->elems == 0) M->tree = NULL;
+     else if (A->tree) M->tree = k2createFrom (k2levels(A->tree),len,sum,1);
+     else M->tree = k2createFrom (k2levels(B->tree),len,sum,1);
+     return M;
+   }
 
 // (boolean) product of two matrices, assumed to be of the same side
 

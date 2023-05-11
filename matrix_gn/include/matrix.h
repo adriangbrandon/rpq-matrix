@@ -4,7 +4,6 @@
 
 #include "k2tree.h"
 
-
 typedef struct s_matrix {
    uint64_t elems; // how many filled cells
    uint logside; // log(max(width,height)
@@ -25,6 +24,9 @@ void matDestroy (matrix M);
    
 	// creates an empty matrix
 matrix matEmpty (uint64_t height, uint64_t width);
+
+	// creates a matrix with cell row,col
+matrix matOne (uint64_t height, uint64_t width, uint64_t row, uint64_t col);
 
 	// creates an identity matrix
 matrix matId (uint64_t side);

@@ -166,43 +166,41 @@ int main(int argc, char **argv) {
     //std::string q = "?x (<http://www.wikidata.org/prop/direct/P31>|<http://www.wikidata.org/prop/direct/P279>)/<%http://www.wikidata.org/prop/direct/P31> ?y ";
     //std::string q = "?x <http://www.wikidata.org/prop/direct/P1448>|<http://www.wikidata.org/prop/direct/P1581>|<http://www.wikidata.org/prop/direct/P1621>|<http://www.wikidata.org/prop/direct/P242>|<http://www.wikidata.org/prop/direct/P15>|<http://www.wikidata.org/prop/direct/P18> ?y ";
     //std::string q = "?x (((<http://www.wikidata.org/prop/direct/P131>/<http://www.wikidata.org/prop/direct/P131>)/<http://www.wikidata.org/prop/direct/P131>)/<http://www.wikidata.org/prop/direct/P131>)/<http://www.wikidata.org/prop/direct/P131> ?y ";
-    std::string query, line;
+    std::string query, line, l2;
     uint64_t i = 1;
     uint64_t elems;
     std::ifstream ifs_q(queries);
     do{
         getline(ifs_q, line);
+        l2 = line;
         query.clear();
 
         bool flag_s, flag_o;
         int s_id, o_id;
         bool ok = parse_query(line, solver.map_SO, solver.map_P, query, flag_s, s_id, flag_o, o_id);
-        //std::cout << "OID: " << o_id << std::endl;
-        //std::cout << "SID: " << s_id << std::endl;
         if(!ok){
             std::cout << i << ";0;0" << std::endl;
         }else{
-            std::cerr << query << std::endl;
+            std::cerr << l2 << std::endl;
 
-                user_beg();
-                // auto t1 = std::chrono::high_resolution_clock::now();
-                matrix m;
-                if (!flag_o && !flag_s) {
-                    m = solver.solve_var_to_var(query);
-                } else if (flag_o && !flag_s) {
-                    m = solver.solve_var_to_con(query, o_id);
-                } else if (!flag_o && flag_s) {
-                    m = solver.solve_con_to_var(query, s_id);
-                } else{
-                    m = solver.solve_con_to_con(query, s_id, o_id);
-                }
-                elems = matDims(m, NULL, NULL, NULL);
-                //auto t2 = std::chrono::high_resolution_clock::now();
-                user_end();
-                //auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
-                std::cout << i << ";" << elems << ";" << user_diff() << std::endl;
-                matDestroy(m); //Free matrix
-
+            user_beg();
+            // auto t1 = std::chrono::high_resolution_clock::now();
+            matrix m;
+            if (!flag_o && !flag_s) {
+                m = solver.solve_var_to_var(query);
+            } else if (flag_o && !flag_s) {
+                m = solver.solve_var_to_con(query, o_id);
+            } else if (!flag_o && flag_s) {
+                m = solver.solve_con_to_var(query, s_id);
+            } else{
+                m = solver.solve_con_to_con(query, s_id, o_id);
+            }
+            elems = m->elems;
+            //auto t2 = std::chrono::high_resolution_clock::now();
+            user_end();
+            //auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+            std::cout << i << ";" << elems << ";" << user_diff() << std::endl;
+            matDestroy(m); //Free matrix
         }
         ++i;
     }while(!ifs_q.eof());
