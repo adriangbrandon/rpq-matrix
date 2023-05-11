@@ -61,7 +61,7 @@ namespace rpq {
                             ++it2;
                             uint64_t min = UINT64_MAX, weight;
                             while(it2 != rl.end()){
-                                weight = std::min(matSpace(it1->m), matSpace(it2->m));
+                                weight = matSpace(it1->m) + matSpace(it2->m);
                                 if(min > weight){
                                     it1_min = it1;
                                     it2_min = it2;
