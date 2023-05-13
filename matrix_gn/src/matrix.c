@@ -724,33 +724,30 @@ matrix matMult1 (uint64_t row, matrix A, matrix B, uint64_t col)
 
 matrix matClos (matrix A, uint pos)
 
-{ matrix M,P,S,Id;
-    uint64_t elems;
-    uint transp = A->transposed;
+   { matrix M,P,S,Id;
+     uint64_t elems;
 
-    A->transposed = 0; // may be slightly more cache-friendly
-    if (!pos)
-    { Id = matId(mmax(A->width,A->height));
-        M = matSum(A,Id);
-        matDestroy(Id);
-        A = M;
-    }
-    elems = A->elems;
-    if (elems == 0) return matCopy(A);
-    P = matMult (A,A);
-    S = matSum (A,P);
-    while (S->elems != elems)
-    { elems = S->elems;
-        matDestroy(P);
-        P = matMult(S,S);
-        M = matSum(S,P);
-        matDestroy(S);
-        S = M;
-    }
-    matDestroy(P);
-    S->transposed = transp;
-    return S;
-}
+     if (!pos)
+        { Id = matId(mmax(A->width,A->height));
+          A = matSum(A,Id);
+          matDestroy(Id);
+	}
+     elems = A->elems;
+     if (elems == 0) return matCopy(A); // can only be pos, A not to destroy
+     P = matMult (A,A);
+     S = matSum (A,P);
+     if (!pos) matDestroy(A);
+     while (S->elems != elems)
+	{ elems = S->elems;
+	  matDestroy(P);
+	  P = matMult(S,S);
+	  M = matSum(S,P);
+	  matDestroy(S);
+	  S = M;
+	}
+     matDestroy(P);
+     return S;
+   }
 
 // versions to chose row row or column col at the end
 // here we restrict first to the row/column even if we lose the
@@ -791,7 +788,7 @@ static matrix matClosRow (uint64_t row, matrix I, matrix A, uint pos,
 	  M = S; S = matSum(S,P); matDestroy(M);
 	}
      matDestroy(P);
-     if (coltest) { *coltest = 0; return NULL; }
+     if (coltest) { matDestroy(S); *coltest = 0; return NULL; }
      return S;
    }
 
@@ -830,10 +827,7 @@ matrix matClos1 (uint64_t row, matrix A, uint pos, uint64_t col)
 	{ test = col;
 	  matClosRow(row,NULL,A,pos,&test);
 	}
-     if (test)
-	{ cell[0] = row; cell[1] = col;
-	  return matCreate (side,side,1,cell);
-	}
+     if (test) return matOne (side, side, row, col);
      else return matEmpty(side,side);
    }
 
@@ -853,7 +847,7 @@ matrix matMultClos1 (uint64_t row, matrix A, matrix B, uint pos, uint64_t col)
                return M;
              }
           else // it's much better to start with restricted B
-             { M1 = matClos1(row,B,pos,col);
+             { M1 = matClos1(fullSide,B,pos,col);
                M = matMult(A,M1);
                matDestroy(M1);
                return M;
