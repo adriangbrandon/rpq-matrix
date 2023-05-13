@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <iomanip>
 #include <chrono>
+#include <array>
 #include "rpq_solver.hpp"
 extern "C"{
 #include "utilstime.h"
@@ -142,6 +143,47 @@ bool parse_query(std::string &line,
     return true;
 }
 
+std::string remove_unnecessary_parentheses(const std::string &query){
+    std::array<uint64_t, 128> open;
+    std::array<bool, 128> remove;
+    uint64_t pos = 0;
+    std::vector<uint64_t> pos_to_remove;
+    uint64_t i = 0;
+    while(i < query.size()){
+        if(query[i] == '('){
+            open[pos] = i;
+            remove[pos] = true;
+            ++pos;
+        }else if (query[i] == ')'){
+            --pos;
+            if(i+1 < query.size() && (query[i+1] == '+' || query[i+1] == '?' || query[i+1] == '*')){
+                remove[pos] = false;
+                ++i;
+            }
+            if(remove[pos]){
+                pos_to_remove.push_back(open[pos]);
+                pos_to_remove.push_back(i);
+            }
+        }else if (query[i] == '|'){
+            if(pos > 0) remove[pos-1] = false;
+        }
+        ++i;
+    }
+    if(pos_to_remove.empty()) return query;
+    std::sort(pos_to_remove.begin(), pos_to_remove.end());
+    pos = 0;
+    std::string res;
+    for(i = 0; i < query.size(); ++i){
+        if(pos_to_remove[pos] == i){
+            ++pos;
+        }else{
+            res += query[i];
+        }
+    }
+    return res;
+
+}
+
 int main(int argc, char **argv) {
 
     if (argc < 3) {
@@ -181,7 +223,8 @@ int main(int argc, char **argv) {
         if(!ok){
             std::cout << i << ";0;0" << std::endl;
         }else{
-            std::cerr << l2 << std::endl;
+            query = remove_unnecessary_parentheses(query);
+            std::cerr << query << std::endl;
 
             user_beg();
             // auto t1 = std::chrono::high_resolution_clock::now();

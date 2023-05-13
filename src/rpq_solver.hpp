@@ -200,8 +200,8 @@ namespace rpq {
                 {
                     list_type ll, rl;
                     if(node->e1->type == STAR || node->e1->type == PLUS){ //Special case!
-                        traversal(rpqTree, node->e1, CONC, ll, true);
                         traversal_col_fixed(rpqTree, node->e2, CONC, col, rl);
+                        traversal(rpqTree, node->e1, CONC, ll, true);
                         matrix tmp;
                         uint pos = (node->e1->type == STAR) ? 0 : 1;
                         if(rl.size() > 1){ //product of the right part
@@ -233,8 +233,8 @@ namespace rpq {
                             res.insert(res.begin(), data_type{tmp, true, true});
                         }
                     }else{
-                        traversal(rpqTree, node->e1, CONC, ll);
                         traversal_col_fixed(rpqTree, node->e2, CONC, col, rl);
+                        traversal(rpqTree, node->e1, CONC, ll);
                         rl.splice(rl.begin(), ll);
                         if (parentType == CONC){
                             res = std::move(rl);
