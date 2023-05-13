@@ -38,7 +38,8 @@ namespace rpq {
         std::unordered_map<std::string, uint64_t> m_map_SO;
         std::unordered_map<std::string, uint64_t> m_map_P;
 
-        void traversal(RpqTree* rpqTree, Tree* node, int parentType, list_type &res){
+        void traversal(RpqTree* rpqTree, Tree* node, int parentType, list_type &res,
+                       bool skip_closure = false){
             switch(node->type) {
                 case STR:{
                     auto pred = rpqTree->getPred(node->pos);
@@ -142,19 +143,27 @@ namespace rpq {
                 {
                     list_type ll;
                     traversal(rpqTree, node->e1, STAR, ll);
-                    matrix tmp = matClos(ll.front().m, 0);
-                    if(ll.front().is_tmp) matDestroy(ll.front().m);
-                   // std::cout << "STAR : " << ll.front() << std::endl;
-                    res.insert(res.begin(), data_type{tmp, true, false});
+                    if(!skip_closure){
+                        matrix tmp = matClos(ll.front().m, 0);
+                        if(ll.front().is_tmp) matDestroy(ll.front().m);
+                        // std::cout << "STAR : " << ll.front() << std::endl;
+                        res.insert(res.begin(), data_type{tmp, true, false});
+                    }else{
+                        res = std::move(ll);
+                    }
                     break;
                 }
                 case PLUS:
                 {
                     list_type ll;
                     traversal(rpqTree, node->e1, PLUS, ll);
-                    matrix tmp = matClos(ll.front().m, 1);
-                    if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true, false});
+                    if(!skip_closure){
+                        matrix tmp = matClos(ll.front().m, 1);
+                        if(ll.front().is_tmp) matDestroy(ll.front().m);
+                        res.insert(res.begin(), data_type{tmp, true, false});
+                    }else{
+                        res = std::move(ll);
+                    }
                     break;
                 }
                 case QUESTION:
@@ -171,7 +180,8 @@ namespace rpq {
             }
         }
 
-        void traversal_col_fixed(RpqTree* rpqTree, Tree* node, int parentType, int col, list_type &res){
+        void traversal_col_fixed(RpqTree* rpqTree, Tree* node, int parentType, int col, list_type &res,
+                                 bool skip_closure = false){
             switch(node->type) {
                 case STR:{
                     auto pred = rpqTree->getPred(node->pos);
@@ -180,7 +190,7 @@ namespace rpq {
                         res.insert(res.begin(), data_type{a, false, false});
                     }else {
                         matrix e = matEmpty(a->height, a->width);
-                        matrix m = matSum1(a, e, fullSide, col);
+                        matrix m = matSum1(fullSide, a, e, col);
                         matDestroy(e);
                         res.insert(res.begin(), data_type{m, true, true});
                     }
@@ -189,28 +199,65 @@ namespace rpq {
                 case CONC:
                 {
                     list_type ll, rl;
-                    traversal(rpqTree, node->e1, CONC, ll);
-                    traversal_col_fixed(rpqTree, node->e2, CONC, col, rl);
-                    rl.splice(rl.begin(), ll);
-                    if (parentType == CONC){
-                        res = std::move(rl);
-                    }else{
-                        auto it2 = rl.rbegin(); //last element
-                        auto it1 = rl.rbegin(); //last element
-                        ++it2; //last element -1
-                        matrix tmp, aux;
-                        if(it1->is_fixed){
-                            tmp = matMult(it2->m, it1->m);
-                        }else{
-                            tmp = matMult1(it2->m, fullSide,it1->m, col);
-                        }
-                        while(++it2 != rl.rend()){
-                            aux = matMult(it2->m, tmp); //tmp is already fixed
+                    if(node->e1->type == STAR || node->e1->type == PLUS){ //Special case!
+                        traversal(rpqTree, node->e1, CONC, ll, true);
+                        traversal_col_fixed(rpqTree, node->e2, CONC, col, rl);
+                        matrix tmp;
+                        uint pos = (node->e1->type == STAR) ? 0 : 1;
+                        if(rl.size() > 1){ //product of the right part
+                            auto it2 = rl.rbegin(); //last element
+                            auto it1 = rl.rbegin(); //last element
+                            ++it2; //last element -1
+                            matrix aux;
+                            if(it1->is_fixed){
+                                tmp = matMult(it2->m, it1->m);
+                            }else{
+                                tmp = matMult1(fullSide, it2->m,it1->m, col);
+                            }
+                            if(it1->is_tmp) matDestroy(it1->m);
                             if(it2->is_tmp) matDestroy(it2->m);
+                            while(++it2 != rl.rend()){
+                                aux = matMult(it2->m, tmp); //tmp is already fixed
+                                if(it2->is_tmp) matDestroy(it2->m);
+                                matDestroy(tmp);
+                                tmp = aux;
+                            }
+                            aux = matClosMult1(fullSide, ll.front().m, pos, tmp, col);
                             matDestroy(tmp);
-                            tmp = aux;
+                            if(ll.front().is_tmp) matDestroy(ll.front().m);
+                            res.insert(res.begin(), data_type{aux, true, true});
+                        }else{
+                            tmp = matClosMult1(fullSide, ll.front().m, pos, rl.front().m, col);
+                            if(ll.front().is_tmp) matDestroy(ll.front().m);
+                            if(rl.front().is_tmp) matDestroy(rl.front().m);
+                            res.insert(res.begin(), data_type{tmp, true, true});
                         }
-                        res.insert(res.begin(), data_type{tmp, true, true});
+                    }else{
+                        traversal(rpqTree, node->e1, CONC, ll);
+                        traversal_col_fixed(rpqTree, node->e2, CONC, col, rl);
+                        rl.splice(rl.begin(), ll);
+                        if (parentType == CONC){
+                            res = std::move(rl);
+                        }else{
+                            auto it2 = rl.rbegin(); //last element
+                            auto it1 = rl.rbegin(); //last element
+                            ++it2; //last element -1
+                            matrix tmp, aux;
+                            if(it1->is_fixed){
+                                tmp = matMult(it2->m, it1->m);
+                            }else{
+                                tmp = matMult1(fullSide, it2->m,it1->m, col);
+                            }
+                            if(it1->is_tmp) matDestroy(it1->m);
+                            if(it2->is_tmp) matDestroy(it2->m);
+                            while(++it2 != rl.rend()){
+                                aux = matMult(it2->m, tmp); //tmp is already fixed
+                                if(it2->is_tmp) matDestroy(it2->m);
+                                matDestroy(tmp);
+                                tmp = aux;
+                            }
+                            res.insert(res.begin(), data_type{tmp, true, true});
+                        }
                     }
                     break;
                 }
@@ -252,7 +299,7 @@ namespace rpq {
                             if(it1_min->is_fixed && it2_min->is_fixed){
                                 tmp = matSum(it1_min->m, it2_min->m);
                             }else{
-                                tmp = matSum1(it1_min->m, it2_min->m, fullSide, col);
+                                tmp = matSum1(fullSide, it1_min->m, it2_min->m, col);
                             }
                             if (it1_min->is_tmp) matDestroy(it1_min->m);
                             if (it2_min->is_tmp) matDestroy(it2_min->m);
@@ -266,7 +313,7 @@ namespace rpq {
                         if(it1_min->is_fixed && it2_min->is_fixed){
                             tmp = matSum(it1_min->m, it2_min->m);
                         }else{
-                            tmp = matSum1(it1_min->m, it2_min->m, fullSide, col);
+                            tmp = matSum1(fullSide, it1_min->m, it2_min->m, col);
                         }
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
@@ -278,19 +325,28 @@ namespace rpq {
                 {
                     list_type ll;
                     traversal(rpqTree, node->e1, STAR, ll);
-                    matrix tmp = matClos1(ll.front().m, 0, fullSide, col);
-                    // std::cout << "STAR : " << ll.front() << std::endl;
-                    if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true, true});
+                    if(!skip_closure){
+                        matrix tmp = matClos1(fullSide, ll.front().m, 0, col);
+                        // std::cout << "STAR : " << ll.front() << std::endl;
+                        if(ll.front().is_tmp) matDestroy(ll.front().m);
+                        res.insert(res.begin(), data_type{tmp, true, true});
+                    }else{
+                        res = std::move(ll);
+                    }
+
                     break;
                 }
                 case PLUS:
                 {
                     list_type ll;
                     traversal(rpqTree, node->e1, PLUS, ll);
-                    matrix tmp = matClos1(ll.front().m, 1, fullSide, col);
-                    if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true, true});
+                    if(!skip_closure){
+                        matrix tmp = matClos1(fullSide, ll.front().m, 1, col);
+                        if(ll.front().is_tmp) matDestroy(ll.front().m);
+                        res.insert(res.begin(), data_type{tmp, true, true});
+                    }else{
+                        res = std::move(ll);
+                    }
                     break;
                 }
                 case QUESTION:
@@ -298,7 +354,7 @@ namespace rpq {
                     list_type ll;
                     traversal_col_fixed(rpqTree, node->e1, QUESTION, col, ll);
                     matrix Id = matId(std::max(ll.front().m->height,ll.front().m->width));
-                    matrix tmp = matSum1(ll.front().m, Id, fullSide, col);
+                    matrix tmp = matSum1(fullSide, ll.front().m, Id, col);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
                     res.insert(res.begin(), data_type{tmp, true, true});
@@ -307,7 +363,8 @@ namespace rpq {
             }
         }
 
-        void traversal_row_fixed(RpqTree* rpqTree, Tree* node, int parentType, int row, list_type &res){
+        void traversal_row_fixed(RpqTree* rpqTree, Tree* node, int parentType, int row, list_type &res,
+                                 bool skip_closure = false){
             switch(node->type) {
                 case STR:{
                     auto pred = rpqTree->getPred(node->pos);
@@ -316,7 +373,7 @@ namespace rpq {
                         res.insert(res.begin(), data_type{a, false, false});
                     }else {
                         matrix e = matEmpty(a->height, a->width);
-                        matrix m = matSum1(a, e, row, fullSide);
+                        matrix m = matSum1(row, a, e, fullSide);
                         matDestroy(e);
                         res.insert(res.begin(), data_type{m, true, true});
                     }
@@ -325,28 +382,65 @@ namespace rpq {
                 case CONC:
                 {
                     list_type ll, rl;
-                    traversal_row_fixed(rpqTree, node->e1, CONC, row,ll);
-                    traversal(rpqTree, node->e2, CONC, rl);
-                    rl.splice(rl.begin(), ll);
-                    if (parentType == CONC){
-                        res = std::move(rl);
-                    }else{
-                        auto it2 = rl.begin(); //first element
-                        auto it1 = rl.begin(); //first element
-                        ++it2; //first element +1
-                        matrix tmp, aux;
-                        if(it1->is_fixed){
-                            tmp = matMult(it1->m, it2->m);
-                        }else{
-                            tmp = matMult1(it1->m, row,it2->m, fullSide);
-                        }
-                        while(++it2 != rl.end()){
-                            aux = matMult(tmp, it2->m);
+                    if(node->e2->type == STAR || node->e2->type == PLUS) { //Special case!
+                        traversal_row_fixed(rpqTree, node->e1, CONC, row,ll);
+                        traversal(rpqTree, node->e2, CONC, rl, true);
+                        matrix tmp;
+                        uint pos = (node->e2->type == STAR) ? 0 : 1;
+                        if (ll.size() > 1) { //product of the right part
+                            auto it2 = ll.begin(); //first element
+                            auto it1 = ll.begin(); //first element
+                            ++it2; //first element +1
+                            matrix aux;
+                            if(it1->is_fixed){
+                                tmp = matMult(it1->m, it2->m);
+                            }else{
+                                tmp = matMult1(row, it1->m,it2->m, fullSide);
+                            }
+                            if(it1->is_tmp) matDestroy(it1->m);
                             if(it2->is_tmp) matDestroy(it2->m);
+                            while(++it2 != ll.end()){
+                                aux = matMult(it2->m, tmp); //tmp is already fixed
+                                if(it2->is_tmp) matDestroy(it2->m);
+                                matDestroy(tmp);
+                                tmp = aux;
+                            }
+                            aux = matMultClos1(row, tmp, rl.front().m, pos, fullSide);
                             matDestroy(tmp);
-                            tmp = aux;
+                            if(rl.front().is_tmp) matDestroy(rl.front().m);
+                            res.insert(res.begin(), data_type{aux, true, true});
+                        }else{
+                            tmp = matMultClos1(row, ll.front().m, rl.front().m, pos, fullSide);
+                            if(ll.front().is_tmp) matDestroy(ll.front().m);
+                            if(rl.front().is_tmp) matDestroy(rl.front().m);
+                            res.insert(res.begin(), data_type{tmp, true, true});
                         }
-                        res.insert(res.begin(), data_type{tmp, true, true});
+                    }else{
+                        traversal_row_fixed(rpqTree, node->e1, CONC, row,ll);
+                        traversal(rpqTree, node->e2, CONC, rl);
+                        rl.splice(rl.begin(), ll);
+                        if (parentType == CONC){
+                            res = std::move(rl);
+                        }else{
+                            auto it2 = rl.begin(); //first element
+                            auto it1 = rl.begin(); //first element
+                            ++it2; //first element +1
+                            matrix tmp, aux;
+                            if(it1->is_fixed){
+                                tmp = matMult(it1->m, it2->m);
+                            }else{
+                                tmp = matMult1(row, it1->m,it2->m, fullSide);
+                            }
+                            if(it1->is_tmp) matDestroy(it1->m);
+                            if(it2->is_tmp) matDestroy(it2->m);
+                            while(++it2 != rl.end()){
+                                aux = matMult(tmp, it2->m);
+                                if(it2->is_tmp) matDestroy(it2->m);
+                                matDestroy(tmp);
+                                tmp = aux;
+                            }
+                            res.insert(res.begin(), data_type{tmp, true, true});
+                        }
                     }
                     break;
                 }
@@ -388,7 +482,7 @@ namespace rpq {
                             if(it1_min->is_fixed && it2_min->is_fixed){
                                 tmp = matSum(it1_min->m, it2_min->m);
                             }else{
-                                tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
+                                tmp = matSum1(row, it1_min->m, it2_min->m, fullSide);
                             }
                             if (it1_min->is_tmp) matDestroy(it1_min->m);
                             if (it2_min->is_tmp) matDestroy(it2_min->m);
@@ -403,7 +497,7 @@ namespace rpq {
                         if(it1_min->is_fixed && it2_min->is_fixed){
                             tmp = matSum(it1_min->m, it2_min->m);
                         }else{
-                            tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
+                            tmp = matSum1(row, it1_min->m, it2_min->m, fullSide);
                         }
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
@@ -415,27 +509,35 @@ namespace rpq {
                 {
                     list_type ll;
                     traversal(rpqTree, node->e1, STAR, ll);
-                    matrix tmp = matClos1(ll.front().m, 0, row, fullSide);
-                    // std::cout << "STAR : " << ll.front() << std::endl;
-                    if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true, true});
+                    if(!skip_closure){
+                        matrix tmp = matClos1(row, ll.front().m, 0, fullSide);
+                        // std::cout << "STAR : " << ll.front() << std::endl;
+                        if(ll.front().is_tmp) matDestroy(ll.front().m);
+                        res.insert(res.begin(), data_type{tmp, true, true});
+                    }else{
+                        res = std::move(ll);
+                    }
                     break;
                 }
                 case PLUS:
                 {
                     list_type ll;
                     traversal(rpqTree, node->e1, PLUS, ll);
-                    matrix tmp = matClos1(ll.front().m, 1, row, fullSide);
-                    if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true, true});
-                    break;
+                    if(!skip_closure){
+                        matrix tmp = matClos1(row, ll.front().m, 1, fullSide);
+                        if(ll.front().is_tmp) matDestroy(ll.front().m);
+                        res.insert(res.begin(), data_type{tmp, true, true});
+                        break;
+                    }else{
+                        res = std::move(ll);
+                    }
                 }
                 case QUESTION:
                 {
                     list_type ll;
                     traversal_row_fixed(rpqTree, node->e1, QUESTION, row, ll);
                     matrix Id = matId(std::max(ll.front().m->height,ll.front().m->width));
-                    matrix tmp = matSum1(ll.front().m, Id, row, fullSide);
+                    matrix tmp = matSum1(row, ll.front().m, Id, fullSide);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
                     res.insert(res.begin(), data_type{tmp, true, true});
@@ -444,7 +546,8 @@ namespace rpq {
             }
         }
 
-        void traversal_row_col_fixed(RpqTree* rpqTree, Tree* node, int parentType, int row, int col, list_type &res){
+        void traversal_row_col_fixed(RpqTree* rpqTree, Tree* node, int parentType, int row, int col, list_type &res,
+                                     bool skip_closure = false){
             switch(node->type) {
                 case STR:{
                     auto pred = rpqTree->getPred(node->pos);
@@ -453,7 +556,7 @@ namespace rpq {
                         res.insert(res.begin(), data_type{a, false, false});
                     }else {
                         matrix e = matEmpty(a->height, a->width);
-                        matrix m = matSum1(a, e, row, col);
+                        matrix m = matSum1(row, a, e, col);
                         res.insert(res.begin(), data_type{m, true, true});
                         matDestroy(e);
                     }
@@ -475,10 +578,12 @@ namespace rpq {
                         if(it1->is_fixed){
                             tmp = matMult(it1->m, it2->m);
                         }else{
-                            tmp = matMult1(it1->m, row,it2->m, col);
+                            tmp = matMult1(row, it1->m,it2->m, col);
                         }
+                        if(it1->is_tmp) matDestroy(it1->m);
+                        if(it2->is_tmp) matDestroy(it2->m);
                         while(++it2 != rl.end()){
-                            aux = matMult(it1->m,tmp);
+                            aux = matMult(it2->m,tmp);
                             if(it2->is_tmp) matDestroy(it2->m);
                             matDestroy(tmp);
                             tmp = aux;
@@ -525,12 +630,12 @@ namespace rpq {
                             if(it1_min->is_fixed && it2_min->is_fixed){
                                 tmp = matSum(it1_min->m, it2_min->m);
                             }else{
-                                tmp = matSum1(it1_min->m, it2_min->m, row, col);
+                                tmp = matSum1(row, it1_min->m, it2_min->m, col);
                             }
                             if (it1_min->is_tmp) matDestroy(it1_min->m);
                             if (it2_min->is_tmp) matDestroy(it2_min->m);
 
-                            rl.insert(it1_min, data_type{tmp, true});
+                            rl.insert(it1_min, data_type{tmp, true, true});
                             rl.erase(it1_min);
                             rl.erase(it2_min);
                         }
@@ -540,11 +645,11 @@ namespace rpq {
                         if(it1_min->is_fixed && it2_min->is_fixed){
                             tmp = matSum(it1_min->m, it2_min->m);
                         }else{
-                            tmp = matSum1(it1_min->m, it2_min->m, row, col);
+                            tmp = matSum1(row, it1_min->m, it2_min->m, col);
                         }
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
-                        res.insert(res.begin(), data_type{tmp, true});
+                        res.insert(res.begin(), data_type{tmp, true, true});
                     }
                     break;
                 }
@@ -552,19 +657,28 @@ namespace rpq {
                 {
                     list_type ll;
                     traversal(rpqTree, node->e1, STAR, ll);
-                    matrix tmp = matClos1(ll.front().m, 0, row, col);
-                    // std::cout << "STAR : " << ll.front() << std::endl;
-                    if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true});
+                    if(!skip_closure){
+                        matrix tmp = matClos1(row, ll.front().m, 0, col);
+                        // std::cout << "STAR : " << ll.front() << std::endl;
+                        if(ll.front().is_tmp) matDestroy(ll.front().m);
+                        res.insert(res.begin(), data_type{tmp, true, true});
+                    }else{
+                        res = std::move(ll);
+                    }
+
                     break;
                 }
                 case PLUS:
                 {
                     list_type ll;
                     traversal(rpqTree, node->e1, PLUS, ll);
-                    matrix tmp = matClos1(ll.front().m, 1, row, col);
-                    if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true});
+                    if(!skip_closure){
+                        matrix tmp = matClos1(row, ll.front().m, 1, col);
+                        if(ll.front().is_tmp) matDestroy(ll.front().m);
+                        res.insert(res.begin(), data_type{tmp, true, true});
+                    }else{
+                        res = std::move(ll);
+                    }
                     break;
                 }
                 case QUESTION:
@@ -572,10 +686,10 @@ namespace rpq {
                     list_type ll;
                     traversal_row_col_fixed(rpqTree, node->e1, QUESTION, row, col, ll);
                     matrix Id = matId(std::max(ll.front().m->height,ll.front().m->width));
-                    matrix tmp = matSum1(ll.front().m, Id, row, col);
+                    matrix tmp = matSum1(row, ll.front().m, Id, col);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true});
+                    res.insert(res.begin(), data_type{tmp, true, true});
                     break;
                 }
             }

@@ -70,7 +70,7 @@ uint64_t matCollect32 (matrix M, uint32_t r1, uint32_t r2,
 matrix matSum (matrix A, matrix B);
 
         // version with one row or one column, or both
-matrix matSum1 (matrix A, matrix B, uint64_t row, uint64_t col);
+matrix matSum1 (uint64_t row, matrix A, matrix B, uint64_t col);
 
         // (boolean) product of two matrices, assumed to be of the same side
         // only rowA of A and colB of B are considered if not fullSide
@@ -78,12 +78,18 @@ matrix matSum1 (matrix A, matrix B, uint64_t row, uint64_t col);
 matrix matMult (matrix A, matrix B);
 
 	// version with one row or one column, or both
-matrix matMult1 (matrix A, uint64_t rowA, matrix B, uint64_t colB);
+matrix matMult1 (uint64_t row, matrix A, matrix B, uint64_t col);
 
 	// transitive closure of a matrix, pos says if it's + rather than *
 matrix matClos (matrix A, uint pos);
 
 	// versions to choose one row or one column, or both
-matrix matClos1 (matrix A, uint pos, uint64_t row, uint64_t col);
+matrix matClos1 (uint64_t row, matrix A, uint pos, uint64_t col);
+
+        // computes [row] A B* [col] (pos=0) or [row] A B+ [col] (pos=1)
+matrix matMultClos1 (uint64_t row, matrix A, matrix B, uint pos, uint64_t col);
+
+        // computes [row] A* B [col] (pos=0) or [row] A+ B [col] (pos=1)
+matrix matClosMult1 (uint64_t row, matrix A, uint pos, matrix B, uint64_t col);
 
 #endif

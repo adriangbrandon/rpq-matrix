@@ -488,7 +488,7 @@ static uint64_t *k2sum1 (k2tree A, k2tree B, uint64_t row, uint64_t col,
     return sum.tree;
 }
 
-matrix matSum1 (matrix A, matrix B, uint64_t row, uint64_t col)
+matrix matSum1 (uint64_t row, matrix A, matrix B, uint64_t col)
 
 { uint64_t *sum;
     matrix M;
@@ -683,42 +683,42 @@ static partition k2mult (k2tree treeA, k2node nodeA, k2tree treeB, k2node nodeB,
 
 matrix matMult (matrix A, matrix B)
 
-{ return matMult1 (A,fullSide,B,fullSide);
-}
+   { return matMult1 (fullSide,A,B,fullSide);
+   }
 
-matrix matMult1 (matrix A, uint64_t rowA, matrix B, uint64_t colB)
+matrix matMult1 (uint64_t row, matrix A, matrix B, uint64_t col)
 
 { partition mult;
     matrix M;
     uint64_t hA,wB;
 
-    if (A->logside != B->logside)
-    { fprintf(stderr,"Error: product of matrices of different side\n");
-        exit(1);
-    }
-    M = (matrix)myalloc(sizeof(struct s_matrix));
-    M->logside = A->logside;
-    matDims(A,NULL,NULL,&hA); matDims(B,NULL,&wB,NULL);
-    M->width = wB; M->height = hA;
-    M->transposed = 0;
-    if ((A->elems == 0) || (B->elems == 0))
-    { M->elems = 0; M->tree = NULL; }
-    else
-    { mapA = A->transposed ? mapTr : mapId;
-        mapB = B->transposed ? mapTr : mapId;
-        if ((rowA == fullSide) && (colB == fullSide))
-            mult = k2mult (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
-                           k2levels(A->tree));
-        else
-            mult = k2multRC (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
-                             k2levels(A->tree),rowA,colB);
-        myfree (mult.levels);
-        M->elems = mult.elems;
-        if (M->elems == 0) M->tree = NULL;
-        else M->tree = k2createFrom (k2levels(A->tree),mult.len,mult.tree,1);
-    }
-    return M;
-}
+     if (A->logside != B->logside)
+        { fprintf(stderr,"Error: product of matrices of different side\n");
+          exit(1);
+        }
+     M = (matrix)myalloc(sizeof(struct s_matrix));
+     M->logside = A->logside;
+     matDims(A,NULL,NULL,&hA); matDims(B,NULL,&wB,NULL);
+     M->width = wB; M->height = hA;
+     M->transposed = 0;
+     if ((A->elems == 0) || (B->elems == 0))
+	{ M->elems = 0; M->tree = NULL; }
+     else
+        { mapA = A->transposed ? mapTr : mapId;
+          mapB = B->transposed ? mapTr : mapId;
+	  if ((row == fullSide) && (col == fullSide))
+	     mult = k2mult (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
+		         k2levels(A->tree));
+	  else
+	     mult = k2multRC (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
+		         k2levels(A->tree),row,col);
+          myfree (mult.levels);
+          M->elems = mult.elems;
+          if (M->elems == 0) M->tree = NULL;
+          else M->tree = k2createFrom (k2levels(A->tree),mult.len,mult.tree,1);
+	}
+     return M;
+   }
 
 // transitive closure of a matrix, pos says if it's + rather than *
 
@@ -756,85 +756,131 @@ matrix matClos (matrix A, uint pos)
 // here we restrict first to the row/column even if we lose the
 // exponential increase in the paths
 
-// if coltest not null, checks that the cell *coltest exists and
-// returns there 1 or 0 as soon as it can
-static matrix matClosRow (matrix A, uint pos, uint64_t row, uint64_t *coltest)
+	// if coltest not null, checks that the cell *coltest exists and
+	// returns there 1 or 0 as soon as it can
+static matrix matClosRow (uint64_t row, matrix I, matrix A, uint pos,
+			  uint64_t *coltest)
 
-{ matrix Id,M,P,S,Ar,E;
-    uint64_t elems;
-    uint64_t dim = mmax(A->height,A->width);
+   { matrix M,P,S,E;
+     uint64_t elems;
+     uint64_t dim = mmax(A->height,A->width);
 
-    if (pos)
-    { E = matEmpty(dim,dim);
-        Ar = matSum1(A,E,row,fullSide);
-        matDestroy(E);
-    }
-    else
-    { Id = matId(dim);
-        Ar = matSum1(A,Id,row,fullSide);
-        matDestroy(Id);
-    }
-    elems = Ar->elems;
-    if (coltest && matAccess(Ar,row,*coltest))
-    { matDestroy(Ar); *coltest = 1; return NULL; }
-    P = matMult (Ar,A);
-    S = matSum (P,Ar);
-    matDestroy(Ar);
-    while (S->elems != elems)
-    { if (coltest && matAccess(S,row,*coltest))
-        { matDestroy(S); matDestroy(P); *coltest = 1; return NULL; }
-        elems = S->elems;
-        M = matMult(P,A);
-        matDestroy(P);
-        P = M;
-        M = matSum(S,P);
-        matDestroy(S);
-        S = M;
-    }
-    matDestroy(P);
-    if (coltest) { *coltest = 0; return NULL; }
-    return S;
-}
-
-// versions to choose one row or one column, or both
-
-matrix matClos1 (matrix A, uint pos, uint64_t row, uint64_t col)
-
-{ uint64_t nrow,ncol;
-    uint64_t side = mmax(A->width,A->height);
-    uint64_t cell[2];
-    uint64_t test;
-    matrix M;
-    if (row == fullSide)
-    { if (col == fullSide) return matClos(A,pos);
-        else
-        { matTranspose(A);
-            M = matClosRow(A,pos,col,NULL);
-            matTranspose(A);
-            matTranspose(M);
-            return M;
+     if (I == NULL)
+        { if (pos) E = matEmpty(dim,dim);
+          else E = matOne(dim,dim,row,row);
+          S = matSum1 (row,A,E,fullSide);
+          matDestroy(E);
         }
-    }
-    else
-    { if (col == fullSide) return matClosRow(A,pos,row,NULL);
-    }
-    // both row and col
-    nrow = matCollect (A,0,fullSide,col,col,NULL);
-    ncol = matCollect (A,row,row,0,fullSide,NULL);
-    if (ncol < nrow)
-    { test = row;
-        matTranspose(A);
-        matClosRow(A,pos,col,&test);
-        matTranspose(A);
-    }
-    else
-    { test = col;
-        matClosRow(A,pos,row,&test);
-    }
-    if (test)
-    { cell[0] = row; cell[1] = col;
-        return matCreate (side,side,1,cell);
-    }
-    else return matEmpty(side,side);
-}
+     else
+        { if (pos) S = matMult1(row,I,A,fullSide);
+          else { E = matEmpty(dim,dim);
+                 S = matSum1(row,I,E,fullSide);
+                 matDestroy(E);
+               }
+        }
+     elems = S->elems;
+     if (coltest && matAccess(S,row,*coltest))
+	{ matDestroy(S); *coltest = 1; return NULL; }
+     P = matMult (S,A);
+     M = S; S = matSum (S,P); matDestroy(M);
+     while (S->elems != elems)
+	{ if (coltest && matAccess(S,row,*coltest))
+	     { matDestroy(S); matDestroy(P); *coltest = 1; return NULL; }
+	  elems = S->elems;
+	  M = P; P = matMult(P,A); matDestroy(M);
+	  M = S; S = matSum(S,P); matDestroy(M);
+	}
+     matDestroy(P);
+     if (coltest) { *coltest = 0; return NULL; }
+     return S;
+   }
+
+        // versions to choose one row or one column, or both
+
+matrix matClos1 (uint64_t row, matrix A, uint pos, uint64_t col)
+
+   { uint64_t nrow,ncol;
+     uint64_t side = mmax(A->width,A->height);
+     uint64_t cell[2];
+     uint64_t test;
+     matrix M;
+     if (row == fullSide)
+	{ if (col == fullSide) return matClos(A,pos);
+	  else
+             { matTranspose(A);
+               M = matClosRow(col,NULL,A,pos,NULL);
+               matTranspose(A);
+	       matTranspose(M);
+               return M;
+             }
+	}
+     else
+        { if (col == fullSide) return matClosRow(row,NULL,A,pos,NULL);
+	}
+	// both row and col
+     nrow = matCollect (A,0,fullSide,col,col,NULL);
+     ncol = matCollect (A,row,row,0,fullSide,NULL);
+     if (ncol < nrow)
+	{ test = row;
+	  matTranspose(A);
+	  matClosRow(col,NULL,A,pos,&test);
+	  matTranspose(A);
+	}
+     else
+	{ test = col;
+	  matClosRow(row,NULL,A,pos,&test);
+	}
+     if (test)
+	{ cell[0] = row; cell[1] = col;
+	  return matCreate (side,side,1,cell);
+	}
+     else return matEmpty(side,side);
+   }
+
+        // computes [row] A B* [col] (pos=0) or [row] A B+ [col] (pos=1)
+
+matrix matMultClos1 (uint64_t row, matrix A, matrix B, uint pos, uint64_t col)
+
+   { uint64_t nrow,ncol;
+     uint64_t side = mmax(A->width,A->height);
+     uint test;
+     matrix M,M1;
+     if (row == fullSide)
+        { if (col == fullSide)  // nothing special
+             { M1 = matClos(B,pos);
+               M = matMult(A,M1);
+               matDestroy(M1);
+               return M;
+             }
+          else // it's much better to start with restricted B
+             { M1 = matClos1(row,B,pos,col);
+               M = matMult(A,M1);
+               matDestroy(M1);
+               return M;
+             }
+        }
+     else
+        { if (col == fullSide) return matClosRow(row,A,B,pos,NULL);
+        }
+        // both row and col
+     test = col;
+     matClosRow(row,A,B,pos,&test); // returns no matrix, just test
+     if (test) return matOne (side,side,row,col);
+     return matEmpty(side,side);
+   }
+
+        // computes [row] A* B [col] (pos=0) or [row] A+ B [col] (pos=1)
+
+matrix matClosMult1 (uint64_t row, matrix A, uint pos, matrix B, uint64_t col)
+
+   { matrix M;
+     matTranspose(A);
+     matTranspose(B);
+     M = matMultClos1(col,B,A,pos,row);
+     matTranspose(A);
+     matTranspose(B);
+     matTranspose(M);
+     return M;
+   }
+
 
