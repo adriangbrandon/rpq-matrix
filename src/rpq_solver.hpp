@@ -9,6 +9,8 @@
 #define SIZE 5420 // 1 to 5419
 #define V 296008192 // 1 to...
 
+#define VERBOSE 1
+
 extern "C" {
 #include <matrix.h>
 }
@@ -54,6 +56,9 @@ namespace rpq {
                     rl.splice(rl.begin(), ll);
                     if (parentType == CONC){
                         res = std::move(rl);
+#if VERBOSE
+                        std::cout << "[CONC]: skip" << std::endl;
+#endif
                     }else{
                         it_type it1, it2, it1_min, it2_min;
                         matrix tmp;
@@ -84,6 +89,9 @@ namespace rpq {
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
                         res.insert(res.begin(), data_type{tmp, true, false});
+#if VERBOSE
+                        std::cout << "[CONC]: matMult" << std::endl;
+#endif
                     }
                     break;
                 }
@@ -96,6 +104,9 @@ namespace rpq {
                     rl.splice(rl.begin(), ll);
                     if (parentType == OOR){
                         res = std::move(rl);
+#if VERBOSE
+                        std::cout << "[OR]: skip" << std::endl;
+#endif
                     }else{
                         it_type it1, it2, it1_min, it2_min;
                         matrix tmp;
@@ -136,6 +147,9 @@ namespace rpq {
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
                         res.insert(res.begin(), data_type{tmp, true, false});
+#if VERBOSE
+                        std::cout << "[OR]: matSum" << std::endl;
+#endif
                     }
                     break;
                 }
@@ -148,8 +162,14 @@ namespace rpq {
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
                         // std::cout << "STAR : " << ll.front() << std::endl;
                         res.insert(res.begin(), data_type{tmp, true, false});
+#if VERBOSE
+                        std::cout << "[STAR]: matClos" << std::endl;
+#endif
                     }else{
                         res = std::move(ll);
+#if VERBOSE
+                        std::cout << "[STAR]: skip" << std::endl;
+#endif
                     }
                     break;
                 }
@@ -270,6 +290,9 @@ namespace rpq {
                     rl.splice(rl.begin(), ll);
                     if (parentType == OOR){
                         res = std::move(rl);
+#if VERBOSE
+                        std::cout << "[OR]: col fixed -> skip" << std::endl;
+#endif
                     }else{
                         matrix tmp;
                         it_type it1, it2, it1_min, it2_min;
@@ -318,6 +341,9 @@ namespace rpq {
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
                         res.insert(res.begin(), data_type{tmp, true, true});
+#if VERBOSE
+                        std::cout << "[OR]: col fixed -> matSums" << std::endl;
+#endif
                     }
                     break;
                 }
@@ -326,12 +352,19 @@ namespace rpq {
                     list_type ll;
                     traversal(rpqTree, node->e1, STAR, ll);
                     if(!skip_closure){
+#if VERBOSE
+                        std::cout << "[STAR]: col fixed -> matClos1" << std::endl;
+#endif
                         matrix tmp = matClos1(fullSide, ll.front().m, 0, col);
                         // std::cout << "STAR : " << ll.front() << std::endl;
+                        std::cout << "tmp-elems: " << ll.front().m->elems << std::endl;
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
                         res.insert(res.begin(), data_type{tmp, true, true});
                     }else{
                         res = std::move(ll);
+#if VERBOSE
+                        std::cout << "[STAR]: col fixed -> skip" << std::endl;
+#endif
                     }
 
                     break;
@@ -341,10 +374,16 @@ namespace rpq {
                     list_type ll;
                     traversal(rpqTree, node->e1, PLUS, ll);
                     if(!skip_closure){
+#if VERBOSE
+                        std::cout << "[PLUS]: col fixed -> matClos1" << std::endl;
+#endif
                         matrix tmp = matClos1(fullSide, ll.front().m, 1, col);
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
                         res.insert(res.begin(), data_type{tmp, true, true});
                     }else{
+#if VERBOSE
+                        std::cout << "[PLUS]: col fixed -> skip" << std::endl;
+#endif
                         res = std::move(ll);
                     }
                     break;
@@ -723,6 +762,8 @@ namespace rpq {
             }
             printf (" done... %li total words (%0.2f bpt)\n",space,space*(w/8)/(float)N);
 
+            matrix tmp = matMult(m_matrices[412], m_matrices[412]);
+            std::cout << tmp->elems << std::endl;
 
             std::ifstream ifs_SO(dataset + ".SO", std::ifstream::in);
             std::ifstream ifs_P(dataset + ".P", std::ifstream::in);
@@ -735,19 +776,22 @@ namespace rpq {
 
             std::cout << "Reading mapping..." << std::flush;
             while (std::getline(ifs_SO, data)) {
-                auto space = data.find(' ');
+                space = data.find(' ');
                 id = std::stoull(data.substr(0, space));
                 s_aux = data.substr(space + 1);
                 m_map_SO[s_aux] = id;
             }
 
             while (std::getline(ifs_P, data)) {
-                auto space = data.find(' ');
+                space = data.find(' ');
                 id = std::stoull(data.substr(0, space));
                 s_aux = data.substr(space + 1);
                 m_map_P[s_aux] = id;
             }
             std::cout << " done." << std::endl;
+
+
+
 
         }
 

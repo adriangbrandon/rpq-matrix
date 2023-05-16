@@ -192,7 +192,7 @@ boolean getAclass(const char *pat, int *i, Mask *B, int l)
 	return true;
 }
 
-boolean getAclass(const char *pat, int *i, Mask *B, int l, std::vector<int> &pos_pred)
+boolean getAclass(const char *pat, int *i, Mask *B, int l, int* pos_pred)
 
 /* Gets a class of characters from pat[i...] (sets i at the next
 	   position to read) and sets the appropriate bits in

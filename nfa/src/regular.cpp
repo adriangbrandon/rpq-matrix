@@ -248,7 +248,7 @@ void regularLoadMasks(const char *pat, int m, int L, Tree *e, Tree **pos,
 	   initial and final states (preallocated) */
 
 void regularLoadMasks(const char *pat, int m, int L, Tree *e, Tree **pos,
-                      Mask *B, std::vector<int> &pos_pred,
+                      Mask *B, int* pos_pred,
                       Mask **trans, Mask initial, Mask final)
 
 {
@@ -470,7 +470,7 @@ regularData *regularPreproc(const char *pat, Tree *tree, Tree **pos)
 }
 
 
-regularData *regularPreprocBInv(const char *pat, Tree *tree, Tree **pos, std::vector<int> &pos_pred)
+regularData *regularPreprocBInv(const char *pat, Tree *tree, Tree **pos, int* pos_pred)
 
 {
 	regularData *P = (regularData*)malloc(sizeof(regularData));

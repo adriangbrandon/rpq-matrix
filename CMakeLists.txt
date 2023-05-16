@@ -51,8 +51,5 @@ link_directories(~/lib)
 add_subdirectory(nfa)
 add_subdirectory(matrix_gn)
 
-add_executable(query-index-split src/query-index-split.cpp)
-target_link_libraries(query-index-split sdsl divsufsort divsufsort64 nfa)
-
 add_executable(query src/query.cpp)
 target_link_libraries(query matrix_gn nfa)

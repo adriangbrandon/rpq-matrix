@@ -200,7 +200,7 @@ RpqTree::RpqTree(const std::string &rpq, const std::unordered_map<std::string, u
     patternData = rpqToPatternData(rpq, predicates, max_pred);
     m = patternData.pattern.length();
     pos = new Tree *[m];
-    pos_id = std::vector<int>(m, 0);
+    pos_id = new int[m+1];
     tree = parse(patternData.pattern.c_str(), m, pos, false);
     regularPreprocBInv(patternData.pattern.c_str(), tree, pos, pos_id);
 }
@@ -262,4 +262,5 @@ Tree *RpqTree::root() {
 RpqTree::~RpqTree() {
     freeTree(tree);
     delete [] pos;
+    delete [] pos_id;
 }

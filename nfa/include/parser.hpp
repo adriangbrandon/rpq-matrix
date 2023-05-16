@@ -50,7 +50,7 @@ boolean getAclass(const char *pat, int *i, Mask *B, int l);
            position to read) and sets the appropriate bits in B[*] column l.
 	   From outside it should be used to work on positions marked by
 	   the pos[] array returned by parse */
-boolean getAclass(const char *pat, int *i, Mask *B, int l, std::vector<int> &pos_pred);
+boolean getAclass(const char *pat, int *i, Mask *B, int l, int* pos_pred);
 
 /* probabilities of individual letters */
 
