@@ -229,7 +229,7 @@ namespace rpq {
                     matrix tmp = matSum(A, Id);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true, false});
+                    res.insert(res.begin(), data_type{tmp, false,true, false});
                     break;
                 }
             }
@@ -271,13 +271,13 @@ namespace rpq {
                             if(it1->is_fixed){
                                 matrix A, B;
                                 s_matrix sA, sB;
-                                A = get_matrix(sA, it2->m, it1->is_transposed);
+                                A = get_matrix(sA, it2->m, it2->is_transposed);
                                 B = get_matrix(sB, it1->m, it1->is_transposed);
                                 tmp = matMult(A, B);
                             }else{
                                 matrix A, B;
                                 s_matrix sA, sB;
-                                A = get_matrix(sA, it2->m, it1->is_transposed);
+                                A = get_matrix(sA, it2->m, it2->is_transposed);
                                 B = get_matrix(sB, it1->m, it1->is_transposed);
                                 tmp = matMult1(fullSide, A,B, col);
                             }
@@ -468,7 +468,7 @@ namespace rpq {
                         A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
                         matrix tmp = matClos1(fullSide, A, 1, col);
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
-                        res.insert(res.begin(), data_type{tmp, true, true});
+                        res.insert(res.begin(), data_type{tmp, false,true, true});
                     }else{
 #if VERBOSE
                         std::cout << "[PLUS]: col fixed -> skip" << std::endl;
@@ -489,7 +489,7 @@ namespace rpq {
                     matrix tmp = matSum1(fullSide, A, Id, col);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true, true});
+                    res.insert(res.begin(), data_type{tmp, false, true, true});
                     break;
                 }
             }
@@ -711,7 +711,6 @@ namespace rpq {
                         matrix tmp = matClos1(row, A, 1, fullSide);
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
                         res.insert(res.begin(), data_type{tmp, false, true, true});
-                        break;
                     }else{
                         res = std::move(ll);
                     }
@@ -846,7 +845,7 @@ namespace rpq {
                             if (it1_min->is_tmp) matDestroy(it1_min->m);
                             if (it2_min->is_tmp) matDestroy(it2_min->m);
 
-                            rl.insert(it1_min, data_type{tmp, true, true});
+                            rl.insert(it1_min, data_type{tmp, false, true, true});
                             rl.erase(it1_min);
                             rl.erase(it2_min);
                         }
@@ -868,7 +867,7 @@ namespace rpq {
                         }
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
-                        res.insert(res.begin(), data_type{tmp, true, true});
+                        res.insert(res.begin(), data_type{tmp, false, true, true});
                     }
                     break;
                 }
@@ -900,7 +899,6 @@ namespace rpq {
                         matrix tmp = matClos1(row, A, 1, fullSide);
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
                         res.insert(res.begin(), data_type{tmp, false, true, true});
-                        break;
                     }else{
                         res = std::move(ll);
                     }
@@ -917,7 +915,7 @@ namespace rpq {
                     matrix tmp = matSum1(row, ll.front().m, Id, fullSide);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true, true});
+                    res.insert(res.begin(), data_type{tmp, false, true, true});
                     break;
                 }
             }
