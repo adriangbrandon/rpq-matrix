@@ -53,7 +53,7 @@ typedef struct
 
 regularData *regularPreproc(const char *pat, Tree *tree, Tree **pos);
 regularData *regularPreprocBInv(const char *pat, Tree *tree, Tree **pos,
-                                std::vector<int> &pos_pred);
+                                int* pos_pred);
 
 
 /* Frees P */
