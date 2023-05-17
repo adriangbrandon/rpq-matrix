@@ -242,7 +242,7 @@ namespace rpq {
                     auto pred = rpqTree->getPred(node->pos);
                     if(parentType != ROOT){
                         matrix a = (pred > SIZE) ? m_matrices[pred-SIZE] :  m_matrices[pred];
-                        res.insert(res.begin(), data_type{a, (pred > SIZE), false});
+                        res.insert(res.begin(), data_type{a, (pred > SIZE), false, false});
                     }else {
                         matrix a = (pred > SIZE) ? m_matrices[pred-SIZE] :  m_matrices[pred];
                         matrix A;
