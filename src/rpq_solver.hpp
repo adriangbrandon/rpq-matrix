@@ -9,7 +9,7 @@
 #define SIZE 5420 // 1 to 5419
 #define V 296008192 // 1 to...
 
-#define VERBOSE 1
+#define VERBOSE 0
 
 extern "C" {
 #include <matrix.h>
@@ -26,6 +26,7 @@ namespace rpq {
 
         typedef struct {
             matrix m;
+            bool is_transposed;
             bool is_tmp;
             bool is_fixed;
         } data_type;
@@ -40,12 +41,21 @@ namespace rpq {
         std::unordered_map<std::string, uint64_t> m_map_SO;
         std::unordered_map<std::string, uint64_t> m_map_P;
 
+
+        inline matrix get_matrix(s_matrix &a, matrix m, bool is_tranposed){
+            if(!is_tranposed) return m;
+            a = matTranspose(m);
+            return &a;
+        }
+
         void traversal(RpqTree* rpqTree, Tree* node, int parentType, list_type &res,
                        bool skip_closure = false){
             switch(node->type) {
                 case STR:{
                     auto pred = rpqTree->getPred(node->pos);
-                    res.insert(res.begin(), data_type{m_matrices[pred], false, false});
+                    matrix a = (pred > SIZE) ? m_matrices[pred-SIZE] :  m_matrices[pred];
+                    res.insert(res.begin(), data_type{a, (pred > SIZE),
+                                                      false, false});
                     break;
                 }
                 case CONC:
@@ -75,20 +85,28 @@ namespace rpq {
                                 }
                                 ++it1; ++it2;
                             }
-                            tmp = matMult(it1_min->m, it2_min->m);
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                            B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                            tmp = matMult(A, B);
                             if(it1_min->is_tmp) matDestroy(it1_min->m);
                             if(it2_min->is_tmp) matDestroy(it2_min->m);
 
-                            rl.insert(it1_min, data_type{tmp, true, false});
+                            rl.insert(it1_min, data_type{tmp, false, true, false});
                             rl.erase(it1_min);
                             rl.erase(it2_min);
                         }
                         it1_min = it2_min = rl.begin();
                         ++it2_min;
-                        tmp = matMult(it1_min->m, it2_min->m);
+                        matrix A, B;
+                        s_matrix sA, sB;
+                        A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                        B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                        tmp = matMult(A, B);
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
-                        res.insert(res.begin(), data_type{tmp, true, false});
+                        res.insert(res.begin(), data_type{tmp, false, true, false});
 #if VERBOSE
                         std::cout << "[CONC]: matMult" << std::endl;
 #endif
@@ -132,21 +150,29 @@ namespace rpq {
                                 }
                                 ++it2;
                             }
-                            tmp = matSum(it1_min->m, it2_min->m);
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                            B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                            tmp = matSum(A, B);
                             if(it1_min->is_tmp) matDestroy(it1_min->m);
                             if(it2_min->is_tmp) matDestroy(it2_min->m);
 
-                            rl.insert(it1_min, data_type{tmp, true, false});
+                            rl.insert(it1_min, data_type{tmp, false, true, false});
                             rl.erase(it1_min);
                             rl.erase(it2_min);
                         }
 
                         it1_min = it2_min = rl.begin();
                         ++it2_min;
-                        tmp = matSum(it1_min->m, it2_min->m);
+                        matrix A, B;
+                        s_matrix sA, sB;
+                        A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                        B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                        tmp = matSum(A, B);
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
-                        res.insert(res.begin(), data_type{tmp, true, false});
+                        res.insert(res.begin(), data_type{tmp, false,true, false});
 #if VERBOSE
                         std::cout << "[OR]: matSum" << std::endl;
 #endif
@@ -158,10 +184,13 @@ namespace rpq {
                     list_type ll;
                     traversal(rpqTree, node->e1, STAR, ll);
                     if(!skip_closure){
-                        matrix tmp = matClos(ll.front().m, 0);
+                        matrix A;
+                        s_matrix sA;
+                        A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                        matrix tmp = matClos(A, 0);
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
                         // std::cout << "STAR : " << ll.front() << std::endl;
-                        res.insert(res.begin(), data_type{tmp, true, false});
+                        res.insert(res.begin(), data_type{tmp, false, true, false});
 #if VERBOSE
                         std::cout << "[STAR]: matClos" << std::endl;
 #endif
@@ -178,9 +207,12 @@ namespace rpq {
                     list_type ll;
                     traversal(rpqTree, node->e1, PLUS, ll);
                     if(!skip_closure){
-                        matrix tmp = matClos(ll.front().m, 1);
+                        matrix A;
+                        s_matrix sA;
+                        A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                        matrix tmp = matClos(A, 1);
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
-                        res.insert(res.begin(), data_type{tmp, true, false});
+                        res.insert(res.begin(), data_type{tmp, false,true, false});
                     }else{
                         res = std::move(ll);
                     }
@@ -190,8 +222,11 @@ namespace rpq {
                 {
                     list_type ll;
                     traversal(rpqTree, node->e1, QUESTION, ll);
-                    matrix Id = matId(std::max(ll.front().m->height,ll.front().m->width));
-                    matrix tmp = matSum(ll.front().m, Id);
+                    matrix A;
+                    s_matrix sA;
+                    A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                    matrix Id = matId(std::max(A->height, A->width));
+                    matrix tmp = matSum(A, Id);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
                     res.insert(res.begin(), data_type{tmp, true, false});
@@ -205,14 +240,18 @@ namespace rpq {
             switch(node->type) {
                 case STR:{
                     auto pred = rpqTree->getPred(node->pos);
-                    matrix a = m_matrices[pred];
                     if(parentType != ROOT){
-                        res.insert(res.begin(), data_type{a, false, false});
+                        matrix a = (pred > SIZE) ? m_matrices[pred-SIZE] :  m_matrices[pred];
+                        res.insert(res.begin(), data_type{a, (pred > SIZE), false});
                     }else {
-                        matrix e = matEmpty(a->height, a->width);
-                        matrix m = matSum1(fullSide, a, e, col);
+                        matrix a = (pred > SIZE) ? m_matrices[pred-SIZE] :  m_matrices[pred];
+                        matrix A;
+                        s_matrix sA;
+                        A = get_matrix(sA, a, (pred > SIZE));
+                        matrix e = matEmpty(A->height, A->width);
+                        matrix m = matSum1(fullSide, A, e, col);
                         matDestroy(e);
-                        res.insert(res.begin(), data_type{m, true, true});
+                        res.insert(res.begin(), data_type{m, false,true, true});
                     }
                     break;
                 }
@@ -230,27 +269,45 @@ namespace rpq {
                             ++it2; //last element -1
                             matrix aux;
                             if(it1->is_fixed){
-                                tmp = matMult(it2->m, it1->m);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it2->m, it1->is_transposed);
+                                B = get_matrix(sB, it1->m, it1->is_transposed);
+                                tmp = matMult(A, B);
                             }else{
-                                tmp = matMult1(fullSide, it2->m,it1->m, col);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it2->m, it1->is_transposed);
+                                B = get_matrix(sB, it1->m, it1->is_transposed);
+                                tmp = matMult1(fullSide, A,B, col);
                             }
                             if(it1->is_tmp) matDestroy(it1->m);
                             if(it2->is_tmp) matDestroy(it2->m);
                             while(++it2 != rl.rend()){
-                                aux = matMult(it2->m, tmp); //tmp is already fixed
+                                matrix A;
+                                s_matrix sA;
+                                A = get_matrix(sA, it2->m, it2->is_transposed);
+                                aux = matMult(A, tmp); //tmp is already fixed
                                 if(it2->is_tmp) matDestroy(it2->m);
                                 matDestroy(tmp);
                                 tmp = aux;
                             }
-                            aux = matClosMult1(fullSide, ll.front().m, pos, tmp, col);
+                            matrix A;
+                            s_matrix sA;
+                            A = get_matrix(sA, ll.front().m,  ll.front().is_transposed);
+                            aux = matClosMult1(fullSide, A, pos, tmp, col);
                             matDestroy(tmp);
                             if(ll.front().is_tmp) matDestroy(ll.front().m);
-                            res.insert(res.begin(), data_type{aux, true, true});
+                            res.insert(res.begin(), data_type{aux, false, true, true});
                         }else{
-                            tmp = matClosMult1(fullSide, ll.front().m, pos, rl.front().m, col);
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                            B = get_matrix(sB, rl.front().m, rl.front().is_transposed);
+                            tmp = matClosMult1(fullSide, A, pos, B, col);
                             if(ll.front().is_tmp) matDestroy(ll.front().m);
                             if(rl.front().is_tmp) matDestroy(rl.front().m);
-                            res.insert(res.begin(), data_type{tmp, true, true});
+                            res.insert(res.begin(), data_type{tmp, false, true, true});
                         }
                     }else{
                         traversal_col_fixed(rpqTree, node->e2, CONC, col, rl);
@@ -264,19 +321,30 @@ namespace rpq {
                             ++it2; //last element -1
                             matrix tmp, aux;
                             if(it1->is_fixed){
-                                tmp = matMult(it2->m, it1->m);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1->m, it1->is_transposed);
+                                B = get_matrix(sB, it2->m, it2->is_transposed);
+                                tmp = matMult(A, B);
                             }else{
-                                tmp = matMult1(fullSide, it2->m,it1->m, col);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it2->m, it2->is_transposed);
+                                B = get_matrix(sB, it1->m, it1->is_transposed);
+                                tmp = matMult1(fullSide, A, B, col);
                             }
                             if(it1->is_tmp) matDestroy(it1->m);
                             if(it2->is_tmp) matDestroy(it2->m);
                             while(++it2 != rl.rend()){
-                                aux = matMult(it2->m, tmp); //tmp is already fixed
+                                matrix A;
+                                s_matrix sA;
+                                A = get_matrix(sA, it2->m, it2->is_transposed);
+                                aux = matMult(A, tmp); //tmp is already fixed
                                 if(it2->is_tmp) matDestroy(it2->m);
                                 matDestroy(tmp);
                                 tmp = aux;
                             }
-                            res.insert(res.begin(), data_type{tmp, true, true});
+                            res.insert(res.begin(), data_type{tmp, false, true, true});
                         }
                     }
                     break;
@@ -320,27 +388,43 @@ namespace rpq {
                             }
                             //tmp = matSum1(it1_min->m, it2_min->m, fullSide, col);
                             if(it1_min->is_fixed && it2_min->is_fixed){
-                                tmp = matSum(it1_min->m, it2_min->m);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                                B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                                tmp = matSum(A, B);
                             }else{
-                                tmp = matSum1(fullSide, it1_min->m, it2_min->m, col);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                                B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                                tmp = matSum1(fullSide, A, B, col);
                             }
                             if (it1_min->is_tmp) matDestroy(it1_min->m);
                             if (it2_min->is_tmp) matDestroy(it2_min->m);
 
-                            rl.insert(it1_min, data_type{tmp, true, true});
+                            rl.insert(it1_min, data_type{tmp, false,true, true});
                             rl.erase(it1_min);
                             rl.erase(it2_min);
                         }
                         it1_min = it2_min = rl.begin();
                         ++it2_min;
                         if(it1_min->is_fixed && it2_min->is_fixed){
-                            tmp = matSum(it1_min->m, it2_min->m);
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                            B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                            tmp = matSum(A, B);
                         }else{
-                            tmp = matSum1(fullSide, it1_min->m, it2_min->m, col);
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                            B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                            tmp = matSum1(fullSide, A, B, col);
                         }
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
-                        res.insert(res.begin(), data_type{tmp, true, true});
+                        res.insert(res.begin(), data_type{tmp, false,true, true});
 #if VERBOSE
                         std::cout << "[OR]: col fixed -> matSums" << std::endl;
 #endif
@@ -355,11 +439,13 @@ namespace rpq {
 #if VERBOSE
                         std::cout << "[STAR]: col fixed -> matClos1" << std::endl;
 #endif
-                        matrix tmp = matClos1(fullSide, ll.front().m, 0, col);
+                        matrix A;
+                        s_matrix sA;
+                        A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                        matrix tmp = matClos1(fullSide, A, 0, col);
                         // std::cout << "STAR : " << ll.front() << std::endl;
-                        std::cout << "tmp-elems: " << ll.front().m->elems << std::endl;
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
-                        res.insert(res.begin(), data_type{tmp, true, true});
+                        res.insert(res.begin(), data_type{tmp, false, true, true});
                     }else{
                         res = std::move(ll);
 #if VERBOSE
@@ -377,7 +463,10 @@ namespace rpq {
 #if VERBOSE
                         std::cout << "[PLUS]: col fixed -> matClos1" << std::endl;
 #endif
-                        matrix tmp = matClos1(fullSide, ll.front().m, 1, col);
+                        matrix A;
+                        s_matrix sA;
+                        A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                        matrix tmp = matClos1(fullSide, A, 1, col);
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
                         res.insert(res.begin(), data_type{tmp, true, true});
                     }else{
@@ -390,10 +479,14 @@ namespace rpq {
                 }
                 case QUESTION:
                 {
+
                     list_type ll;
                     traversal_col_fixed(rpqTree, node->e1, QUESTION, col, ll);
-                    matrix Id = matId(std::max(ll.front().m->height,ll.front().m->width));
-                    matrix tmp = matSum1(fullSide, ll.front().m, Id, col);
+                    matrix A;
+                    s_matrix sA;
+                    A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                    matrix Id = matId(std::max(A->height,A->width));
+                    matrix tmp = matSum1(fullSide, A, Id, col);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
                     res.insert(res.begin(), data_type{tmp, true, true});
@@ -407,14 +500,18 @@ namespace rpq {
             switch(node->type) {
                 case STR:{
                     auto pred = rpqTree->getPred(node->pos);
-                    matrix a = m_matrices[pred];
                     if(parentType != ROOT){
-                        res.insert(res.begin(), data_type{a, false, false});
+                        matrix a = (pred > SIZE) ? m_matrices[pred-SIZE] :  m_matrices[pred];
+                        res.insert(res.begin(), data_type{a, (pred > SIZE), false, false});
                     }else {
-                        matrix e = matEmpty(a->height, a->width);
-                        matrix m = matSum1(row, a, e, fullSide);
+                        matrix A;
+                        s_matrix sA;
+                        matrix a = (pred > SIZE) ? m_matrices[pred-SIZE] :  m_matrices[pred];
+                        A = get_matrix(sA, a, (pred > SIZE));
+                        matrix e = matEmpty(A->height, A->width);
+                        matrix m = matSum1(row, A, e, fullSide);
                         matDestroy(e);
-                        res.insert(res.begin(), data_type{m, true, true});
+                        res.insert(res.begin(), data_type{m, false, true, true});
                     }
                     break;
                 }
@@ -432,14 +529,25 @@ namespace rpq {
                             ++it2; //first element +1
                             matrix aux;
                             if(it1->is_fixed){
-                                tmp = matMult(it1->m, it2->m);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1->m, it1->is_transposed);
+                                B = get_matrix(sB, it2->m, it2->is_transposed);
+                                tmp = matMult(A, B);
                             }else{
-                                tmp = matMult1(row, it1->m,it2->m, fullSide);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1->m, it1->is_transposed);
+                                B = get_matrix(sB, it2->m, it2->is_transposed);
+                                tmp = matMult1(row, A, B, fullSide);
                             }
                             if(it1->is_tmp) matDestroy(it1->m);
                             if(it2->is_tmp) matDestroy(it2->m);
                             while(++it2 != ll.end()){
-                                aux = matMult(it2->m, tmp); //tmp is already fixed
+                                matrix A;
+                                s_matrix sA;
+                                A = get_matrix(sA, it2->m, it2->is_transposed);
+                                aux = matMult(A, tmp); //tmp is already fixed
                                 if(it2->is_tmp) matDestroy(it2->m);
                                 matDestroy(tmp);
                                 tmp = aux;
@@ -447,12 +555,16 @@ namespace rpq {
                             aux = matMultClos1(row, tmp, rl.front().m, pos, fullSide);
                             matDestroy(tmp);
                             if(rl.front().is_tmp) matDestroy(rl.front().m);
-                            res.insert(res.begin(), data_type{aux, true, true});
+                            res.insert(res.begin(), data_type{aux, false, true, true});
                         }else{
-                            tmp = matMultClos1(row, ll.front().m, rl.front().m, pos, fullSide);
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                            B = get_matrix(sB, rl.front().m, rl.front().is_transposed);
+                            tmp = matMultClos1(row, A, B, pos, fullSide);
                             if(ll.front().is_tmp) matDestroy(ll.front().m);
                             if(rl.front().is_tmp) matDestroy(rl.front().m);
-                            res.insert(res.begin(), data_type{tmp, true, true});
+                            res.insert(res.begin(), data_type{tmp, false,true, true});
                         }
                     }else{
                         traversal_row_fixed(rpqTree, node->e1, CONC, row,ll);
@@ -466,19 +578,30 @@ namespace rpq {
                             ++it2; //first element +1
                             matrix tmp, aux;
                             if(it1->is_fixed){
-                                tmp = matMult(it1->m, it2->m);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1->m, it1->is_transposed);
+                                B = get_matrix(sB, it2->m, it2->is_transposed);
+                                tmp = matMult(A, B);
                             }else{
-                                tmp = matMult1(row, it1->m,it2->m, fullSide);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1->m, it1->is_transposed);
+                                B = get_matrix(sB, it2->m, it2->is_transposed);
+                                tmp = matMult1(row, A,B, fullSide);
                             }
                             if(it1->is_tmp) matDestroy(it1->m);
                             if(it2->is_tmp) matDestroy(it2->m);
                             while(++it2 != rl.end()){
-                                aux = matMult(tmp, it2->m);
+                                matrix A;
+                                s_matrix sA;
+                                A = get_matrix(sA, it2->m, it2->is_transposed);
+                                aux = matMult(tmp, A);
                                 if(it2->is_tmp) matDestroy(it2->m);
                                 matDestroy(tmp);
                                 tmp = aux;
                             }
-                            res.insert(res.begin(), data_type{tmp, true, true});
+                            res.insert(res.begin(), data_type{tmp, false,true, true});
                         }
                     }
                     break;
@@ -519,14 +642,22 @@ namespace rpq {
                             }
                             //tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
                             if(it1_min->is_fixed && it2_min->is_fixed){
-                                tmp = matSum(it1_min->m, it2_min->m);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                                B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                                tmp = matSum(A, B);
                             }else{
-                                tmp = matSum1(row, it1_min->m, it2_min->m, fullSide);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                                B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                                tmp = matSum1(row, A, B, fullSide);
                             }
                             if (it1_min->is_tmp) matDestroy(it1_min->m);
                             if (it2_min->is_tmp) matDestroy(it2_min->m);
 
-                            rl.insert(it1_min, data_type{tmp, true, true});
+                            rl.insert(it1_min, data_type{tmp, false, true, true});
                             rl.erase(it1_min);
                             rl.erase(it2_min);
                         }
@@ -534,13 +665,21 @@ namespace rpq {
                         ++it2_min;
                         //tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
                         if(it1_min->is_fixed && it2_min->is_fixed){
-                            tmp = matSum(it1_min->m, it2_min->m);
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                            B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                            tmp = matSum(A, B);
                         }else{
-                            tmp = matSum1(row, it1_min->m, it2_min->m, fullSide);
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                            B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                            tmp = matSum1(row, A, B, fullSide);
                         }
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
-                        res.insert(res.begin(), data_type{tmp, true, true});
+                        res.insert(res.begin(), data_type{tmp, false, true, true});
                     }
                     break;
                 }
@@ -549,10 +688,13 @@ namespace rpq {
                     list_type ll;
                     traversal(rpqTree, node->e1, STAR, ll);
                     if(!skip_closure){
-                        matrix tmp = matClos1(row, ll.front().m, 0, fullSide);
+                        matrix A;
+                        s_matrix sA;
+                        A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                        matrix tmp = matClos1(row, A, 0, fullSide);
                         // std::cout << "STAR : " << ll.front() << std::endl;
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
-                        res.insert(res.begin(), data_type{tmp, true, true});
+                        res.insert(res.begin(), data_type{tmp, false, true, true});
                     }else{
                         res = std::move(ll);
                     }
@@ -563,23 +705,30 @@ namespace rpq {
                     list_type ll;
                     traversal(rpqTree, node->e1, PLUS, ll);
                     if(!skip_closure){
-                        matrix tmp = matClos1(row, ll.front().m, 1, fullSide);
+                        matrix A;
+                        s_matrix sA;
+                        A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                        matrix tmp = matClos1(row, A, 1, fullSide);
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
-                        res.insert(res.begin(), data_type{tmp, true, true});
+                        res.insert(res.begin(), data_type{tmp, false, true, true});
                         break;
                     }else{
                         res = std::move(ll);
                     }
+                    break;
                 }
                 case QUESTION:
                 {
                     list_type ll;
                     traversal_row_fixed(rpqTree, node->e1, QUESTION, row, ll);
-                    matrix Id = matId(std::max(ll.front().m->height,ll.front().m->width));
+                    matrix A;
+                    s_matrix sA;
+                    A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                    matrix Id = matId(std::max(A->height,A->width));
                     matrix tmp = matSum1(row, ll.front().m, Id, fullSide);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
-                    res.insert(res.begin(), data_type{tmp, true, true});
+                    res.insert(res.begin(), data_type{tmp, false, true, true});
                     break;
                 }
             }
@@ -590,13 +739,17 @@ namespace rpq {
             switch(node->type) {
                 case STR:{
                     auto pred = rpqTree->getPred(node->pos);
-                    matrix a = m_matrices[pred];
                     if(parentType != ROOT){
-                        res.insert(res.begin(), data_type{a, false, false});
+                        matrix a = (pred > SIZE) ? m_matrices[pred-SIZE] :  m_matrices[pred];
+                        res.insert(res.begin(), data_type{a, (pred > SIZE), false,false});
                     }else {
+                        matrix A;
+                        s_matrix sA;
+                        matrix a = (pred > SIZE) ? m_matrices[pred-SIZE] :  m_matrices[pred];
+                        A = get_matrix(sA, a, (pred > SIZE));
                         matrix e = matEmpty(a->height, a->width);
-                        matrix m = matSum1(row, a, e, col);
-                        res.insert(res.begin(), data_type{m, true, true});
+                        matrix m = matSum1(row, A, e, col);
+                        res.insert(res.begin(), data_type{m, false, true, true});
                         matDestroy(e);
                     }
                     break;
@@ -615,19 +768,30 @@ namespace rpq {
                         ++it2; //first element +1
                         matrix tmp, aux;
                         if(it1->is_fixed){
-                            tmp = matMult(it1->m, it2->m);
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, it1->m, it1->is_transposed);
+                            B = get_matrix(sB, it2->m, it2->is_transposed);
+                            tmp = matMult(A, B);
                         }else{
-                            tmp = matMult1(row, it1->m,it2->m, col);
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, it1->m, it1->is_transposed);
+                            B = get_matrix(sB, it2->m, it2->is_transposed);
+                            tmp = matMult1(row, A, B, col);
                         }
                         if(it1->is_tmp) matDestroy(it1->m);
                         if(it2->is_tmp) matDestroy(it2->m);
                         while(++it2 != rl.end()){
-                            aux = matMult(it2->m,tmp);
+                            matrix A;
+                            s_matrix sA;
+                            A = get_matrix(sA, it1->m, it1->is_transposed);
+                            aux = matMult(A,tmp);
                             if(it2->is_tmp) matDestroy(it2->m);
                             matDestroy(tmp);
                             tmp = aux;
                         }
-                        res.insert(res.begin(), data_type{tmp, true, true});
+                        res.insert(res.begin(), data_type{tmp, false, true, true});
                     }
                     break;
                 }
@@ -667,9 +831,17 @@ namespace rpq {
                             }
                             //tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
                             if(it1_min->is_fixed && it2_min->is_fixed){
-                                tmp = matSum(it1_min->m, it2_min->m);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                                B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                                tmp = matSum(A, B);
                             }else{
-                                tmp = matSum1(row, it1_min->m, it2_min->m, col);
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                                B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                                tmp = matSum1(row, A, B, col);
                             }
                             if (it1_min->is_tmp) matDestroy(it1_min->m);
                             if (it2_min->is_tmp) matDestroy(it2_min->m);
@@ -682,9 +854,17 @@ namespace rpq {
                         ++it2_min;
                         //tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
                         if(it1_min->is_fixed && it2_min->is_fixed){
-                            tmp = matSum(it1_min->m, it2_min->m);
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                            B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                            tmp = matSum(A, B);
                         }else{
-                            tmp = matSum1(row, it1_min->m, it2_min->m, col);
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                            B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                            tmp = matSum1(row, A, B, col);
                         }
                         if(it1_min->is_tmp) matDestroy(it1_min->m);
                         if(it2_min->is_tmp) matDestroy(it2_min->m);
@@ -697,14 +877,16 @@ namespace rpq {
                     list_type ll;
                     traversal(rpqTree, node->e1, STAR, ll);
                     if(!skip_closure){
-                        matrix tmp = matClos1(row, ll.front().m, 0, col);
+                        matrix A;
+                        s_matrix sA;
+                        A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                        matrix tmp = matClos1(row, A, 0, fullSide);
                         // std::cout << "STAR : " << ll.front() << std::endl;
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
-                        res.insert(res.begin(), data_type{tmp, true, true});
+                        res.insert(res.begin(), data_type{tmp, false, true, true});
                     }else{
                         res = std::move(ll);
                     }
-
                     break;
                 }
                 case PLUS:
@@ -712,9 +894,13 @@ namespace rpq {
                     list_type ll;
                     traversal(rpqTree, node->e1, PLUS, ll);
                     if(!skip_closure){
-                        matrix tmp = matClos1(row, ll.front().m, 1, col);
+                        matrix A;
+                        s_matrix sA;
+                        A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                        matrix tmp = matClos1(row, A, 1, fullSide);
                         if(ll.front().is_tmp) matDestroy(ll.front().m);
-                        res.insert(res.begin(), data_type{tmp, true, true});
+                        res.insert(res.begin(), data_type{tmp, false, true, true});
+                        break;
                     }else{
                         res = std::move(ll);
                     }
@@ -724,8 +910,11 @@ namespace rpq {
                 {
                     list_type ll;
                     traversal_row_col_fixed(rpqTree, node->e1, QUESTION, row, col, ll);
-                    matrix Id = matId(std::max(ll.front().m->height,ll.front().m->width));
-                    matrix tmp = matSum1(row, ll.front().m, Id, col);
+                    matrix A;
+                    s_matrix sA;
+                    A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                    matrix Id = matId(std::max(A->height,A->width));
+                    matrix tmp = matSum1(row, ll.front().m, Id, fullSide);
                     matDestroy(Id);
                     if(ll.front().is_tmp) matDestroy(ll.front().m);
                     res.insert(res.begin(), data_type{tmp, true, true});
@@ -762,9 +951,6 @@ namespace rpq {
             }
             printf (" done... %li total words (%0.2f bpt)\n",space,space*(w/8)/(float)N);
 
-            matrix tmp = matMult(m_matrices[412], m_matrices[412]);
-            std::cout << tmp->elems << std::endl;
-
             std::ifstream ifs_SO(dataset + ".SO", std::ifstream::in);
             std::ifstream ifs_P(dataset + ".P", std::ifstream::in);
             //std::ifstream ifs_q(argv[2], std::ifstream::in);
@@ -790,36 +976,61 @@ namespace rpq {
             }
             std::cout << " done." << std::endl;
 
-
-
-
         }
 
-        matrix solve_var_to_var(std::string &query){
+        matrix solve_var_to_var(std::string &query, bool &rem){
             list_type res;
             RpqTree rpqTree(query, map_P, SIZE);
             traversal(&rpqTree, rpqTree.root(), ROOT, res);
+            if(res.front().is_transposed){
+                matrix a = matCopy(res.front().m);
+                a->transposed=1;
+                rem = true;
+                return a;
+            }
+            rem = res.front().is_tmp;
             return res.front().m;
         }
 
-        matrix solve_con_to_var(std::string &query, int s_id){
+        matrix solve_con_to_var(std::string &query, int s_id, bool &rem){
             list_type res;
             RpqTree rpqTree(query, map_P, SIZE);
             traversal_row_fixed(&rpqTree, rpqTree.root(), ROOT, s_id, res);
+            if(res.front().is_transposed){
+                matrix a = matCopy(res.front().m);
+                a->transposed=1;
+                rem = true;
+                return a;
+            }
+            rem = res.front().is_tmp;
             return res.front().m;
         }
 
-        matrix solve_var_to_con(std::string &query, int o_id){
+        matrix solve_var_to_con(std::string &query, int o_id, bool &rem){
             list_type res;
             RpqTree rpqTree(query, map_P, SIZE);
             traversal_col_fixed(&rpqTree, rpqTree.root(), ROOT, o_id, res);
+            if(res.front().is_transposed){
+                matrix a = matCopy(res.front().m);
+                a->transposed=1;
+                rem = true;
+                return a;
+            }
+            rem = res.front().is_tmp;
             return res.front().m;
         }
 
-        matrix solve_con_to_con(std::string &query, int s_id, int o_id){
+        matrix solve_con_to_con(std::string &query, int s_id, int o_id, bool &rem){
             list_type res;
             RpqTree rpqTree(query, map_P, SIZE);
             traversal_row_col_fixed(&rpqTree, rpqTree.root(), ROOT, s_id, o_id, res);
+            if(res.front().is_transposed){
+                matrix a = matCopy(res.front().m);
+                a->transposed=1;
+                rem = true;
+                return a;
+            }
+            rem = res.front().is_tmp;
             return res.front().m;
         }
 

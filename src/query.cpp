@@ -116,8 +116,8 @@ bool parse_query(std::string &line,
                 s_aux_2 += s_aux.at(i);
                 if (s_aux_2[1] == '%') {
                     //Not supported
-                    return false;
-                    //s_aux_3 = "<" + s_aux_2.substr(2, s_aux_2.size() - 1);
+                    //return false;
+                    s_aux_3 = "<" + s_aux_2.substr(2, s_aux_2.size() - 1);
                 } else {
                     s_aux_3 = s_aux_2;
                 }
@@ -174,7 +174,7 @@ std::string remove_unnecessary_parentheses(const std::string &query){
     pos = 0;
     std::string res;
     for(i = 0; i < query.size(); ++i){
-        if(pos_to_remove[pos] == i){
+        if(pos < pos_to_remove.size() && pos_to_remove[pos] == i){
             ++pos;
         }else{
             res += query[i];
@@ -229,21 +229,22 @@ int main(int argc, char **argv) {
             user_beg();
             // auto t1 = std::chrono::high_resolution_clock::now();
             matrix m;
+            bool rem = false;
             if (!flag_o && !flag_s) {
-                m = solver.solve_var_to_var(query);
+                m = solver.solve_var_to_var(query, rem);
             } else if (flag_o && !flag_s) {
-                m = solver.solve_var_to_con(query, o_id);
+                m = solver.solve_var_to_con(query, o_id, rem);
             } else if (!flag_o && flag_s) {
-                m = solver.solve_con_to_var(query, s_id);
+                m = solver.solve_con_to_var(query, s_id, rem);
             } else{
-                m = solver.solve_con_to_con(query, s_id, o_id);
+                m = solver.solve_con_to_con(query, s_id, o_id, rem);
             }
             elems = m->elems;
             //auto t2 = std::chrono::high_resolution_clock::now();
             user_end();
             //auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
             std::cout << i << ";" << elems << ";" << user_diff() << std::endl;
-            matDestroy(m); //Free matrix
+            if(rem) matDestroy(m); //Free matrix
         }
         ++i;
     }while(!ifs_q.eof());

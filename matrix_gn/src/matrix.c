@@ -130,11 +130,14 @@ matrix matCopy (matrix A)
     return M;
 }
 
-// transposes matrix M
+// transpose a matrix, creating a non-allocated copy that shares the
+// data. You need not (and should not) matDestroy this copy
+// use *M = matTranspose(M) to actually transpose M
+struct s_matrix matTranspose (matrix M)
 
-void matTranspose (matrix M)
-
-{ M->transposed = 1-M->transposed;
+{ struct s_matrix T = *M;
+    T.transposed = 1-T.transposed;
+    return T;
 }
 
 // writes M to file, which must be opened for writing
@@ -558,7 +561,6 @@ static partition k2multRC (k2tree treeA, k2node nodeA, k2tree treeB,
                            k2node nodeB, uint level, uint64_t row, uint64_t col)
 
 {
-
     user_end();
     //fprintf(stdout, "Time %llu\n", (t2-time_t1));
     if(user_diff() > TIMEOUT) {
@@ -730,19 +732,17 @@ matrix matClos (matrix A, uint pos)
 
 { matrix M,P,S,Id;
     uint64_t elems;
-    uint transp = A->transposed;
 
-    A->transposed = 0; // may be slightly more cache-friendly
     if (!pos)
     { Id = matId(mmax(A->width,A->height));
-        M = matSum(A,Id);
+        A = matSum(A,Id);
         matDestroy(Id);
-        A = M;
     }
     elems = A->elems;
-    if (elems == 0) return matCopy(A);
+    if (elems == 0) return matCopy(A); // can only be pos, A not to destroy
     P = matMult (A,A);
     S = matSum (A,P);
+    if (!pos) matDestroy(A);
     while (S->elems != elems)
     { elems = S->elems;
         matDestroy(P);
@@ -752,7 +752,6 @@ matrix matClos (matrix A, uint pos)
         S = M;
     }
     matDestroy(P);
-    S->transposed = transp;
     return S;
 }
 
@@ -795,7 +794,7 @@ static matrix matClosRow (uint64_t row, matrix I, matrix A, uint pos,
         M = S; S = matSum(S,P); matDestroy(M);
     }
     matDestroy(P);
-    if (coltest) { *coltest = 0; return NULL; }
+    if (coltest) { matDestroy(S); *coltest = 0; return NULL; }
     return S;
 }
 
@@ -807,14 +806,14 @@ matrix matClos1 (uint64_t row, matrix A, uint pos, uint64_t col)
     uint64_t side = mmax(A->width,A->height);
     uint64_t cell[2];
     uint64_t test;
-    struct s_matrix At; // we could just transpose A here, but anyway
+    struct s_matrix At;
     matrix M;
     if (row == fullSide)
     { if (col == fullSide) return matClos(A,pos);
         else
-        { At = *A; matTranspose(&At);
+        { At = matTranspose(A);
             M = matClosRow(col,NULL,&At,pos,NULL);
-            matTranspose(M);
+            *M = matTranspose(M);
             return M;
         }
     }
@@ -826,17 +825,14 @@ matrix matClos1 (uint64_t row, matrix A, uint pos, uint64_t col)
     ncol = matCollect (A,row,row,0,fullSide,NULL);
     if (ncol < nrow)
     { test = row;
-        At = *A; matTranspose(&At);
-        matClosRow(col,NULL,&At,pos,&test);
+        At = matTranspose(A);
+        matClosRow(col,NULL,&At,pos,&test); // does not return matrix
     }
     else
     { test = col;
-        matClosRow(row,NULL,A,pos,&test);
+        matClosRow(row,NULL,A,pos,&test); // does not return matrix
     }
-    if (test)
-    { cell[0] = row; cell[1] = col;
-        return matCreate (side,side,1,cell);
-    }
+    if (test) return matOne (side, side, row, col);
     else return matEmpty(side,side);
 }
 
@@ -856,7 +852,7 @@ matrix matMultClos1 (uint64_t row, matrix A, matrix B, uint pos, uint64_t col)
             return M;
         }
         else // it's much better to start with restricted B
-        { M1 = matClos1(row,B,pos,col);
+        { M1 = matClos1(fullSide,B,pos,col);
             M = matMult(A,M1);
             matDestroy(M1);
             return M;
@@ -878,10 +874,10 @@ matrix matClosMult1 (uint64_t row, matrix A, uint pos, matrix B, uint64_t col)
 
 { matrix M;
     struct s_matrix At,Bt;
-    At = *A; matTranspose(&At);
-    Bt = *B; matTranspose(&Bt);
+    At = matTranspose(A);
+    Bt = matTranspose(B);
     M = matMultClos1(col,&Bt,&At,pos,row);
-    matTranspose(M);
+    *M = matTranspose(M);
     return M;
 }
 

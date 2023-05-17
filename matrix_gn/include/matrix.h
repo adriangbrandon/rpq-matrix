@@ -34,8 +34,10 @@ matrix matId (uint64_t side);
 // creates a new copy of A, with its own data
 matrix matCopy (matrix A);
 
-// transpose a matrix, does not create a new one, use matCopy for that
-void matTranspose (matrix M);
+// transpose a matrix, creating a non-allocated copy that shares the
+// data. You need not (and should not) matDestroy this copy
+// use *M = matTranspose(M) to actually transpose M
+struct s_matrix matTranspose (matrix M);
 
 // writes M to file, which must be opened for writing
 void matSave (matrix M, FILE *file);
