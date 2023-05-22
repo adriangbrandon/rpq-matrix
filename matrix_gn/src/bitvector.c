@@ -5,6 +5,8 @@
 
 #include "bitvector.h"
 
+#define w16 (8*sizeof(uint16_t))
+
 extern inline uint popcount (uint64_t y)
 
     { y -= ((y >> 1) & 0x5555555555555555ull);
@@ -23,6 +25,7 @@ bitvector bitsCreate (uint64_t n)
       B->owned = 1;
       B->k = 0;
       B->S = NULL;
+      B->B = NULL;
       return B;
     }
 
@@ -40,6 +43,7 @@ bitvector bitsCreateFrom (void *data, uint64_t n, uint own)
       B->owned = own;
       B->k = 0;
       B->S = NULL;
+      B->B = NULL;
       return B;
     }
 
@@ -49,8 +53,8 @@ void bitsDestroy (bitvector B)
 
     { if (B != NULL) 
          { if (B->owned) myfree(B->data);
-           myfree(B->S);
-	   B->data = NULL; B->S = NULL; // for safety
+           myfree(B->S); myfree(B->B);
+	   B->data = NULL; B->S = NULL; B->B = NULL; // for safety
       	   myfree(B);
 	 }
     }
@@ -67,8 +71,13 @@ bitvector bitsCopy (bitvector B)
 	  C->data = (uint64_t*)myalloc(siz);
           memcpy(C->data,B->data,siz);
 	}
+     if (B->B != NULL)
+        { siz = ((B->size+C->k*w-1)/(C->k*w))*sizeof(uint16_t);
+          C->B = (uint16_t*)myalloc(siz);
+          memcpy(C->B,B->B,siz);
+	}
      if (B->S != NULL)
-        { siz = ((B->size+C->k*w-1)/(C->k*w))*sizeof(uint64_t);
+        { siz = ((B->size+(1<<w16)-1)/(1<<w16))*sizeof(uint64_t);
           C->S = (uint64_t*)myalloc(siz);
           memcpy(C->S,B->S,siz);
 	}
@@ -99,7 +108,7 @@ bitvector bitsLoad (FILE *file)
 	   }
       B->owned = 1;
       B->k = 0;
-      B->S = NULL;
+      B->S = NULL; B->B = NULL;
       return B;
     }
 
@@ -110,7 +119,8 @@ uint64_t bitsSpace (bitvector B)
     { uint64_t space = sizeof(struct s_bitvector)*8/w;
       if (B == NULL) return 0;
       if (B->data != NULL) space += (B->size+w-1)/w;
-      if (B->S != NULL) space += (B->size+B->k*w-1)/(B->k*w);
+      if (B->B != NULL) space += ((B->size+B->k*w-1)/(B->k*w))/(w/w16);
+      if (B->S != NULL) space += (B->size+(1<<w16)-1)/(1<<w16);
       return space;
     }
 
@@ -158,17 +168,25 @@ extern inline uint bitsAccess (bitvector B, uint64_t i)
 void bitsRankPreprocess (bitvector B, uint64_t k)
 
     { uint64_t i,n;
-      uint64_t acc;
+      uint64_t sacc,acc;
       n = B->size;
       if (n == 0) return;
-      myfree(B->S); // a possible previous preprocessing
-      B->S = (uint64_t*)myalloc(((n+k*w-1)/(k*w))*sizeof(uint64_t));
+      myfree(B->B); myfree(B->S); // a possible previous preprocessing
+      B->B = (uint16_t*)myalloc(((n+k*w-1)/(k*w))*sizeof(uint16_t));
+      B->S = (uint64_t*)myalloc(((n+(1<<w16)-1)/(1<<w16))*sizeof(uint64_t));
       B->k = k;
-      acc = 0;
-      for (i=0;i<(n+w-1)/w;i++)
-	  { if (i%k == 0) B->S[i/k] = acc;
-	    acc += popcount(B->data[i]);
-	  }
+      sacc = acc = 0;
+      i = 0;
+      while (i<(n+w-1)/w)
+          { uint64_t top = mmin((n+w-1)/w,i+(1<<w16)/w);
+            sacc += acc; acc = 0;
+            B->S[(i*w) >> w16] = sacc;
+            while (i<top)
+                { if (i%k == 0) B->B[i/k] = acc;
+                  acc += popcount(B->data[i]);
+                  i++;
+                }
+          }
     } 
 
 	// computes rank(B,i), zero-based, assumes i is right
@@ -178,7 +196,7 @@ extern inline uint64_t bitsRank (bitvector B, uint64_t i)
     { uint64_t b,sb;
       uint64_t rank;
       sb = i/(B->k*w);
-      rank = B->S[sb];
+      rank = B->S[i>>w16] + B->B[sb];
       sb *= B->k;
       for (b=sb;b<i/w;b++) rank += popcount(B->data[b]);
       return rank + popcount(B->data[b] & (((uint64_t)~0) >> (w-1-(i%w))));

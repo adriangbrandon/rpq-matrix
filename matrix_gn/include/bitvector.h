@@ -12,6 +12,7 @@ typedef struct s_bitvector {
     int owned; // data is owned (to be freed)
     uint64_t k; // superblock length is 64 k
     uint64_t *S; // superblocks
+    uint16_t *B; // blocks
     } *bitvector;
 
 	// creates an empty bitvector of n bits
