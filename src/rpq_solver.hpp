@@ -24,6 +24,7 @@ namespace rpq {
 
     class solver {
 
+    public:
         typedef struct {
             matrix m;
             bool is_transposed;
@@ -976,60 +977,32 @@ namespace rpq {
 
         }
 
-        matrix solve_var_to_var(std::string &query, bool &rem){
+        data_type solve_var_to_var(std::string &query, bool &rem){
             list_type res;
             RpqTree rpqTree(query, map_P, SIZE);
             traversal(&rpqTree, rpqTree.root(), ROOT, res);
-            if(res.front().is_transposed){
-                matrix a = matCopy(res.front().m);
-                a->transposed=1;
-                rem = true;
-                return a;
-            }
-            rem = res.front().is_tmp;
-            return res.front().m;
+            return res.front();
         }
 
-        matrix solve_con_to_var(std::string &query, int s_id, bool &rem){
+        data_type solve_con_to_var(std::string &query, int s_id, bool &rem){
             list_type res;
             RpqTree rpqTree(query, map_P, SIZE);
             traversal_row_fixed(&rpqTree, rpqTree.root(), ROOT, s_id, res);
-            if(res.front().is_transposed){
-                matrix a = matCopy(res.front().m);
-                a->transposed=1;
-                rem = true;
-                return a;
-            }
-            rem = res.front().is_tmp;
-            return res.front().m;
+            return res.front();
         }
 
-        matrix solve_var_to_con(std::string &query, int o_id, bool &rem){
+        data_type solve_var_to_con(std::string &query, int o_id, bool &rem){
             list_type res;
             RpqTree rpqTree(query, map_P, SIZE);
             traversal_col_fixed(&rpqTree, rpqTree.root(), ROOT, o_id, res);
-            if(res.front().is_transposed){
-                matrix a = matCopy(res.front().m);
-                a->transposed=1;
-                rem = true;
-                return a;
-            }
-            rem = res.front().is_tmp;
-            return res.front().m;
+            return res.front();
         }
 
-        matrix solve_con_to_con(std::string &query, int s_id, int o_id, bool &rem){
+        data_type solve_con_to_con(std::string &query, int s_id, int o_id, bool &rem){
             list_type res;
             RpqTree rpqTree(query, map_P, SIZE);
             traversal_row_col_fixed(&rpqTree, rpqTree.root(), ROOT, s_id, o_id, res);
-            if(res.front().is_transposed){
-                matrix a = matCopy(res.front().m);
-                a->transposed=1;
-                rem = true;
-                return a;
-            }
-            rem = res.front().is_tmp;
-            return res.front().m;
+            return res.front();
         }
 
     };
