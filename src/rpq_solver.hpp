@@ -323,8 +323,8 @@ namespace rpq {
                             if(it1->is_fixed){
                                 matrix A, B;
                                 s_matrix sA, sB;
-                                A = get_matrix(sA, it1->m, it1->is_transposed);
-                                B = get_matrix(sB, it2->m, it2->is_transposed);
+                                A = get_matrix(sA, it2->m, it2->is_transposed);
+                                B = get_matrix(sB, it1->m, it1->is_transposed);
                                 tmp = matMult(A, B);
                             }else{
                                 matrix A, B;
