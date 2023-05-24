@@ -4,8 +4,8 @@ set(PROJECT_VENDOR "Adrian Gomez Brandon")
 set(CMAKE_PROJECT_NAME "NFA")
 set(PROJECT_CONTACT "adrian.gbrandon@udc.es")
 set(CMAKE_INSTALL_PREFIX /home/adrian/software)
-set(CMAKE_COMPILER_IS_GNUCXX)
 set(CMAKE_OSX_ARCHITECTURES x86_64)
+
 
 include_directories(./include)
 

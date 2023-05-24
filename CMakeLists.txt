@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.8.7)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(AppendCompilerFlags)
 set(CMAKE_OSX_ARCHITECTURES x86_64)
-project(Matrix-RPQ)
-set(CMAKE_PROJECT_NAME "Matrix RPQ")
+project(Matrix-Clos-RPQ)
+set(CMAKE_PROJECT_NAME "Matrix Clos RPQ")
 
 #Change to "Debug" when you need it
 set(CMAKE_BUILD_TYPE "Release")

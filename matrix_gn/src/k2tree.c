@@ -193,6 +193,23 @@ k2tree k2copy (k2tree T)
       return C;
    }
 
+	// computes levels of the k2tree, if not already computed
+
+/* finally not used
+void k2computeLevels (k2tree T)
+
+   { int l;
+     uint64_t p;
+     if (T->levels != NULL) return;
+     T->levels = (uint64_t*)myalloc(T->nlevels * sizeof(uint64_t));
+     p = 1; T->levels[T->nlevels-1] = 1;
+     for (l=T->nlevels-1;l>0;l--)
+	 { T->levels[l-1] = p+1;
+	   p = bitsRank(T->B,4*p-1)+1;
+	 }
+   }
+*/
+
         // writes T to file, which must be opened for writing
 
 void k2save (k2tree T, FILE *file)
@@ -285,12 +302,11 @@ static uint64_t collect (k2tree T, k2node u, uint level,
 	}
      if ((r1 < lim) && (c2 >= lim) && k2hasChild(T,u,1))
 	{ count = collect(T,k2child(T,u,1),level,
-			   r1,mmin(r2,lim-1),mmax(c1,lim)-lim,c2-lim,
+			   r1,mmin(r2,lim-1), mmax(c1,lim)-lim,c2-lim,
 			   roffs,coffs+lim,buffer,count,cr);
 	}
      if ((r2 >= lim) && (c1 < lim) && k2hasChild(T,u,2))
-	{ count = collect(T,k2child(T,u,2),level,
-			   mmax(r1,lim)-lim,r2-lim,c1,mmin(c2,lim-1),
+	{ count = collect(T,k2child(T,u,2),level,mmax(r1,lim)-lim,r2-lim,c1,mmin(c2,lim-1),
 			   roffs+lim,coffs,buffer,count,cr);
 	}
      if ((r2 >= lim) && (c2 >= lim) && k2hasChild(T,u,3))
