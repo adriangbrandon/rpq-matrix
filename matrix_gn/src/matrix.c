@@ -783,11 +783,12 @@ static partition k2clos (k2tree tree, k2node node, uint level)
      k2tree tree2[4]; // AAs, ABs, BAs, BBs
      partition part2[4];
      partition part[4];
-     partition aux,answer;
+     partition answer;
      k2node child[4];
      uint vals[4];
      uint v,val;
      k2tree taux;
+     uint share[4];
 
      for (v=0;v<4;v++) 
 	 vals[v] = k2hasChild(tree,node,v);
@@ -808,92 +809,186 @@ static partition k2clos (k2tree tree, k2node node, uint level)
 	  return answer;
 	}
 
-	// compute the products of all the 4x4 combinations
      for (v=0;v<4;v++) 
 	 { if (vals[v]) child[v] = k2child(tree,node,v);
+	   share[v] = 0; // ie tree1[v] is not shared by tree2[v]
 	 }
 
-	// AAp = AA*, we assume A has already the identity matrix added
-     part1[0] = k2clos (tree,child[0],level-1);
-     tree1[0] = k2createFrom(level-1,part1[0].len,part1[0].tree,1);
-	// ABp = AAp x AB
-     if (!vals[1]) { part1[1] = empty; tree1[1] = NULL; }
+	// first stage: nodes of AA can be intermediate
+	// AAp = AA+
+     if (!vals[0]) { part1[0] = empty; tree1[0] = NULL; }
+     else { part1[0] = k2clos (tree,child[0],level-1);
+	    tree1[0] = k2createFrom(level-1,part1[0].len,part1[0].tree,1);
+	  }
+	// ABp = AB | AAp x AB
+	// tree1[1] == NULL means that ABp = tree1[1] = child 1 of tree = AB
+     if ((tree1[0] == NULL) || !vals[1])  // AAp or AB are empty
+	  { part1[1] = empty; tree1[1] = NULL; } // ie part1[1] = AB
      else { part1[1] = k2mult(tree1[0],k2root(tree1[0]),tree,child[1],level-1);
-	    if (part1[1].elems == 0) tree1[1] = NULL;
-	    else tree1[1] = k2createFrom(level-1,part1[1].len,part1[1].tree,1);
-	  }
-	// BAp = BA x AAp
-     if (!vals[2]) { part1[2] = empty; tree1[2] = NULL; }
-     else { part1[2] = k2mult(tree,child[2],tree1[0],k2root(tree1[0]),level-1);
-	    if (part1[2].elems == 0) tree1[2] = NULL;
-	    else tree1[2] = k2createFrom(level-1,part1[2].len,part1[2].tree,1);
-	  }
-	// BBp = BB | BAp x AB, again we assume BB is not empty
-	// tree1[3] == NULL means that BBp = tree1[3] = child 3 of tree = BB
-     if ((tree1[2] == NULL) || !vals[1]) { part1[3] = empty; tree1[3] = NULL;}
-     else { part1[3] = k2mult(tree1[2],k2root(tree1[2]),tree,child[1],level-1);
-	    if (part1[3].elems == 0) tree1[3] = NULL;
-	    else { taux = k2createFrom(level-1,part1[3].len,part1[3].tree,1);
-		   part1[3] = k2sum(tree,child[3],taux,k2root(taux),level-1,3);
-		   k2destroy(taux);
-		   tree1[3]=k2createFrom(level-1,part1[3].len,part1[3].tree,1);
-		 }
-	  }
-	// BBs = BBp*
-     if (tree1[3])
-          part2[3] = k2clos (tree1[3],k2root(tree1[3]),level-1);
-     else part2[3] = k2clos (tree,child[3],level-1);
-     tree2[3] = k2createFrom(level-1,part2[3].len,part2[3].tree,1);
-	// AAs = AAp | ABp x BBs x BAp
-     if ((tree1[1] == NULL) || (tree1[2] == NULL)) 
-	{ tree2[0] = tree1[0]; tree1[0] = NULL;
-	  part2[0] = part1[0]; part1[0] = empty;
-	}
-     else 
-	{ aux = k2mult(tree1[1],k2root(tree1[1]),tree2[3],k2root(tree2[3]),
-		       level-1);
-	  if (aux.elems == 0) taux = NULL;
-          else { taux = k2createFrom(level-1,aux.len,aux.tree,1);
-	         aux = k2mult(taux,k2root(taux),tree1[2],k2root(tree1[2]),
-			      level-1);
-	         k2destroy(taux);
-		 if (aux.elems == 0) taux = NULL;
-                 else taux=k2createFrom(level-1,aux.len,aux.tree,1);
+	    if (part1[1].elems == 0) tree1[1] = NULL; // ie AB
+	    else // add AB
+	       { if (vals[1])
+	            { taux = k2createFrom(level-1,part1[1].len,part1[1].tree,1);
+		      part1[1]=k2sum(tree,child[1],taux,k2root(taux),level-1,3);
+		      k2destroy(taux);
+		    }
+		 tree1[1] = k2createFrom(level-1,part1[1].len,part1[1].tree,1);
 	       }
-	  if (taux == NULL)
-	     { tree2[0] = tree1[0]; tree1[0] = NULL;
-	       part2[0] = part1[0]; part1[0] = empty;
+	  }
+	// BAp = BA | BA x AAp
+	// tree1[2] == NULL means that BAp = tree1[2] = child 2 of tree = BA
+     if (!vals[2] || (tree1[0] == NULL)) // ie BA or AAp are empty
+	  { part1[2] = empty; tree1[2] = NULL; } // ie part1[2] = BA
+     else { part1[2] = k2mult(tree,child[2],tree1[0],k2root(tree1[0]),level-1);
+	    if (part1[2].elems == 0) tree1[2] = NULL; // ie BA
+	    else // add BA
+	       { if (vals[2])
+	            { taux = k2createFrom(level-1,part1[2].len,part1[2].tree,1);
+		      part1[2]=k2sum(tree,child[2],taux,k2root(taux),level-1,3);
+		      k2destroy(taux);
+	            }
+	         tree1[2] = k2createFrom(level-1,part1[2].len,part1[2].tree,1);
+	       }
+	  }
+	// BBp = BB | BAp x AB (or also BB | BA x ABp)
+	// tree1[3] == NULL means that BBp = tree1[3] = child 3 of tree = BB
+     if (((tree1[2] == NULL) && !vals[2]) || !vals[1]) // BAp or AB are empty
+	  { part1[3] = empty; tree1[3] = NULL; } // then BBp = BB
+     else { if (tree1[2] == NULL) // means tree1[2] = BA
+	       part1[3]=k2mult(tree,child[2],tree,child[1],level-1);
+	    else
+	       part1[3]=k2mult(tree1[2],k2root(tree1[2]),tree,child[1],level-1);
+	    if (part1[3].elems == 0) tree1[3] = NULL; // ie BB
+	    else // add BB
+	       { if (vals[3])
+		    { taux = k2createFrom(level-1,part1[3].len,part1[3].tree,1);
+		      part1[3]=k2sum(tree,child[3],taux,k2root(taux),level-1,3);
+		      k2destroy(taux);
+		    }
+		 tree1[3] = k2createFrom(level-1,part1[3].len,part1[3].tree,1);
+	       }
+	  }
+
+	// second stage: nodes of BB can also be intermediate
+	// BBs = BBp+
+     if (tree1[3]) part2[3] = k2clos (tree1[3],k2root(tree1[3]),level-1);
+     else if (vals[3]) part2[3] = k2clos (tree,child[3],level-1);
+     else part2[3] = empty;
+     if (part2[3].elems == 0) tree2[3] = NULL;
+     else tree2[3] = k2createFrom(level-1,part2[3].len,part2[3].tree,1);
+	// ABs = ABp | ABp x BBs
+	// tree2[1] == NULL means that ABs = tree2[1] = ABp
+	// but we then materialize ABs in this case too
+     if (((tree1[1]==NULL) && !vals[1]) || (tree2[3]==NULL)) // ABp or BBs empty
+	  { part2[1] = empty; tree2[1] = NULL;  // then ABs = ABp
+          }
+     else { if (tree1[1] == NULL) // ie ABp = AB
+	         part2[1] = k2mult(tree,child[1],
+			           tree2[3],k2root(tree2[3]),level-1);
+	    else part2[1] = k2mult(tree1[1],k2root(tree1[1]),
+			           tree2[3],k2root(tree2[3]),level-1);
+	    if (part2[1].elems == 0) tree2[1] = NULL; // ie ABp
+	    else // add ABp
+	       { taux = k2createFrom(level-1,part2[1].len,part2[1].tree,1);
+	         if (tree1[1] == NULL) // ie ABp = AB
+		    part2[1]=k2sum(tree,child[1],taux,k2root(taux),level-1,3);
+		 else
+		    part2[1]=k2sum(tree1[1],k2root(tree1[1]),taux,k2root(taux),
+				   level-1,3);
+		 k2destroy(taux);
+	         tree2[1] = k2createFrom(level-1,part2[1].len,part2[1].tree,1);
+	       }
+          }
+     if (part2[1].elems == 0) // tree2[1]==NULL also holds, materialize ABs
+        { if (tree1[1] == NULL) // ABp = AB
+	     { if (vals[1])
+		  { part2[1] = k2sum(tree,child[1],NULL,0,level-1,1);
+	            tree2[1]=k2createFrom(level-1,part2[1].len,part2[1].tree,1);
+		  }
+	        // else actually empty
 	     }
+	       // avoid a copy:
+	       // part2[1] = k2sum(tree1[1],k2root(tree[1]),NULL,0,level-1,1);
+          else
+	     { share[1] = 1;  // mark that we are sharing the tree
+	       part2[1] = part1[1]; tree2[1] = tree1[1];
+	     }
+	}
+	// BAs = BAp | BBs x BAp
+	// tree2[2] == NULL means that BAs = tree2[2] = BAp
+	// but we then materialize BAs in this case too
+     if ((tree2[3]==NULL) || ((tree1[2]==NULL) && !vals[2])) // BAp or BBs empty
+	  { part2[2] = empty; tree2[2] = NULL;  // then BAs = BAp
+          }
+     else { if (tree1[2] == NULL) // ie BAp = BA
+	         part2[2] = k2mult(tree2[3],k2root(tree2[3]),
+			 	   tree,child[2],level-1);
+	    else part2[2] = k2mult(tree2[3],k2root(tree2[3]),
+			           tree1[2],k2root(tree1[2]),level-1);
+	    if (part2[2].elems == 0) tree2[2] = NULL; // ie BAp
+	    else // add BAp
+	       { taux = k2createFrom(level-1,part2[2].len,part2[2].tree,1);
+	         if (tree1[2] == NULL) // ie BAp = BA
+		    part2[2]=k2sum(tree,child[2],taux,k2root(taux),level-1,3);
+		 else
+		    part2[2]=k2sum(tree1[2],k2root(tree1[2]),taux,k2root(taux),
+				   level-1,3);
+		 k2destroy(taux);
+	         tree2[2] = k2createFrom(level-1,part2[2].len,part2[2].tree,1);
+	       }
+          }
+     if (part2[2].elems == 0) // tree2[2]==NULL also holds, materialize BAs
+        { if (tree1[2] == NULL) // BAp = BA
+	     { if (vals[2])
+		  { part2[2] = k2sum(tree,child[2],NULL,0,level-1,1);
+	            tree2[2]=k2createFrom(level-1,part2[2].len,part2[2].tree,1);
+		  }
+	        // else actually empty
+	     }
+	       // avoid copying:
+	       // part2[2] = k2sum(tree1[2],k2root(tree[2]),NULL,0,level-1,1);
+          else
+	     { share[2] = 1;  // mark that we are sharing the tree
+	       part2[2] = part1[2]; tree2[2] = tree1[2];
+	     }
+	}
+	// AAs = AAp | ABp x BAs (or also AAp | ABs x BAp)
+	// tree2[0] == NULL means that AAs = tree2[0] = AAp
+	// but we then materialize AAs in this case too
+     if (((tree1[1]==NULL) && !vals[1]) || (tree2[2]==NULL)) // ABp or BAs empty
+	{ part2[0] = empty; tree2[0] = NULL;  // then AAs = AAp
+        }
+     else
+	{ if (tree1[1] == NULL) // ABp = AB
+	     part2[0] = k2mult(tree,child[1],tree2[2],k2root(tree2[2]),level-1);
 	  else
-	     { part2[0] = k2sum(tree1[0],k2root(tree1[0]),taux,k2root(taux),
-			        level-1,3);
-	       k2destroy(taux);
+	     part2[0] = k2mult(tree1[1],k2root(tree1[1]),
+			       tree2[2],k2root(tree2[2]),level-1);
+	  if (part2[0].elems == 0) tree2[0] = NULL; // ie AAp
+          else // add AAp
+	     { if (tree1[0] != NULL)
+	          { taux = k2createFrom(level-1,part2[0].len,part2[0].tree,1);
+	            part2[0] = k2sum(tree1[0],k2root(tree1[0]),
+				     taux,k2root(taux),level-1,3);
+	            k2destroy(taux);
+	          }
 	       tree2[0] = k2createFrom(level-1,part2[0].len,part2[0].tree,1);
 	     }
 	}
-	// ABs = ABp x BBs
-     if (tree1[1] == NULL) { part2[1] = empty; tree2[1] = NULL; }
-     else { part2[1] = k2mult(tree1[1],k2root(tree1[1]),
-			      tree2[3],k2root(tree2[3]),level-1);
-	    if (part2[1].elems == 0) tree2[1] = NULL;
-	    else tree2[1]=k2createFrom(level-1,part2[1].len,part2[1].tree,1);
-	  }
-	// BAs = BBs x BAp
-     if (tree1[2] == NULL) { part2[2] = empty; tree2[2] = NULL; }
-     else { part2[2] = k2mult(tree2[3],k2root(tree2[3]),
-			      tree1[2],k2root(tree1[2]),level-1);
-	    if (part2[2].elems == 0) tree2[2] = NULL;
-	    else tree2[2] = k2createFrom(level-1,part2[2].len,part2[2].tree,1);
-	  }
-
+     if (tree2[0] == NULL) // then AAs = AAp
+	{ share[0] = 1; // this time could just set tree1[0] & part1[0] empty
+	  part2[0] = part1[0]; tree2[0] = tree1[0];
+	}
 
 	// combine the 4 quadrants into a single matrix
      answer = compose(part2,level,0);
 
      for (v=0;v<4;v++)
-	 { if (tree1[v] != NULL) k2destroy(tree1[v]);
+	 { if (!share[v])
+	      { if (tree1[v] != NULL) k2destroy(tree1[v]);
+	        myfree (part1[v].levels);
+	      }
 	   if (tree2[v] != NULL) k2destroy(tree2[v]);
-	   myfree (part1[v].levels);
 	   myfree (part2[v].levels);
 	 }
 
@@ -902,26 +997,24 @@ static partition k2clos (k2tree tree, k2node node, uint level)
 
 matrix matClos (matrix A, uint pos)
 
-   { matrix M,M0,Id;
+   { matrix M,S,Id;
      partition aux;
      uint levels = k2levels(A->tree);
 
-	// ignores pos for now
-     Id = matId(mmax(A->width,A->height));
-     M = matSum(A,Id);
-     matDestroy(Id);
      mapA = mapB = mapId; // just for k2mult
 
-     aux = k2clos(M->tree,k2root(M->tree),levels);
-     k2destroy(M->tree);
+     aux = k2clos(A->tree,k2root(A->tree),levels);
      myfree(aux.levels);
-     M->tree = k2createFrom(levels,aux.len,aux.tree,1);
+     M = (matrix)myalloc(sizeof(struct s_matrix));
+     M->width = M->height = mmax(A->width,A->height);
+     M->logside = A->logside; M->transposed = A->transposed;
      M->elems = aux.elems;
-
-     if (pos) 
-	{ M0 = M;
-	  M = matMult(A,M0);
-	  matDestroy(M0);
+     M->tree = k2createFrom(levels,aux.len,aux.tree,1);
+	// add Id if not pos
+     if (!pos)
+        { Id = matId(M->width);
+          S = M; M = matSum(M,Id); matDestroy(S);
+          matDestroy(Id);
 	}
      return M;
    }
