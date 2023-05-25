@@ -16,14 +16,6 @@ static uint64_t head,tail,size;
 	// creates matrix of width x height with n cells (2n ints row,col) 
 	// reorders cells array
 
-static uint numbits (uint64_t n)
-
-   { uint bits = 0;
-     while (n)
-	{ n = n>>1; bits++; }
-     return bits ? bits : 1;
-   }
-	
 matrix matCreate (uint64_t height, uint64_t width, uint64_t n, uint64_t *cells)
 
    { matrix mat = (matrix)myalloc(sizeof(struct s_matrix));
@@ -105,20 +97,37 @@ matrix matId (uint64_t side)
 
    { matrix mat = (matrix)myalloc(sizeof(struct s_matrix));
      uint64_t *data;
-     uint64_t nodes;
+     uint64_t p,k;
+     uint *levels,*odd;
+     uint level,l;
+
      side = side ? side : 1;
      mat->width = side;
      mat->height = side;
-     mat->logside = numbits(side-1);
+     mat->logside = level = numbits(side-1);
      mat->elems = side;
      mat->transposed = 0;
-     nodes = (((uint64_t)1) << mat->logside)-1;
-     data = (uint64_t*)myalloc(((4*nodes+w-1)/w)*sizeof(uint64_t));
-     memset(data,0x99,(nodes+1)/2);
-     mat->tree = k2createFrom(mat->logside,4*nodes,data,1);
+     p = (((uint64_t)1) << level)-1; // upper bound to allocate
+     data = (uint64_t*)myalloc(((4*p+w-1)/w)*sizeof(uint64_t));
+     memset(data,0x99,((4*p+w-1)/w)*sizeof(uint64_t));
+     levels = (uint*)myalloc((1+level)*sizeof(uint));
+     odd = (uint*)myalloc((1+level)*sizeof(uint));
+     k = side;
+     for (l=1;l<=level;l++)
+         { levels[l] = (k+1)/2; odd[l] = k % 2;
+           k = (k+1)/2;
+         }
+     p = 0;
+     for (l=level;l>=1;l--)
+         { p += levels[l];
+           if (odd[l]) bitsWriteA(data,4*(p-1)+3,0);
+         }
+     myfree(levels); myfree(odd);
+     data = (byte*)myrealloc(data,((4*p+w-1)/w)*sizeof(uint64_t));
+     mat->tree = k2createFrom(level,4*p,data,1);
      return mat;
    }
-     
+
 	// creates a new copy of A, with its own data
 
 matrix matCopy (matrix A)
@@ -999,14 +1008,20 @@ matrix matClos (matrix A, uint pos)
 
    { matrix M,S,Id;
      partition aux;
-     uint levels = k2levels(A->tree);
+     uint levels;
+     uint side = mmax(A->width,A->height);
+
+     if (A->elems == 0)
+        if (pos) return matEmpty(side,side);
+	else return matId(side);
 
      mapA = mapB = mapId; // just for k2mult
 
+     levels = k2levels(A->tree);
      aux = k2clos(A->tree,k2root(A->tree),levels);
      myfree(aux.levels);
      M = (matrix)myalloc(sizeof(struct s_matrix));
-     M->width = M->height = mmax(A->width,A->height);
+     M->width = M->height = side;
      M->logside = A->logside; M->transposed = A->transposed;
      M->elems = aux.elems;
      M->tree = k2createFrom(levels,aux.len,aux.tree,1);

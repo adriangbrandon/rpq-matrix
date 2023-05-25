@@ -7,7 +7,8 @@
 #include <stdlib.h>
 
 typedef unsigned char byte;
-typedef unsigned uint;
+
+typedef uint32_t uint;
 
 #define w (8*sizeof(uint64_t))
 #define mmin(x,y) (((x)<(y))?(x):(y))
@@ -16,5 +17,8 @@ typedef unsigned uint;
 void *myalloc (size_t n);
 void *myrealloc (void *p, size_t n);
 void myfree (void *p);
+
+	// number of bits needed to represent n, gives 1 for n=0
+uint numbits (uint n);
 
 #endif

@@ -31,3 +31,11 @@ void myfree (void *p)
   { if (p != NULL) free(p);
   }
 
+uint numbits (uint n)
+
+   { uint bits = 0;
+     while (n)
+        { n = n>>1; bits++; }
+     return bits ? bits : 1;
+   }
+
