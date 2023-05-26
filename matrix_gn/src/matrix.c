@@ -571,12 +571,12 @@ static partition k2multRC (k2tree treeA, k2node nodeA, k2tree treeB,
 
    {
 
-       user_end();
+      /* user_end();
        //fprintf(stdout, "Time %llu\n", (t2-time_t1));
        if(user_diff() > TIMEOUT) {
            //fprintf(stdout, "Time %llu\n", user_diff());
            return empty;
-       }
+       }*/
 
     partition part1,part2,part[4];
      k2node childA[4],childB[4];
@@ -644,12 +644,12 @@ static partition k2mult (k2tree treeA, k2node nodeA, k2tree treeB, k2node nodeB,
 
    {
 
-       user_end();
+      /* user_end();
        //fprintf(stdout, "Time %llu\n", (t2-time_t1));
        if(user_diff() > TIMEOUT) {
            //fprintf(stdout, "Time %llu\n", user_diff());
            return empty;
-       }
+       }*/
 
      partition part1,part2,part[4];
      k2node childA[4],childB[4];
