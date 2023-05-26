@@ -974,6 +974,7 @@ namespace rpq {
                 m_map_P[s_aux] = id;
             }
             std::cout << " done." << std::endl;
+            
 
         }
 
