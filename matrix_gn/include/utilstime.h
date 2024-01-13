@@ -34,24 +34,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef INCLUDEDtime
 #define INCLUDEDtime
 
-#include <sys/time.h>
+#include <time.h>
 #include <sys/resource.h>
 #include <unistd.h>
 #include <inttypes.h>
 #include <stdio.h>
 
-#define TIMEOUT 90000000000
+#define TIMEOUT 60
+#define NANO_PER_SEC 1000000000.0
 
-static uint64_t beg;
-static uint64_t end;
+static struct timespec beg;
 
-void user_beg();
-void user_end();
-uint64_t user_diff();
-
-uint64_t user_now();
-uint64_t system_now();
-uint64_t elapsed_now();
+void time_beg();
+double time_diff();
 
 
 #endif

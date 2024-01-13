@@ -758,7 +758,7 @@ namespace rpq {
                 {
                     list_type ll, rl;
                     traversal_row_fixed(rpqTree, node->e1, CONC, row,ll);
-                    traversal_col_fixed(rpqTree, node->e2, CONC, col, rl);
+                    traversal(rpqTree, node->e2, CONC, rl);
                     rl.splice(rl.begin(), ll);
                     if (parentType == CONC){
                         res = std::move(rl);
@@ -922,6 +922,258 @@ namespace rpq {
             }
         }
 
+        void traversal_row_col_fixed_v2(RpqTree* rpqTree, Tree* node, int parentType, int row, int col, list_type &res,
+                                        bool skip_closure = false){
+            switch(node->type) {
+                case STR:{
+                    auto pred = rpqTree->getPred(node->pos);
+                    if(parentType != ROOT){
+                        matrix a = (pred > SIZE) ? m_matrices[pred-SIZE] :  m_matrices[pred];
+                        res.insert(res.begin(), data_type{a, (pred > SIZE), false, false});
+                    }else {
+                        matrix A;
+                        s_matrix sA;
+                        matrix a = (pred > SIZE) ? m_matrices[pred-SIZE] :  m_matrices[pred];
+                        A = get_matrix(sA, a, (pred > SIZE));
+                        matrix e = matEmpty(A->height, A->width);
+                        matrix m = matSum1(row, A, e, col);
+                        matDestroy(e);
+                        res.insert(res.begin(), data_type{m, false, true, true});
+                    }
+                    break;
+                }
+                case CONC:
+                {
+                    list_type ll, rl;
+                    if(node->e2->type == STAR || node->e2->type == PLUS) { //Special case!
+                        traversal_row_fixed(rpqTree, node->e1, CONC, row,ll);
+                        traversal(rpqTree, node->e2, CONC, rl, true);
+                        matrix tmp;
+                        uint pos = (node->e2->type == STAR) ? 0 : 1;
+                        if (ll.size() > 1) { //product of the right part
+                            auto it2 = ll.begin(); //first element
+                            auto it1 = ll.begin(); //first element
+                            ++it2; //first element +1
+                            matrix aux;
+                            if(it1->is_fixed){
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1->m, it1->is_transposed);
+                                B = get_matrix(sB, it2->m, it2->is_transposed);
+                                tmp = matMult(A, B);
+                            }else{
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1->m, it1->is_transposed);
+                                B = get_matrix(sB, it2->m, it2->is_transposed);
+                                tmp = matMult1(row, A, B, fullSide);
+                            }
+                            if(it1->is_tmp) matDestroy(it1->m);
+                            if(it2->is_tmp) matDestroy(it2->m);
+                            while(++it2 != ll.end()){
+                                matrix A;
+                                s_matrix sA;
+                                A = get_matrix(sA, it2->m, it2->is_transposed);
+                                aux = matMult(A, tmp); //tmp is already fixed
+                                if(it2->is_tmp) matDestroy(it2->m);
+                                matDestroy(tmp);
+                                tmp = aux;
+                            }
+                            aux = matMultClos1(row, tmp, rl.front().m, pos, col);
+                            matDestroy(tmp);
+                            if(rl.front().is_tmp) matDestroy(rl.front().m);
+                            res.insert(res.begin(), data_type{aux, false, true, true});
+                        }else{
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                            B = get_matrix(sB, rl.front().m, rl.front().is_transposed);
+                            tmp = matMultClos1(row, A, B, pos, col);
+                            if(ll.front().is_tmp) matDestroy(ll.front().m);
+                            if(rl.front().is_tmp) matDestroy(rl.front().m);
+                            res.insert(res.begin(), data_type{tmp, false,true, true});
+                        }
+                    }else{
+                        traversal_row_fixed(rpqTree, node->e1, CONC, row,ll);
+                        traversal(rpqTree, node->e2, CONC, rl);
+                        rl.splice(rl.begin(), ll);
+                        if (parentType == CONC){
+                            res = std::move(rl);
+                        }else{
+                            auto it2 = rl.begin(); //first element
+                            auto it1 = rl.begin(); //first element
+                            ++it2; //first element +1
+                            matrix tmp, aux;
+                            uint64_t cnt_mult = 2;
+                            if(it1->is_fixed){
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1->m, it1->is_transposed);
+                                B = get_matrix(sB, it2->m, it2->is_transposed);
+                                if(rl.size() == cnt_mult){
+                                    tmp = matMult1(row, A, B, col); //Final
+                                }else {
+                                    tmp = matMult(A, B);
+                                }
+                            }else{
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1->m, it1->is_transposed);
+                                B = get_matrix(sB, it2->m, it2->is_transposed);
+                                if(rl.size() == cnt_mult){
+                                    tmp = matMult1(row, A, B, col); //Final
+                                }else{
+                                    tmp = matMult1(row, A,B, fullSide);
+                                }
+                            }
+                            if(it1->is_tmp) matDestroy(it1->m);
+                            if(it2->is_tmp) matDestroy(it2->m);
+                            while(++it2 != rl.end()){
+                                ++cnt_mult;
+                                matrix A;
+                                s_matrix sA;
+                                A = get_matrix(sA, it2->m, it2->is_transposed);
+                                if(rl.size() == cnt_mult){
+                                    aux = matMult1(row, tmp, A, col); //Final
+                                }else{
+                                    aux = matMult(tmp, A);
+                                }
+                                if(it2->is_tmp) matDestroy(it2->m);
+                                matDestroy(tmp);
+                                tmp = aux;
+                            }
+                            res.insert(res.begin(), data_type{tmp, false,true, true});
+                        }
+                    }
+                    break;
+                }
+                case OOR:
+                {
+                    list_type ll, rl;
+                    traversal_row_col_fixed_v2(rpqTree, node->e1, OOR, row, col,ll);
+                    traversal_row_col_fixed_v2(rpqTree, node->e2, OOR, row, col,rl);
+                    rl.splice(rl.begin(), ll);
+                    if (parentType == OOR){
+                        res = std::move(rl);
+                    }else{
+
+                        matrix tmp;
+                        it_type it1, it2, it1_min, it2_min;
+                        while(rl.size() > 2) {//Check if there a
+                            it1 = it2 = rl.begin();
+                            uint64_t min = UINT64_MAX, weight;
+                            while (it1 != rl.end()) {
+                                weight = matSpace(it1->m);
+                                if (min > weight) {
+                                    it1_min = it1;
+                                    min = weight;
+                                }
+                                ++it1; //++it2;
+                            }
+                            min = UINT64_MAX;
+                            while (it2 != rl.end()) {
+                                if (it2 != it1_min) {
+                                    weight = matSpace(it2->m);
+                                    if (min > weight) {
+                                        it2_min = it2;
+                                        min = weight;
+                                    }
+                                }
+                                ++it2;
+                            }
+                            //tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
+                            if(it1_min->is_fixed && it2_min->is_fixed){
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                                B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                                tmp = matSum(A, B);
+                            }else{
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                                B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                                tmp = matSum1(row, A, B, fullSide);
+                            }
+                            if (it1_min->is_tmp) matDestroy(it1_min->m);
+                            if (it2_min->is_tmp) matDestroy(it2_min->m);
+
+                            rl.insert(it1_min, data_type{tmp, false, true, true});
+                            rl.erase(it1_min);
+                            rl.erase(it2_min);
+                        }
+                        it1_min = it2_min = rl.begin();
+                        ++it2_min;
+                        //tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
+                        if(it1_min->is_fixed && it2_min->is_fixed){
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                            B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                            tmp = matSum(A, B);
+                        }else{
+                            matrix A, B;
+                            s_matrix sA, sB;
+                            A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                            B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                            tmp = matSum1(row, A, B, col);
+                        }
+                        if(it1_min->is_tmp) matDestroy(it1_min->m);
+                        if(it2_min->is_tmp) matDestroy(it2_min->m);
+                        res.insert(res.begin(), data_type{tmp, false, true, true});
+                    }
+                    break;
+                }
+                case STAR:
+                {
+                    list_type ll;
+                    traversal(rpqTree, node->e1, STAR, ll);
+                    if(!skip_closure){
+                        matrix A;
+                        s_matrix sA;
+                        A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                        matrix tmp = matClos1(row, A, 0, col);
+                        // std::cout << "STAR : " << ll.front() << std::endl;
+                        if(ll.front().is_tmp) matDestroy(ll.front().m);
+                        res.insert(res.begin(), data_type{tmp, false, true, true});
+                    }else{
+                        res = std::move(ll);
+                    }
+                    break;
+                }
+                case PLUS:
+                {
+                    list_type ll;
+                    traversal(rpqTree, node->e1, PLUS, ll);
+                    if(!skip_closure){
+                        matrix A;
+                        s_matrix sA;
+                        A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                        matrix tmp = matClos1(row, A, 1, col);
+                        if(ll.front().is_tmp) matDestroy(ll.front().m);
+                        res.insert(res.begin(), data_type{tmp, false, true, true});
+                    }else{
+                        res = std::move(ll);
+                    }
+                    break;
+                }
+                case QUESTION:
+                {
+                    list_type ll;
+                    traversal_row_col_fixed_v2(rpqTree, node->e1, QUESTION, row, col,ll);
+                    matrix A;
+                    s_matrix sA;
+                    A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
+                    matrix Id = matId(std::max(A->height,A->width));
+                    matrix tmp = matSum1(row, ll.front().m, Id, col);
+                    matDestroy(Id);
+                    if(ll.front().is_tmp) matDestroy(ll.front().m);
+                    res.insert(res.begin(), data_type{tmp, false, true, true});
+                    break;
+                }
+            }
+        }
+
         std::string file_name(const uint i, const std::string &index){
             std::stringstream ss;
             ss << std::setw(4) << std::setfill('0') << i;
@@ -975,6 +1227,16 @@ namespace rpq {
             }
             std::cout << " done." << std::endl;
 
+            /*double_t bits = std::ceil(std::log2(N)) * (SIZE-1);
+            for(uint64_t j = 1; j < m_matrices.size(); ++j){
+                bits = bits + std::ceil(std::log2(m_matrices[j]->elems)) * m_matrices[j]->elems;
+            }
+            double_t bytes = bits / 8;
+            double_t bpt = bytes / N;
+            std::cout << "====== VP =====" << std::endl;
+            std::cout << bits << " (bits)" << std::endl;
+            std::cout << bytes << " (bytes)" << std::endl;
+            std::cout << bpt << " (bpt)" << std::endl;*/
 
         }
 
@@ -1002,7 +1264,7 @@ namespace rpq {
         data_type solve_con_to_con(std::string &query, int s_id, int o_id, bool &rem){
             list_type res;
             RpqTree rpqTree(query, map_P, SIZE);
-            traversal_row_col_fixed(&rpqTree, rpqTree.root(), ROOT, s_id, o_id, res);
+            traversal_row_col_fixed_v2(&rpqTree, rpqTree.root(), ROOT, s_id, o_id, res);
             return res.front();
         }
 

@@ -226,7 +226,8 @@ int main(int argc, char **argv) {
             query = remove_unnecessary_parentheses(query);
             std::cerr << query << std::endl;
 
-            user_beg();
+            auto t1 = std::chrono::high_resolution_clock::now();
+            time_beg();
             // auto t1 = std::chrono::high_resolution_clock::now();
             typename rpq::solver::data_type res;
             bool rem = false;
@@ -237,18 +238,17 @@ int main(int argc, char **argv) {
             } else if (!flag_o && flag_s) {
                 res = solver.solve_con_to_var(query, s_id, rem);
             } else{
-                //m = solver.solve_con_to_con(query, s_id, o_id, rem);
-                std::cout << i << ";" << 0 << ";" << 0 << std::endl;
-                ++i;
-                continue;
+                res = solver.solve_con_to_con(query, s_id, o_id, rem);
             }
             if(res.is_transposed){
                 s_matrix m = matTranspose(res.m);
-                user_end();
-                std::cout << i << ";" << m.elems << ";" << user_diff() << std::endl;
+                auto t2 = std::chrono::high_resolution_clock::now();
+                auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+                std::cout << i << ";" << m.elems << ";" <<t << std::endl;
             }else{
-                user_end();
-                std::cout << i << ";" << res.m->elems << ";" << user_diff() << std::endl;
+                auto t2 = std::chrono::high_resolution_clock::now();
+                auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+                std::cout << i << ";" << res.m->elems << ";" << t << std::endl;
                 if(res.is_tmp) matDestroy(res.m);
             }
         }

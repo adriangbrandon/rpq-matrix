@@ -27,7 +27,7 @@ set (SOURCES
 
 
 # Flags
-set(CMAKE_CXX_FLAGS " -Wall -m64")
+set(CMAKE_CXX_FLAGS " -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE " -std=c++0x -Wall -O9 -DNDEBUG")
 #set(CMAKE_CXX_FLAGS_DEBUG " -std=c++0x -Wall -O9 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG " -std=c++0x -Wall -g3 -DDEBUG")
