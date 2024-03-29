@@ -67,16 +67,36 @@ uint64_t matCollect32 (matrix M, uint32_t r1, uint32_t r2,
 		       uint32_t c1, uint32_t c2, uint32_t *buffer);
 
 #define fullSide (~(uint64_t)0)
+#define fullSide32 (~(uint)0)
 
         // (boolean) sum of two matrices, assumed to be of the same side
 matrix matSum (matrix A, matrix B);
+#define matOr matSum
 
         // version with one row or one column, or both
 matrix matSum1 (uint64_t row, matrix A, matrix B, uint64_t col);
+#define matOr1 matSum1
+
+        // (boolean) difference A-B, assumed to be of the same logside
+matrix matDif (matrix A, matrix B);
+
+        // version with one row or one column, or both
+matrix matDif1 (uint64_t row, matrix A, matrix B, uint64_t col);
+
+        // (boolean) symmetric difference, assumed to be of the same logside
+matrix matXor (matrix A, matrix B);
+
+        // version with one row or one column, or both
+matrix matXor1 (uint64_t row, matrix A, matrix B, uint64_t col);
+
+        // (boolean) intersection of A and B, assumed to be of the same logside
+matrix matAnd (matrix A, matrix B);
+
+        // version with one row or one column, or both
+matrix matAnd1 (uint64_t row, matrix A, matrix B, uint64_t col);
 
         // (boolean) product of two matrices, assumed to be of the same side
         // only rowA of A and colB of B are considered if not fullSide
-	
 matrix matMult (matrix A, matrix B);
 
 	// version with one row or one column, or both
@@ -93,5 +113,10 @@ matrix matMultClos1 (uint64_t row, matrix A, matrix B, uint pos, uint64_t col);
 
         // computes [row] A* B [col] (pos=0) or [row] A+ B [col] (pos=1)
 matrix matClosMult1 (uint64_t row, matrix A, uint pos, matrix B, uint64_t col);
+
+        // multiplies M by vector V. allocates and returns the result M x V
+        // use matrix transposition to do V^T x M = M^T x V (transposed vector)
+        // V is assumed to be of size A->width, the output is of size A->height
+double *matVectorMult (matrix A, double *vector);
 
 #endif

@@ -60,6 +60,9 @@ extern inline uint bitsAccessA (uint64_t *B, uint64_t i);
 
 extern inline uint popcount (uint64_t y);
 
+// popcount in a nibble
+extern inline uint pop4 (uint x);
+
 	// preprocesses for rank, with parameter k, no writes after this
 	// frees previous S if it exists
 void bitsRankPreprocess (bitvector B, uint64_t k);

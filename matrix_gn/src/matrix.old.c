@@ -13,7 +13,7 @@ typedef struct {
 static queue *Q = NULL;
 static uint64_t head,tail,size;
 
-	// creates matrix of width x height with n cells (2n ints row,col)
+	// creates matrix of width x height with n cells (2n ints row,col) 
 	// reorders cells array
 
 matrix matCreate (uint64_t height, uint64_t width, uint64_t n, uint64_t *cells)
@@ -28,7 +28,7 @@ matrix matCreate (uint64_t height, uint64_t width, uint64_t n, uint64_t *cells)
      else mat->tree = k2create(n,mat->logside,cells);
      return mat;
    }
-
+     
 matrix matCreate32 (uint64_t height, uint64_t width, uint64_t n, uint32_t *cells)
 
    { matrix mat = (matrix)myalloc(sizeof(struct s_matrix));
@@ -41,7 +41,7 @@ matrix matCreate32 (uint64_t height, uint64_t width, uint64_t n, uint32_t *cells
      else mat->tree = k2create32(n,mat->logside,cells);
      return mat;
    }
-
+     
         // destroys matrix
 
 void matDestroy (matrix M)
@@ -123,7 +123,7 @@ matrix matId (uint64_t side)
            if (odd[l]) bitsWriteA(data,4*(p-1)+3,0);
          }
      myfree(levels); myfree(odd);
-     data = (uint64_t*)myrealloc(data,((4*p+w-1)/w)*sizeof(uint64_t));
+     data = (byte*)myrealloc(data,((4*p+w-1)/w)*sizeof(uint64_t));
      mat->tree = k2createFrom(level,4*p,data,1);
      return mat;
    }
@@ -138,7 +138,7 @@ matrix matCopy (matrix A)
      return M;
    }
 
-        // transpose a matrix, creating a non-allocated copy that shares the
+        // transpose a matrix, creating a non-allocated copy that shares the 
         // data. You need not (and should not) matDestroy this copy
 	// use *M = matTranspose(M) to actually transpose M
 struct s_matrix matTranspose (matrix M)
@@ -224,7 +224,7 @@ uint matAccess (matrix M, uint64_t row, uint64_t col)
         // to 2*elems of uint64_t (worst case)
 	// returns number of cells. just counts if buffer is NULL
 
-uint64_t matCollect (matrix M, uint64_t r1, uint64_t r2,
+uint64_t matCollect (matrix M, uint64_t r1, uint64_t r2, 
 		     uint64_t c1, uint64_t c2, uint64_t *buffer)
 
    { uint64_t aux;
@@ -238,7 +238,7 @@ uint64_t matCollect (matrix M, uint64_t r1, uint64_t r2,
      return k2collect (M->tree,r1,r2,c1,c2,buffer,M->transposed);
    }
 
-uint64_t matCollect32 (matrix M, uint32_t r1, uint32_t r2,
+uint64_t matCollect32 (matrix M, uint32_t r1, uint32_t r2, 
 		     uint32_t c1, uint32_t c2, uint32_t *buffer)
 
    { uint64_t aux;
@@ -247,8 +247,8 @@ uint64_t matCollect32 (matrix M, uint32_t r1, uint32_t r2,
 	{ aux = c1; c1 = r1; r1 = aux;
 	  aux = c2; c2 = r2; r2 = aux;
 	}
-     if (r2 == fullSide32) r2 = M->height-1; // already in concrete repres
-     if (c2 == fullSide32) c2 = M->width-1;
+     if (r2 == fullSide) r2 = M->height-1; // already in concrete repres
+     if (c2 == fullSide) c2 = M->width-1;
      return k2collect32 (M->tree,r1,r2,c1,c2,buffer,M->transposed);
    }
 
@@ -271,9 +271,9 @@ matrix matSum (matrix A, matrix B)
      else if (B->elems == 0) M = matCopy(A);
      else { M = (matrix)myalloc(sizeof(struct s_matrix));
             M->logside = A->logside;
-            treeA = bitsData(k2bits(A->tree));
+            treeA = bitsData(k2bits(A->tree)); 
 	    treeB = bitsData(k2bits(B->tree));
-            lenA = bitsLength(k2bits(A->tree));
+            lenA = bitsLength(k2bits(A->tree)); 
 	    lenB = bitsLength(k2bits(B->tree));
 	    if (A->transposed == B->transposed) // transposition can be ignored
                { sum = k2merge (treeA,lenA,treeB,lenB,k2levels(A->tree),
@@ -308,11 +308,11 @@ matrix matSum (matrix A, matrix B)
 
         // version with one row or one column, or both
 
-	// copies len bits starting at *src + psrc
-	// to tgt from bit position ptgt
+	// copies len bits starting at *src + psrc 
+	// to tgt from bit position ptgt 
 	// WARNING: leave at least one extra word to spare in tgt
 
-static void copyBits (uint64_t *tgt, uint64_t ptgt,
+static void copyBits (uint64_t *tgt, uint64_t ptgt, 
 		      uint64_t *src, uint64_t psrc, uint64_t len)
 
    { uint64_t old,mask,shift;
@@ -321,14 +321,14 @@ static void copyBits (uint64_t *tgt, uint64_t ptgt,
 	// I didn't align to 8 due to possible endianness issues
      tgt += ptgt/w; ptgt %= w;
      src += psrc/w; psrc %= w;
-     if (ptgt == psrc)
+     if (ptgt == psrc) 
 	{ if (ptgt != 0)
 	     { shift = w-ptgt;
 	       mask = (~((uint64_t)0)) >> shift;
                *tgt = (*tgt & mask) + (*src & ~mask);
 	       *tgt++; *src++; len -= shift;
 	     }
-	  memcpy (tgt,src,((len+w-1)/w)*sizeof(uint64_t));
+	  memcpy (tgt,src,((len+w-1)/w)*sizeof(uint64_t)); 
 	  return;
 	}
 	// general case, we first align the source
@@ -356,6 +356,9 @@ static void copyBits (uint64_t *tgt, uint64_t ptgt,
      *tgt = old;
    }
 
+static uint mapId[] = { 0, 1, 2, 3 };
+static uint mapTr[] = { 0, 2, 1, 3 };
+
 static uint *mapA,*mapB;
 
 typedef struct {
@@ -368,52 +371,34 @@ static partition empty = { NULL, NULL, 0, 0 };
 static partition compose (partition *part, uint level, uint freepart)
 
    { uint64_t ptr,old;
-     uint l,v,sig;
+     uint l,v;
      partition answer;
      uint64_t ptrs[4];
 
      answer.elems = part[0].elems+part[1].elems+part[2].elems+part[3].elems;
-     if (answer.elems == 0) return empty;
-     sig =  (part[0].elems != 0) +
-	   ((part[1].elems != 0) << 1) +
-	   ((part[2].elems != 0) << 2) +
-	   ((part[3].elems != 0) << 3);
-     if (pop4(sig) == 1) // trivial concatenation
-	{ v = (((sig >> 1) & 1) * 1) +
-	      (((sig >> 2) & 1) * 2) +
-	      (((sig >> 3) & 1) * 3);
-	  answer.len = 4 + part[v].len;
-	  answer.levels = (uint64_t*)myrealloc(part[v].levels,
-					     level*sizeof(uint64_t));
-          answer.levels[level-1] = 1;
-          answer.tree = (uint64_t*)myalloc((1+(answer.len+w-1)/w)
-				           *sizeof(uint64_t)); //+1 for copyBits
-          answer.tree[0] = sig;
-	  copyBits(answer.tree,4,part[v].tree,0,part[v].len);
-	  if (freepart) myfree(part[v].tree);
-          part[v].levels = NULL; // so it is not freed
-	  return answer;
-	}
-	// nontrivial concatenation
-     answer.len = 4 + part[0].len+part[1].len+part[2].len+part[3].len;
-     answer.levels = (uint64_t*)myalloc(level*sizeof(uint64_t));
-     answer.levels[level-1] = 1;
-     answer.tree = (uint64_t*)myalloc((1+(answer.len+w-1)/w)
+     if (answer.elems == 0) answer = empty;
+     else { answer.len = 4 + part[0].len+part[1].len+part[2].len+part[3].len;
+            answer.levels = (uint64_t*)myalloc(level*sizeof(uint64_t));
+            answer.levels[level-1] = 1;
+            answer.tree = (uint64_t*)myalloc((1+(answer.len+w-1)/w)
 				         *sizeof(uint64_t)); //+1 for copyBits
-     answer.tree[0] = sig;
-     for (v=0;v<4;v++) ptrs[v] = 0;
-     ptr = old = 4;
-     for (l=level-1;l>0;)
-	 { uint64_t segm;
-	   l--;
-	   for (v=0;v<4;v++)
-	       { if (part[v].tree != NULL)
-	            { segm = 4*part[v].levels[l];
-		      copyBits(answer.tree,ptr,part[v].tree,ptrs[v],segm);
-		      ptr += segm; ptrs[v] += segm;
-		    }
-	       }
-  	   answer.levels[l] = (ptr - old)/4; old = ptr;
+            for (v=0;v<4;v++) 
+	        { bitsWriteA(answer.tree,v,part[v].elems);
+	          ptrs[v] = 0;
+	        }
+            ptr = old = 4;
+            for (l=level-1;l>0;)
+	        { uint64_t segm;
+	          l--;
+	          for (v=0;v<4;v++)
+	              { if (part[v].tree != NULL) 
+	                  { segm = 4*part[v].levels[l];
+		            copyBits(answer.tree,ptr,part[v].tree,ptrs[v],segm);
+		            ptr += segm; ptrs[v] += segm;
+		          }
+	              }
+  	          answer.levels[l] = (ptr - old)/4; old = ptr;
+	        }
 	 }
      if (freepart)
         for (v=0;v<4;v++)
@@ -423,70 +408,76 @@ static partition compose (partition *part, uint level, uint freepart)
      return answer;
    }
 
-#define valA(i) ((sigA >> i) & 1)
-#define valB(i) ((sigB >> i) & 1)
-#define val(i) ((sig >> i) & 1)
-
-static partition single (uint sig)
-
-   { partition answer;
-     if (sig == 0) return empty;
-     answer.elems = pop4(sig);
-     answer.len = 4;
-     answer.tree = (uint64_t*)myalloc(((4+w-1)/w)*sizeof(uint64_t));
-     answer.tree[0] = sig;
-     answer.levels = (uint64_t*)myalloc(1*sizeof(uint64_t));
-     answer.levels[0] = 1;
-     return answer;
-   }
-
-static inline void fixSig (uint64_t row, uint64_t col, uint64_t lim,
-		      uint *sigA, uint *sigB)
-
-   { if (row != fullSide)
-        { if (row >= lim) { *sigA &= ~0x3; *sigB &= ~0x3; }
-          else { *sigA &= ~0xC; *sigB &= ~0xC; }
-        }
-     if (col != fullSide)
-        { if (col >= lim) { *sigA &= ~0x5; *sigB &= ~0x5; }
-          else { *sigA &= ~0xA; *sigB &= ~0xA; }
-        }
-   }
-
 static partition k2sumRC (k2tree treeA,k2node nodeA,k2tree treeB,k2node nodeB,
 			  uint level, uint64_t row, uint64_t col, uint has)
 
    { partition part[4];
      k2node childA[4],childB[4];
-     uint sigA,sigB;
-     uint v;
+     uint valA[4],valB[4];
+     uint v,val;
      uint64_t lim;
-
-     if (has & 1) sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
-     else sigA = 0;
-     if (has & 2) sigB = k2fillMappedChildren(treeB,nodeB,mapB,childB);
-     else sigB = 0;
+     partition answer;
 
      lim = ((uint64_t)1)<<(level-1);
-     fixSig(row,col,lim,&sigA,&sigB);
-
+     for (v=0;v<4;v++) valA[v] = valB[v] = 0;
+     if ((row == fullSide) || (row < lim)) 
+	{ if ((col == fullSide) || (col < lim))
+             { if (has & 1) valA[0] = k2hasChild(treeA,nodeA,mapA[0]);
+               if (has & 2) valB[0] = k2hasChild(treeB,nodeB,mapB[0]);
+	     }
+	  if ((col == fullSide) || (col >= lim))
+             { if (has & 1) valA[1] = k2hasChild(treeA,nodeA,mapA[1]);
+               if (has & 2) valB[1] = k2hasChild(treeB,nodeB,mapB[1]);
+	     }
+	}
+     if ((row == fullSide) || (row >= lim)) 
+	{ if ((col == fullSide) || (col < lim))
+             { if (has & 1) valA[2] = k2hasChild(treeA,nodeA,mapA[2]);
+               if (has & 2) valB[2] = k2hasChild(treeB,nodeB,mapB[2]);
+	     }
+	  if ((col == fullSide) || (col >= lim))
+             { if (has & 1) valA[3] = k2hasChild(treeA,nodeA,mapA[3]);
+               if (has & 2) valB[3] = k2hasChild(treeB,nodeB,mapB[3]);
+	     }
+	}
 	// base case, level = 1
-     if (level == 1) return single (sigA | sigB);
+     if (level == 1)
+	{ val =  (valA[0] | valB[0]) + 
+                ((valA[1] | valB[1]) << 1) +
+                ((valA[2] | valB[2]) << 2) +
+                ((valA[3] | valB[3]) << 3);
+ 	  if (val == 0) return empty;
+	  answer.elems = popcount(val);
+          answer.len = 4;
+          answer.tree = (uint64_t*)myalloc(((4+w-1)/w)*sizeof(uint64_t));
+	  answer.tree[0] = val;
+	  answer.levels = (uint64_t*)myalloc(1*sizeof(uint64_t));
+	  answer.levels[0] = 1;
+	  return answer;
+	}
 
-     for (v=0;v<4;v++) part[v] = empty;
-     has = valA(0) + 2*valB(0);
-     if (has) part[0] = k2sumRC (treeA,childA[0],treeB,childB[0],
-			         level-1,row,col,has);
-     has = valA(1) + 2*valB(1);
-     if (has) part[1] = k2sumRC (treeA,childA[1],treeB,childB[1],
-			      level-1,row,col == fullSide ? col : col-lim, has);
-     has = valA(2) + 2*valB(2);
-     if (has) part[2] = k2sumRC (treeA,childA[2],treeB,childB[2],
-			      level-1,row == fullSide ? row : row-lim,col, has);
-     has = valA(3) + 2*valB(3);
-     if (has) part[3] = k2sumRC (treeA,childA[3],treeB,childB[3],
-			         level-1,row == fullSide ? row : row-lim,
-				         col == fullSide ? col : col-lim, has);
+     for (v=0;v<4;v++) 
+	 { if (valA[v]) childA[v] = k2child(treeA,nodeA,mapA[v]);
+	   if (valB[v]) childB[v] = k2child(treeB,nodeB,mapB[v]);
+           part[v] = empty;
+  	 }
+      has = valA[0] + 2*valB[0];
+      if (has) 
+         part[0] = k2sumRC (treeA,childA[0],treeB,childB[0],
+			    level-1,row,col,has);
+      has = valA[1] + 2*valB[1];
+      if (has) 
+         part[1] = k2sumRC (treeA,childA[1],treeB,childB[1],
+			    level-1,row,col == fullSide ? col : col-lim, has);
+      has = valA[2] + 2*valB[2];
+      if (has) 
+         part[2] = k2sumRC (treeA,childA[2],treeB,childB[2],
+			    level-1,row == fullSide ? row : row-lim,col, has);
+      has = valA[3] + 2*valB[3];
+      if (has) 
+         part[3] = k2sumRC (treeA,childA[3],treeB,childB[3],
+			    level-1,row == fullSide ? row : row-lim,
+				    col == fullSide ? col : col-lim, has);
 
 	// combine the 4 quadrants into a single matrix
      return compose(part,level,1);
@@ -503,7 +494,7 @@ static uint64_t *k2sum1 (k2tree A, k2tree B, uint64_t row, uint64_t col,
      has = 0;
      if (A != NULL) { level = k2levels(A); has += 1; }
      if (B != NULL) { level = k2levels(B); has += 2; }
-
+     
      sum = k2sumRC(A,k2root(A),B,k2root(B),level,row,col,has);
 
      *telems = sum.elems;
@@ -522,7 +513,7 @@ matrix matSum1 (uint64_t row, matrix A, matrix B, uint64_t col)
      if ((row == fullSide) && (col == fullSide)) return matSum(A,B);
 
      if (A->logside != B->logside)
-        { fprintf(stderr,"Error: sum of matrices of different logside\n");
+        { fprintf(stderr,"Error: sum of matrices of different side\n");
           exit(1);
         }
      matDims(A,NULL,&wA,&hA); matDims(B,NULL,&wB,&hB);
@@ -546,353 +537,25 @@ matrix matSum1 (uint64_t row, matrix A, matrix B, uint64_t col)
      return M;
    }
 
-	// (boolean) difference A - B, assumed to be of the same logside
-
-	// extracts the subtree as a partition, allows transpositions
-
-static partition k2extract (k2tree treeA, k2node nodeA, uint level)
-
-   { partition part[4];
-     k2node childA[4];
-     uint sigA;
-     uint v;
-
-     sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
-
-	// base case, level = 1
-     if (level == 1) return single (sigA);
-
-     for (v=0;v<4;v++)
-	 { if (valA(v)) part[v] = k2extract(treeA,childA[v],level-1);
-	   else part[v] = empty;
-  	 }
-	// combine the 4 quadrants into a single matrix
-     return compose(part,level,1);
-   }
-
-static partition k2dif (k2tree treeA, k2node nodeA, k2tree treeB, k2node nodeB,
-		        uint level)
-
-   { partition part[4];
-     k2node childA[4],childB[4];
-     uint sigA,sigB;
-     uint v;
-
-     sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
-     sigB = k2fillMappedChildren(treeB,nodeB,mapB,childB);
-
-	// base case, level = 1
-     if (level == 1) return single (sigA & ~sigB);
-
-     	// compute the 4 quadrants
-     for (v=0;v<4;v++)
-        { if (!valA(v)) part[v] = empty;
-          else if (!valB(v)) part[v] = k2extract(treeA,childA[v],level-1);
-          else part[v] = k2dif(treeA,childA[v],treeB,childB[v],level-1);
-	}
-	// combine the 4 quadrants into a single matrix
-     return compose(part,level,1);
-   }
-
-static partition k2difRC (k2tree treeA, k2node nodeA, k2tree treeB,k2node nodeB,
-		          uint level, uint64_t row, uint64_t col)
-
-   { partition part[4];
-     k2node childA[4],childB[4];
-     uint sigA,sigB;
-     uint v;
-     uint64_t lim;
-     uint64_t rows[4],cols[4];
-
-     sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
-     sigB = k2fillMappedChildren(treeB,nodeB,mapB,childB);
-
-     lim = ((uint64_t)1)<<(level-1);
-     fixSig(row,col,lim,&sigA,&sigB);
-
-	// base case, level = 1
-     if (level == 1) return single (sigA & ~sigB);
-
-     rows[0] = rows[1] = row; cols[0] = cols[2] = col;
-     rows[2] = rows[3] = row == fullSide ? row : row-lim;
-     cols[1] = cols[3] = col == fullSide ? col : col-lim;
-	// compute the 4 quadrants (could be parallelized)
-     for (v=0;v<4;v++)
-        { if (!valA(v)) part[v] = empty;
-          else if (!valB(v)) part[v] = k2sumRC(treeA,childA[v],NULL,0,
-			  		       level-1,rows[v],cols[v],1);
-          else part[v] = k2difRC(treeA,childA[v],treeB,childB[v],
-			  	 level-1,rows[v],cols[v]);
-	}
-	// combine the 4 quadrants into a single matrix
-     return compose(part,level,1);
-   }
-
-matrix matDif (matrix A, matrix B)
-
-   { return matDif1 (fullSide,A,B,fullSide);
-   }
-
-matrix matDif1 (uint64_t row, matrix A, matrix B, uint64_t col)
-
-   { partition dif;
-     matrix M;
-     uint64_t wA,hA,wB,hB,wM,hM;
-
-     if (A->logside != B->logside)
-        { fprintf(stderr,"Error: diff of matrices of different logside\n");
-          exit(1);
-        }
-     matDims(A,NULL,&wA,&hA); matDims(B,NULL,&wB,&hB);
-     wM = mmax(wA,wB); hM = mmax(hA,hB);
-     if (A->elems == 0) return matEmpty(hM,wM);
-     if (B->elems == 0)
-	{ M = matCopy(A);
-	  if (M->transposed) { M->height = wM; M->width = hM; }
-	  else { M->height = hM; M->width = wM; }
-	}
-     else
-        { mapA = A->transposed ? mapTr : mapId;
-          mapB = B->transposed ? mapTr : mapId;
-          M = (matrix)myalloc(sizeof(struct s_matrix));
-          M->logside = A->logside;
-	  if ((row == fullSide) && (col == fullSide))
-               dif = k2dif (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
-		   	    k2levels(A->tree));
-	  else dif = k2difRC (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
-		              k2levels(A->tree),row,col);
-          myfree (dif.levels);
-          M->elems = dif.elems;
-          if (M->elems == 0) M->tree = NULL;
-          else M->tree = k2createFrom (k2levels(A->tree),dif.len,dif.tree,1);
-          M->transposed = 0;
-	}
-     return M;
-   }
-
-	// (boolean) symmetric difference A-B U B-A, same logside assumed
-
-static partition k2xor (k2tree treeA, k2node nodeA, k2tree treeB, k2node nodeB,
-		        uint level)
-
-   { partition part[4];
-     k2node childA[4],childB[4];
-     uint sigA,sigB;
-     uint v;
-
-     sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
-     sigB = k2fillMappedChildren(treeB,nodeB,mapB,childB);
-
-	// base case, level = 1
-     if (level == 1) return single (sigA ^ sigB);
-
-     	// compute the 4 quadrants
-     for (v=0;v<4;v++)
-        { if (!valA(v) && !valB(v)) part[v] = empty;
-          else if (!valB(v)) part[v] = k2extract(treeA,childA[v],level-1);
-          else if (!valA(v)) part[v] = k2extract(treeB,childB[v],level-1);
-          else part[v] = k2xor(treeA,childA[v],treeB,childB[v],level-1);
-	}
-
-	// combine the 4 quadrants into a single matrix
-     return compose(part,level,1);
-   }
-
-static partition k2xorRC (k2tree treeA,k2node nodeA, k2tree treeB,k2node nodeB,
-		          uint level, uint64_t row, uint64_t col)
-
-   { partition part[4];
-     k2node childA[4],childB[4];
-     uint sigA,sigB;
-     uint v;
-     uint64_t lim;
-     uint64_t rows[4],cols[4];
-
-     sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
-     sigB = k2fillMappedChildren(treeB,nodeB,mapB,childB);
-
-     lim = ((uint64_t)1)<<(level-1);
-     fixSig(row,col,lim,&sigA,&sigB);
-
-	// base case, level = 1
-     if (level == 1) return single (sigA ^ sigB);
-
-     rows[0] = rows[1] = row; cols[0] = cols[2] = col;
-     rows[2] = rows[3] = row == fullSide ? row : row-lim;
-     cols[1] = cols[3] = col == fullSide ? col : col-lim;
-	// compute the 4 quadrants (could be parallelized)
-     for (v=0;v<4;v++)
-        { if (!valA(v) && !valB(v)) part[v] = empty;
-          else if (!valB(v)) part[v] = k2sumRC(treeA,childA[v],NULL,0,
-			  		       level-1,rows[v],cols[v],1);
-          else if (!valA(v)) part[v] = k2sumRC(treeB,childB[v],NULL,0,
-			  		       level-1,rows[v],cols[v],1);
-          else part[v] = k2xorRC(treeA,childA[v],treeB,childB[v],
-			  	 level-1,rows[v],cols[v]);
-	}
-	// combine the 4 quadrants into a single matrix
-     return compose(part,level,1);
-   }
-
-matrix matXor (matrix A, matrix B)
-
-   { return matXor1 (fullSide,A,B,fullSide);
-   }
-
-matrix matXor1 (uint64_t row, matrix A, matrix B, uint64_t col)
-
-   { partition xor;
-     matrix M;
-     uint64_t wA,hA,wB,hB,wM,hM;
-
-     if (A->logside != B->logside)
-        { fprintf(stderr,"Error: sym diff of matrices of different logside\n");
-          exit(1);
-        }
-     matDims(A,NULL,&wA,&hA); matDims(B,NULL,&wB,&hB);
-     wM = mmax(wA,wB); hM = mmax(hA,hB);
-     if ((A->elems == 0) && (B->elems == 0)) return matEmpty(hM,wM);
-     if (B->elems == 0)
-	{ M = matCopy(A);
-	  if (M->transposed) { M->height = wM; M->width = hM; }
-	  else { M->height = hM; M->width = wM; }
-	}
-     else if (A->elems == 0)
-	{ M = matCopy(B);
-	  if (M->transposed) { M->height = wM; M->width = hM; }
-	  else { M->height = hM; M->width = wM; }
-	}
-     else
-        { mapA = A->transposed ? mapTr : mapId;
-          mapB = B->transposed ? mapTr : mapId;
-          M = (matrix)myalloc(sizeof(struct s_matrix));
-          M->logside = A->logside;
-	  if ((row == fullSide) && (col == fullSide))
-               xor = k2xor (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
-		   	    k2levels(A->tree));
-	  else xor = k2xorRC (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
-		              k2levels(A->tree),row,col);
-          myfree (xor.levels);
-          M->elems = xor.elems;
-          if (M->elems == 0) M->tree = NULL;
-          else M->tree = k2createFrom (k2levels(A->tree),xor.len,xor.tree,1);
-          M->transposed = 0;
-	}
-     return M;
-   }
-
-	// (boolean) intersection of A and B, of the same size
-
-static partition k2and (k2tree treeA, k2node nodeA, k2tree treeB, k2node nodeB,
-		        uint level)
-
-   { partition part[4];
-     k2node childA[4],childB[4];
-     uint sigA,sigB;
-     uint v;
-
-     sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
-     sigB = k2fillMappedChildren(treeB,nodeB,mapB,childB);
-
-	// base case, level = 1
-     if (level == 1) return single (sigA & sigB);
-
-     	// compute the 4 quadrants
-     for (v=0;v<4;v++)
-        { if (!valA(v) || !valB(v)) part[v] = empty;
-          else part[v] = k2and(treeA,childA[v],treeB,childB[v],level-1);
-	}
-
-	// combine the 4 quadrants into a single matrix
-     return compose(part,level,1);
-   }
-
-static partition k2andRC (k2tree treeA, k2node nodeA, k2tree treeB,k2node nodeB,
-		          uint level, uint64_t row, uint64_t col)
-
-   { partition part[4];
-     k2node childA[4],childB[4];
-     uint sigA,sigB;
-     uint v;
-     uint64_t lim;
-     uint64_t rows[4],cols[4];
-
-     sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
-     sigB = k2fillMappedChildren(treeB,nodeB,mapB,childB);
-
-     lim = ((uint64_t)1)<<(level-1);
-     fixSig(row,col,lim,&sigA,&sigB);
-
-	// base case, level = 1
-     if (level == 1) return single (sigA & sigB);
-
-     rows[0] = rows[1] = row; cols[0] = cols[2] = col;
-     rows[2] = rows[3] = row == fullSide ? row : row-lim;
-     cols[1] = cols[3] = col == fullSide ? col : col-lim;
-	// compute the 4 quadrants (could be parallelized)
-     for (v=0;v<4;v++)
-        { if (!valA(v) || !valB(v)) part[v] = empty;
-          else part[v] = k2andRC(treeA,childA[v],treeB,childB[v],
-			  	 level-1,rows[v],cols[v]);
-	}
-	// combine the 4 quadrants into a single matrix
-     return compose(part,level,1);
-   }
-
-matrix matAnd (matrix A, matrix B)
-
-   { return matAnd1 (fullSide,A,B,fullSide);
-   }
-
-matrix matAnd1 (uint64_t row, matrix A, matrix B, uint64_t col)
-
-   { partition and;
-     matrix M;
-     uint64_t wA,hA,wB,hB,wM,hM;
-
-     if (A->logside != B->logside)
-        { fprintf(stderr,"Error: and of matrices of different logside\n");
-          exit(1);
-        }
-     matDims(A,NULL,&wA,&hA); matDims(B,NULL,&wB,&hB);
-     wM = mmax(wA,wB); hM = mmax(hA,hB);
-     if ((A->elems == 0) || (B->elems == 0)) return matEmpty(hM,wM);
-     M = (matrix)myalloc(sizeof(struct s_matrix));
-     M->logside = A->logside;
-     mapA = A->transposed ? mapTr : mapId;
-     mapB = B->transposed ? mapTr : mapId;
-     if ((row == fullSide) && (col == fullSide))
-          and = k2and (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
-		     k2levels(A->tree));
-     else and = k2andRC (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
-		         k2levels(A->tree),row,col);
-     myfree (and.levels);
-     M->elems = and.elems;
-     if (M->elems == 0) M->tree = NULL;
-     else M->tree = k2createFrom (k2levels(A->tree),and.len,and.tree,1);
-     M->transposed = 0;
-     return M;
-   }
-
 	// (boolean) product of two matrices, assumed to be of the same side
 
 #define prepare(i1,j1,i2,j2)						\
-     if (valA(i1) && valB(j1)) 						\
+     if (valA[i1] && valB[j1]) 						\
  	  part1 = k2mult (treeA,childA[i1],treeB,childB[j1],level-1);	\
      else part1 = empty;						\
-     if (valA(i2) && valB(j2)) 						\
+     if (valA[i2] && valB[j2]) 						\
  	  part2 = k2mult (treeA,childA[i2],treeB,childB[j2],level-1);	\
      else part2 = empty;						\
 
 #define prepareRC(i1,j1,i2,j2)						\
-     if (valA(i1) && valB(j1)) 						\
+     if (valA[i1] && valB[j1]) 						\
  	  part1 = k2multRC (treeA,childA[i1],treeB,childB[j1],level-1,row,col);\
      else part1 = empty;						\
-     if (valA(i2) && valB(j2)) 						\
+     if (valA[i2] && valB[j2]) 						\
  	  part2 = k2multRC (treeA,childA[i2],treeB,childB[j2],level-1,row,col);\
      else part2 = empty;						\
 
-#define combine(k)							\
+#define combine(i1,j1,i2,j2,k)						\
      if (part1.tree == NULL) part[k] = part2; 				\
      else if (part2.tree == NULL) part[k] = part1;			\
      else								\
@@ -903,7 +566,7 @@ matrix matAnd1 (uint64_t row, matrix A, matrix B, uint64_t col)
 	  myfree(part2.tree); myfree(part2.levels);			\
 	}
 
-static partition k2multRC (k2tree treeA, k2node nodeA, k2tree treeB,
+static partition k2multRC (k2tree treeA, k2node nodeA, k2tree treeB, 
 		k2node nodeB, uint level, uint64_t row, uint64_t col)
 
    {
@@ -916,42 +579,61 @@ static partition k2multRC (k2tree treeA, k2node nodeA, k2tree treeB,
 
     partition part1,part2,part[4];
      k2node childA[4],childB[4];
-     uint sigA,sigB,sig;
-     uint v;
+     uint valA[4],valB[4];
+     uint v,val;
      uint64_t lim;
      partition answer;
 
-     sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
-     sigB = k2fillMappedChildren(treeB,nodeB,mapB,childB);
-
+     for (v=0;v<4;v++) valA[v] = valB[v] = 0;
      lim = ((uint64_t)1)<<(level-1);
-     if (row != fullSide)
-        { if (row >= lim) { sigA &= ~0x3; row -= lim; }
-          else sigA &= ~0xC;
-        }
-     if (col != fullSide)
-        { if (col >= lim) { sigB &= ~0x5; col -= lim; }
-          else sigB &= ~0xA;
-        }
-
+     if ((row == fullSide) || (row < lim))
+        { valA[0] = k2hasChild(treeA,nodeA,mapA[0]);
+          valA[1] = k2hasChild(treeA,nodeA,mapA[1]);
+	}
+     if ((row == fullSide) || (row >= lim))
+	{ valA[2] = k2hasChild(treeA,nodeA,mapA[2]);
+          valA[3] = k2hasChild(treeA,nodeA,mapA[3]);
+	  if (row != fullSide) row -= lim;
+	}
+     if ((col == fullSide) || (col < lim))
+        { valB[0] = k2hasChild(treeB,nodeB,mapB[0]);
+          valB[2] = k2hasChild(treeB,nodeB,mapB[2]);
+	}
+     if ((col == fullSide) || (col >= lim))
+	{ valB[1] = k2hasChild(treeB,nodeB,mapB[1]);
+          valB[3] = k2hasChild(treeB,nodeB,mapB[3]);
+	  if (col != fullSide) col -= lim;
+	}
 	// base case, level = 1
      if (level == 1)
-	{ sig =  ((valA(0) & valB(0)) | (valA(1) & valB(2))) +
-                (((valA(0) & valB(1)) | (valA(1) & valB(3))) << 1) +
-                (((valA(2) & valB(0)) | (valA(3) & valB(2))) << 2) +
-                (((valA(2) & valB(1)) | (valA(3) & valB(3))) << 3);
-	  return single (sig);
+	{ val =  ((valA[0] & valB[0]) | (valA[1] & valB[2])) + 
+                (((valA[0] & valB[1]) | (valA[1] & valB[3])) << 1) +
+                (((valA[2] & valB[0]) | (valA[3] & valB[2])) << 2) +
+                (((valA[2] & valB[1]) | (valA[3] & valB[3])) << 3);
+ 	  if (val == 0) return empty;
+	  answer.elems = popcount(val);
+          answer.len = 4;
+          answer.tree = (uint64_t*)myalloc(((4+w-1)/w)*sizeof(uint64_t));
+	  answer.tree[0] = val;
+	  answer.levels = (uint64_t*)myalloc(1*sizeof(uint64_t));
+	  answer.levels[0] = 1;
+	  return answer;
 	}
 
+	// compute the products of all the 4x4 combinations
+     for (v=0;v<4;v++) 
+	 { if (valA[v]) childA[v] = k2child(treeA,nodeA,mapA[v]);
+	   if (valB[v]) childB[v] = k2child(treeB,nodeB,mapB[v]);
+	 }
 	// combine them to form the 4 quadrants
      prepareRC(0,0,1,2);
-       combine(0);
+       combine(0,0,1,2,0);
      prepareRC(0,1,1,3);
-       combine(1);
+       combine(0,1,1,3,1);
      prepareRC(2,0,3,2);
-       combine(2);
+       combine(2,0,3,2,2);
      prepareRC(2,1,3,3);
-       combine(3);
+       combine(2,1,3,3,3);
 	// combine the 4 quadrants into a single matrix
      return compose(part,level,1);
    }
@@ -969,30 +651,44 @@ static partition k2mult (k2tree treeA, k2node nodeA, k2tree treeB, k2node nodeB,
 
      partition part1,part2,part[4];
      k2node childA[4],childB[4];
-     uint sigA,sigB,sig;
-     uint v;
+     uint valA[4],valB[4];
+     uint v,val;
+     partition answer;
 
-     sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
-     sigB = k2fillMappedChildren(treeB,nodeB,mapB,childB);
-
+     for (v=0;v<4;v++) 
+         { valA[v] = k2hasChild(treeA,nodeA,mapA[v]);
+	   valB[v] = k2hasChild(treeB,nodeB,mapB[v]);
+         }
 	// base case, level = 1
      if (level == 1)
-	{ sig =  ((valA(0) & valB(0)) | (valA(1) & valB(2))) +
-                (((valA(0) & valB(1)) | (valA(1) & valB(3))) << 1) +
-                (((valA(2) & valB(0)) | (valA(3) & valB(2))) << 2) +
-                (((valA(2) & valB(1)) | (valA(3) & valB(3))) << 3);
- 	  return single (sig);
+	{ val =  ((valA[0] & valB[0]) | (valA[1] & valB[2])) + 
+                (((valA[0] & valB[1]) | (valA[1] & valB[3])) << 1) +
+                (((valA[2] & valB[0]) | (valA[3] & valB[2])) << 2) +
+                (((valA[2] & valB[1]) | (valA[3] & valB[3])) << 3);
+ 	  if (val == 0) return empty;
+	  answer.elems = popcount(val);
+          answer.len = 4;
+          answer.tree = (uint64_t*)myalloc(((4+w-1)/w)*sizeof(uint64_t));
+	  answer.tree[0] = val;
+	  answer.levels = (uint64_t*)myalloc(1*sizeof(uint64_t));
+	  answer.levels[0] = 1;
+	  return answer;
 	}
 
+	// compute the products of all the 4x4 combinations
+     for (v=0;v<4;v++) 
+	 { if (valA[v]) childA[v] = k2child(treeA,nodeA,mapA[v]);
+	   if (valB[v]) childB[v] = k2child(treeB,nodeB,mapB[v]);
+	 }
 	// combine them to form the 4 quadrants
      prepare(0,0,1,2);
-     combine(0);
+     combine(0,0,1,2,0);
      prepare(0,1,1,3);
-     combine(1);
+     combine(0,1,1,3,1);
      prepare(2,0,3,2);
-     combine(2);
+     combine(2,0,3,2,2);
      prepare(2,1,3,3);
-     combine(3);
+     combine(2,1,3,3,3);
 	// combine the 4 quadrants into a single matrix
      return compose(part,level,1);
    }
@@ -1018,7 +714,7 @@ matrix matMult1 (uint64_t row, matrix A, matrix B, uint64_t col)
      M = (matrix)myalloc(sizeof(struct s_matrix));
      M->logside = A->logside;
      matDims(A,NULL,NULL,&hA); matDims(B,NULL,&wB,NULL);
-     M->width = wB; M->height = hA;
+     M->width = wB; M->height = hA; 
      M->transposed = 0;
      if ((A->elems == 0) || (B->elems == 0))
 	{ M->elems = 0; M->tree = NULL; }
@@ -1028,7 +724,7 @@ matrix matMult1 (uint64_t row, matrix A, matrix B, uint64_t col)
 	  if ((row == fullSide) && (col == fullSide))
 	     mult = k2mult (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
 		         k2levels(A->tree));
-	  else
+	  else 
 	     mult = k2multRC (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
 		         k2levels(A->tree),row,col);
           myfree (mult.levels);
@@ -1041,27 +737,44 @@ matrix matMult1 (uint64_t row, matrix A, matrix B, uint64_t col)
 
         // transitive closure of a matrix, pos says if it's + rather than *
 
-	// k2sumRC with no col/row restrictions nor transposition, for speed
+	// k2sumRC with no col/row restrictions nor transposition, for speed 
 
 static partition k2sum (k2tree treeA,k2node nodeA,k2tree treeB,k2node nodeB,
 			uint level, uint has)
 
    { partition part[4];
      k2node childA[4],childB[4];
-     uint sigA,sigB;
-     uint v;
+     uint valA[4],valB[4];
+     uint v,val;
+     partition answer;
 
-     if (has & 1) sigA = k2fillChildren(treeA,nodeA,childA);
-     else sigA = 0;
-     if (has & 2) sigB = k2fillChildren(treeB,nodeB,childB);
-     else sigB = 0;
-
+     for (v=0;v<4;v++) 
+         { if (has & 1) valA[v] = k2hasChild(treeA,nodeA,v);
+	   else valA[v] = 0;
+           if (has & 2) valB[v] = k2hasChild(treeB,nodeB,v);
+	   else valB[v] = 0;
+	 }
 	// base case, level = 1
-     if (level == 1) return single (sigA | sigB);
+     if (level == 1)
+	{ val =  (valA[0] | valB[0]) + 
+                ((valA[1] | valB[1]) << 1) +
+                ((valA[2] | valB[2]) << 2) +
+                ((valA[3] | valB[3]) << 3);
+ 	  if (val == 0) return empty;
+	  answer.elems = popcount(val);
+          answer.len = 4;
+          answer.tree = (uint64_t*)myalloc(((4+w-1)/w)*sizeof(uint64_t));
+	  answer.tree[0] = val;
+	  answer.levels = (uint64_t*)myalloc(1*sizeof(uint64_t));
+	  answer.levels[0] = 1;
+	  return answer;
+	}
 
-     for (v=0;v<4;v++)
-	 { has = valA(v) + 2*valB(v);
-           if (has)
+     for (v=0;v<4;v++) 
+	 { if (valA[v]) childA[v] = k2child(treeA,nodeA,mapA[v]);
+	   if (valB[v]) childB[v] = k2child(treeB,nodeB,mapB[v]);
+           has = valA[v] + 2*valB[v];
+           if (has) 
               part[v] = k2sum (treeA,childA[v],treeB,childB[v],level-1,has);
 	   else part[v] = empty;
   	 }
@@ -1079,37 +792,49 @@ static partition k2clos (k2tree tree, k2node node, uint level)
      partition part[4];
      partition answer;
      k2node child[4];
-     uint v,sig,sigs;
+     uint vals[4];
+     uint v,val;
      k2tree taux;
-     uint share;
+     uint share[4];
 
-     sig = k2fillChildren(tree,node,child);
+     for (v=0;v<4;v++) 
+	 vals[v] = k2hasChild(tree,node,v);
 
 	// base case, level = 1
      if (level == 1)
-	{ sigs = (val(0) | (val(1) & val(2))) +
-                 (val(1) << 1) +
-                 (val(2) << 2) +
-                 ((val(3) | (val(2) & val(1))) << 3);
- 	  return single (sigs);
+	{ val =  (vals[0] | (vals[1] & vals[2])) +
+                 (vals[1] << 1) +
+                 (vals[2] << 2) +
+                 ((vals[3] | (vals[2] & vals[1])) << 3);
+ 	  if (val == 0) return empty;
+	  answer.elems = popcount(val);
+          answer.len = 4;
+          answer.tree = (uint64_t*)myalloc(((4+w-1)/w)*sizeof(uint64_t));
+	  answer.tree[0] = val;
+	  answer.levels = (uint64_t*)myalloc(1*sizeof(uint64_t));
+	  answer.levels[0] = 1;
+	  return answer;
 	}
 
-     share = 0; // bit v of share = tree1[v] is shared by tree2[v]
+     for (v=0;v<4;v++) 
+	 { if (vals[v]) child[v] = k2child(tree,node,v);
+	   share[v] = 0; // ie tree1[v] is not shared by tree2[v]
+	 }
 
 	// first stage: nodes of AA can be intermediate
 	// AAp = AA+
-     if (!val(0)) { part1[0] = empty; tree1[0] = NULL; }
+     if (!vals[0]) { part1[0] = empty; tree1[0] = NULL; }
      else { part1[0] = k2clos (tree,child[0],level-1);
 	    tree1[0] = k2createFrom(level-1,part1[0].len,part1[0].tree,1);
 	  }
 	// ABp = AB | AAp x AB
 	// tree1[1] == NULL means that ABp = tree1[1] = child 1 of tree = AB
-     if ((tree1[0] == NULL) || !val(1))  // AAp or AB are empty
+     if ((tree1[0] == NULL) || !vals[1])  // AAp or AB are empty
 	  { part1[1] = empty; tree1[1] = NULL; } // ie part1[1] = AB
      else { part1[1] = k2mult(tree1[0],k2root(tree1[0]),tree,child[1],level-1);
 	    if (part1[1].elems == 0) tree1[1] = NULL; // ie AB
 	    else // add AB
-	       { if (val(1))
+	       { if (vals[1])
 	            { taux = k2createFrom(level-1,part1[1].len,part1[1].tree,1);
 		      part1[1]=k2sum(tree,child[1],taux,k2root(taux),level-1,3);
 		      k2destroy(taux);
@@ -1119,12 +844,12 @@ static partition k2clos (k2tree tree, k2node node, uint level)
 	  }
 	// BAp = BA | BA x AAp
 	// tree1[2] == NULL means that BAp = tree1[2] = child 2 of tree = BA
-     if (!val(2) || (tree1[0] == NULL)) // ie BA or AAp are empty
+     if (!vals[2] || (tree1[0] == NULL)) // ie BA or AAp are empty
 	  { part1[2] = empty; tree1[2] = NULL; } // ie part1[2] = BA
      else { part1[2] = k2mult(tree,child[2],tree1[0],k2root(tree1[0]),level-1);
 	    if (part1[2].elems == 0) tree1[2] = NULL; // ie BA
 	    else // add BA
-	       { if (val(2))
+	       { if (vals[2])
 	            { taux = k2createFrom(level-1,part1[2].len,part1[2].tree,1);
 		      part1[2]=k2sum(tree,child[2],taux,k2root(taux),level-1,3);
 		      k2destroy(taux);
@@ -1134,7 +859,7 @@ static partition k2clos (k2tree tree, k2node node, uint level)
 	  }
 	// BBp = BB | BAp x AB (or also BB | BA x ABp)
 	// tree1[3] == NULL means that BBp = tree1[3] = child 3 of tree = BB
-     if (((tree1[2] == NULL) && !val(2)) || !val(1)) // BAp or AB are empty
+     if (((tree1[2] == NULL) && !vals[2]) || !vals[1]) // BAp or AB are empty
 	  { part1[3] = empty; tree1[3] = NULL; } // then BBp = BB
      else { if (tree1[2] == NULL) // means tree1[2] = BA
 	       part1[3]=k2mult(tree,child[2],tree,child[1],level-1);
@@ -1142,7 +867,7 @@ static partition k2clos (k2tree tree, k2node node, uint level)
 	       part1[3]=k2mult(tree1[2],k2root(tree1[2]),tree,child[1],level-1);
 	    if (part1[3].elems == 0) tree1[3] = NULL; // ie BB
 	    else // add BB
-	       { if (val(3))
+	       { if (vals[3])
 		    { taux = k2createFrom(level-1,part1[3].len,part1[3].tree,1);
 		      part1[3]=k2sum(tree,child[3],taux,k2root(taux),level-1,3);
 		      k2destroy(taux);
@@ -1154,14 +879,14 @@ static partition k2clos (k2tree tree, k2node node, uint level)
 	// second stage: nodes of BB can also be intermediate
 	// BBs = BBp+
      if (tree1[3]) part2[3] = k2clos (tree1[3],k2root(tree1[3]),level-1);
-     else if (val(3)) part2[3] = k2clos (tree,child[3],level-1);
+     else if (vals[3]) part2[3] = k2clos (tree,child[3],level-1);
      else part2[3] = empty;
      if (part2[3].elems == 0) tree2[3] = NULL;
      else tree2[3] = k2createFrom(level-1,part2[3].len,part2[3].tree,1);
 	// ABs = ABp | ABp x BBs
 	// tree2[1] == NULL means that ABs = tree2[1] = ABp
 	// but we then materialize ABs in this case too
-     if (((tree1[1]==NULL) && !val(1)) || (tree2[3]==NULL)) // ABp or BBs empty
+     if (((tree1[1]==NULL) && !vals[1]) || (tree2[3]==NULL)) // ABp or BBs empty
 	  { part2[1] = empty; tree2[1] = NULL;  // then ABs = ABp
           }
      else { if (tree1[1] == NULL) // ie ABp = AB
@@ -1183,23 +908,23 @@ static partition k2clos (k2tree tree, k2node node, uint level)
           }
      if (part2[1].elems == 0) // tree2[1]==NULL also holds, materialize ABs
         { if (tree1[1] == NULL) // ABp = AB
-	     { if (val(1))
-		  { part2[1] = k2extract(tree,child[1],level-1);
+	     { if (vals[1])
+		  { part2[1] = k2sum(tree,child[1],NULL,0,level-1,1);
 	            tree2[1]=k2createFrom(level-1,part2[1].len,part2[1].tree,1);
 		  }
 	        // else actually empty
 	     }
 	       // avoid a copy:
-	       // part2[1] = k2extract(tree1[1],k2root(tree[1]),level-1);
+	       // part2[1] = k2sum(tree1[1],k2root(tree[1]),NULL,0,level-1,1);
           else
-	     { share |= 0x2;  // mark that we are sharing the tree
+	     { share[1] = 1;  // mark that we are sharing the tree
 	       part2[1] = part1[1]; tree2[1] = tree1[1];
 	     }
 	}
 	// BAs = BAp | BBs x BAp
 	// tree2[2] == NULL means that BAs = tree2[2] = BAp
 	// but we then materialize BAs in this case too
-     if ((tree2[3]==NULL) || ((tree1[2]==NULL) && !val(2))) // BAp or BBs empty
+     if ((tree2[3]==NULL) || ((tree1[2]==NULL) && !vals[2])) // BAp or BBs empty
 	  { part2[2] = empty; tree2[2] = NULL;  // then BAs = BAp
           }
      else { if (tree1[2] == NULL) // ie BAp = BA
@@ -1211,7 +936,7 @@ static partition k2clos (k2tree tree, k2node node, uint level)
 	    else // add BAp
 	       { taux = k2createFrom(level-1,part2[2].len,part2[2].tree,1);
 	         if (tree1[2] == NULL) // ie BAp = BA
-		    part2[2] = k2sum(tree,child[2],taux,k2root(taux),level-1,3);
+		    part2[2]=k2sum(tree,child[2],taux,k2root(taux),level-1,3);
 		 else
 		    part2[2]=k2sum(tree1[2],k2root(tree1[2]),taux,k2root(taux),
 				   level-1,3);
@@ -1221,23 +946,23 @@ static partition k2clos (k2tree tree, k2node node, uint level)
           }
      if (part2[2].elems == 0) // tree2[2]==NULL also holds, materialize BAs
         { if (tree1[2] == NULL) // BAp = BA
-	     { if (val(2))
-		  { part2[2] = k2extract(tree,child[2],level-1);
+	     { if (vals[2])
+		  { part2[2] = k2sum(tree,child[2],NULL,0,level-1,1);
 	            tree2[2]=k2createFrom(level-1,part2[2].len,part2[2].tree,1);
 		  }
 	        // else actually empty
 	     }
 	       // avoid copying:
-	       // part2[2] = k2extract(tree1[2],k2root(tree[2]),level-1);
+	       // part2[2] = k2sum(tree1[2],k2root(tree[2]),NULL,0,level-1,1);
           else
-	     { share |= 0x4;  // mark that we are sharing the tree
+	     { share[2] = 1;  // mark that we are sharing the tree
 	       part2[2] = part1[2]; tree2[2] = tree1[2];
 	     }
 	}
 	// AAs = AAp | ABp x BAs (or also AAp | ABs x BAp)
 	// tree2[0] == NULL means that AAs = tree2[0] = AAp
 	// but we then materialize AAs in this case too
-     if (((tree1[1]==NULL) && !val(1)) || (tree2[2]==NULL)) // ABp or BAs empty
+     if (((tree1[1]==NULL) && !vals[1]) || (tree2[2]==NULL)) // ABp or BAs empty
 	{ part2[0] = empty; tree2[0] = NULL;  // then AAs = AAp
         }
      else
@@ -1258,7 +983,7 @@ static partition k2clos (k2tree tree, k2node node, uint level)
 	     }
 	}
      if (tree2[0] == NULL) // then AAs = AAp
-	{ share |= 0x1; // this time could just set tree1[0] & part1[0] empty
+	{ share[0] = 1; // this time could just set tree1[0] & part1[0] empty
 	  part2[0] = part1[0]; tree2[0] = tree1[0];
 	}
 
@@ -1266,7 +991,7 @@ static partition k2clos (k2tree tree, k2node node, uint level)
      answer = compose(part2,level,0);
 
      for (v=0;v<4;v++)
-	 { if (!(share & (1<<v)))
+	 { if (!share[v])
 	      { if (tree1[v] != NULL) k2destroy(tree1[v]);
 	        myfree (part1[v].levels);
 	      }
@@ -1288,7 +1013,7 @@ matrix matClos (matrix A, uint pos)
         if (pos) return matEmpty(side,side);
 	else return matId(side);
 
-     mapA = mapB = mapId; // for k2mult and k2extract
+     mapA = mapB = mapId; // just for k2mult
 
      levels = k2levels(A->tree);
      aux = k2clos(A->tree,k2root(A->tree),levels);
@@ -1338,9 +1063,9 @@ matrix matClos0 (matrix A, uint pos)
 	// here we restrict first to the row/column even if we lose the
 	// exponential increase in the paths
 
-	// if coltest not null, checks that the cell *coltest exists and
+	// if coltest not null, checks that the cell *coltest exists and 
 	// returns there 1 or 0 as soon as it can
-static matrix matClosRow (uint64_t row, matrix I, matrix A, uint pos,
+static matrix matClosRow (uint64_t row, matrix I, matrix A, uint pos, 
 			  uint64_t *coltest)
 
    { matrix M,P,S,E;
@@ -1377,7 +1102,7 @@ static matrix matClosRow (uint64_t row, matrix I, matrix A, uint pos,
      return S;
    }
 
-        // versions to choose one row or one column, or both
+        // versions to choose one row or one column, or both 
 
 matrix matClos1 (uint64_t row, matrix A, uint pos, uint64_t col)
 
@@ -1385,11 +1110,11 @@ matrix matClos1 (uint64_t row, matrix A, uint pos, uint64_t col)
      uint64_t side = mmax(A->width,A->height);
      uint64_t cell[2];
      uint64_t test;
-     struct s_matrix At;
+     struct s_matrix At; 
      matrix M;
      if (row == fullSide)
 	{ if (col == fullSide) return matClos(A,pos);
-	  else
+	  else 
              { At = matTranspose(A);
                M = matClosRow(col,NULL,&At,pos,NULL);
 	       *M = matTranspose(M);
@@ -1460,40 +1185,4 @@ matrix matClosMult1 (uint64_t row, matrix A, uint pos, matrix B, uint64_t col)
      return M;
    }
 
-        // multiplies M by vector V. allocates and returns the result M x V
-        // use matrix transposition to do V^T x M = M^T x V (transposed vector)
-        // V is assumed to be of size A->width, the output is of size A->height
-
-static void k2vectorMult (k2tree tree, k2node node, uint level,
-		          double *vector, double *W)
-
-   { uint v;
-     uint lshift;
-     k2node child[4];
-     uint sig;
-     if (level == 0)
-	{ *W += *vector; return; }
-     level--; lshift = ((uint)1) << level;
-     sig = k2fillMappedChildren(tree,node,mapA,child);
-     for (v=0;v<4;v++)
-	{ if (val(v))
-	     k2vectorMult(tree,child[v],level,
-		          vector + lshift * (v & 1), W + lshift * (v >> 1));
-	}
-   }
-
-double *matVectorMult (matrix A, double *vector)
-
-   { double *W; // W = MxV
-     uint i;
-
-     if (A->height == 0) return NULL;
-     W = (double*)myalloc(A->height * sizeof(double));
-     for (i=0;i<A->height;i++) W[i] = 0;
-     if (A->elems)
-        { mapA = A->transposed ? mapTr : mapId;
-          k2vectorMult(A->tree,k2root(A->tree),k2levels(A->tree),vector,W);
-	}
-     return W;
-   }
 

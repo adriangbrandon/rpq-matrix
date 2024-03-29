@@ -13,6 +13,9 @@ typedef uint64_t k2node;
 
 #define k2null (~0)
 
+extern uint mapId[];
+extern uint mapTr[];
+
 	// creates k2tree from n coords (2n ints x,y) that need nbits bits
 	// reorders coords array
 k2tree k2create (uint64_t n, uint nbits, uint64_t *coords);
@@ -49,10 +52,19 @@ extern inline bitvector k2bits (k2tree T);
 extern inline k2node k2root (k2tree T);
 
 	// u has i-th child, assumes u is right and i = 0..3
-extern inline int k2hasChild (k2tree T, k2node u, uint i);
+extern inline uint k2hasChild (k2tree T, k2node u, uint i);
+
+        // the 4-bit signature of node u
+extern inline uint k2sigNode (k2tree T, k2node u);
 
 	// i-th child of u, assumes u is right, i = 0..3, and child exists
-extern inline int k2child (k2tree T, k2node u, uint i);
+extern inline k2node k2child (k2tree T, k2node u, uint i);
+
+	// fills a child vector for the 4 children, returns root signature
+extern inline uint k2fillChildren (k2tree T, k2node u, k2node *child);
+	// version that remaps the children
+extern inline uint k2fillMappedChildren (k2tree T, k2node u, uint *map,
+				         k2node *child);
 
         // recovers all the cells in [r1..r2] x [c1..c2]
         // writes 2n integers in buffer, which must be preallocated

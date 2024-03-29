@@ -5,6 +5,11 @@
 
 #define rankK 4  // parameter for bit rank
 
+extern uint mapId[] = { 0, 1, 2, 3 };
+extern uint mapTr[] = { 0, 2, 1, 3 };
+static uint remapTr[] =
+		{ 0, 1, 4, 5,  2, 3, 6, 7,  8, 9, 12, 13,  10, 11, 14, 15 };
+
 	// creates k2tree from n coords (2n ints x,y) that need nbits bits
 	// reorders coords array
 
@@ -263,16 +268,62 @@ extern inline k2node k2root (k2tree T)
 
 	// u has i-th child, assumes u is right and i = 0..3
 
-extern inline int k2hasChild (k2tree T, k2node u, uint i)
+extern inline uint k2hasChild (k2tree T, k2node u, uint i)
 
    { return bitsAccess(T->B,4*u+i);
    }
 
+	// returns the 4-bit signature of node u
+
+extern inline uint k2sigNode (k2tree T, k2node u)
+
+   { uint64_t i = 4*u;
+     return (T->B->data[i/w] >> (i%w)) & 0xF;
+   }
+
 	// i-th child of u, assumes u is right, i = 0..3, and child exists
 
-extern inline int k2child (k2tree T, k2node u, uint i)
+extern inline k2node k2child (k2tree T, k2node u, uint i)
 
    { return bitsRank(T->B,4*u+i);
+   }
+
+        // fills a child vector for the 4 children, returns signature
+	// assumes 4 divides w
+
+extern inline uint k2fillChildren (k2tree T, k2node u, k2node *child)
+
+   { uint64_t i = 4*u;
+     uint64_t r = i ? bitsRank(T->B,i-1) : 0;
+     uint s = (T->B->data[i/w] >> (i%w)) & 0xF;
+     uint j,v,sig = s;
+     for (j=0;j<4;j++)
+	 { v = s & 1;
+	   r += v;
+	   s >>= 1;
+	   child[j] = r;
+	 }
+     return sig;
+   }
+
+	// version that allows mapped children
+
+extern inline uint k2fillMappedChildren (k2tree T, k2node u, uint *map,
+			                 k2node *child)
+
+   { uint64_t i = 4*u;
+     uint64_t r = i ? bitsRank(T->B,i-1) : 0;
+     uint s = (T->B->data[i/w] >> (i%w)) & 0xF;
+     uint j,v,sig;
+     sig = (map == mapId) ? s : remapTr[s];
+     for (j=0;j<4;j++)
+	 { v = s & 1;
+	   r += v;
+	   s >>= 1;
+		// I'm applying the inverse perm here, but for transp is ok
+	   child[map[j]] = r;
+	 }
+     return sig;
    }
 
         // recovers all the cells in [r1..r2] x [c1..c2]
@@ -371,10 +422,12 @@ uint64_t k2collect32 (k2tree T, uint32_t r1, uint32_t r2,
 	// in *len and number of elements in *telems. nodes per level are
 	// written in array *levels if not null, levels[0] is #leaves
 
-typedef struct {
-   short has;
-   short dist;
-   } queue2;
+typedef byte queue2; // just 1 byte as this is space-critical
+			// limits levels to 64, which should be more than ok
+
+#define gethas(x) ((x)>>6)
+#define getdist(x) ((x)&0x3F)
+#define hasdist(h,d) (((h) << 6) | (d))
 
 uint64_t *k2merge (uint64_t *treeA, uint64_t lenA, 
 		   uint64_t* treeB, uint64_t lenB, uint level, 
@@ -382,9 +435,10 @@ uint64_t *k2merge (uint64_t *treeA, uint64_t lenA,
 
    { uint64_t *treeM;
      uint64_t ptr,ptrA,ptrB;
-     uint v;
+     uint v,sig,sigA,sigB;
      uint64_t elems,size;
      queue2 *Q;
+     uint64_t head,tail;
 
      treeM = (uint64_t*)myalloc(((lenA+lenB+w-1)/w)*sizeof(uint64_t));
      size = lenA + lenB + 1;
@@ -392,59 +446,58 @@ uint64_t *k2merge (uint64_t *treeA, uint64_t lenA,
      ptr = ptrA = ptrB = 0;
      elems = 0;
      head = 0; tail = 1;
-     Q[0].has = 1|2;
-     Q[0].dist = level-1;
+     Q[0] = hasdist(1|2,level-1);
      if (levels) for (v=0;v<level;v++) levels[v] = 0;
      while (head != tail)
-        { uint has = Q[head].has;
-	  uint dist = Q[head].dist;
+        { uint has = gethas(Q[head]);
+	  uint dist = getdist(Q[head]);
 	  if (levels) levels[dist]++;
 	  if ((has & 1) == 0) // then node of B not null
-	     { for (v=0;v<4;v++)
-	           { uint has2 = bitsAccessA(treeB,ptrB++);
-	             bitsWriteA(treeM,ptr++,has2);
-	             if (has2)
-	                { if (dist)
-		             { Q[tail].has = 2;
-			       Q[tail].dist = dist-1;
-		               tail = (tail+1)%size;
-		             }
-			  else elems++;
-		        }
-		   }
+	     { sig = (treeB[ptrB/w] >> (ptrB%w)) & 0xF;
+	       ptrB += 4;
+	       if (dist)
+	          for (v=0;v<4;v++)
+	              { if (sig & (1<<v))
+		           { Q[tail] = hasdist(2,dist-1);
+		             tail = (tail+1)%size;
+		           }
+		       }
+	       else elems += pop4(sig);
 	     }
 	  else if ((has & 2) == 0) // node of A not null anyway
-	     { for (v=0;v<4;v++)
-	           { uint has1 = bitsAccessA(treeA,ptrA++);
-	             bitsWriteA(treeM,ptr++,has1);
-		     if (has1)
-			{ if (dist)
-		             { Q[tail].has = 1;
-			       Q[tail].dist = dist-1;
-		               tail = (tail+1)%size;
-		             }
-			  else elems++;
-			}
-		   }
+	     { sig = (treeA[ptrA/w] >> (ptrA%w)) & 0xF;
+	       ptrA += 4;
+	       if (dist)
+	          for (v=0;v<4;v++)
+	              { if (sig & (1<<v))
+		           { Q[tail] = hasdist(1,dist-1);
+		             tail = (tail+1)%size;
+		           }
+		       }
+	       else elems += pop4(sig);
 	     }
 	  else // both A and B nodes exist
-	     { for (v=0;v<4;v++)
-	           { uint has1 = bitsAccessA(treeA,ptrA++);
-	             uint has2 = bitsAccessA(treeB,ptrB++);
-	             bitsWriteA(treeM,ptr++,has1|has2);
-	             if (has1 | has2)
-			{ if (dist)
-		             { Q[tail].has = 2*has2 + has1;
-			       Q[tail].dist = dist-1;
-		               tail = (tail+1)%size;
-		             }
-			  else elems++;
-		        }
-		   }
+	     { sigA = (treeA[ptrA/w] >> (ptrA%w)) & 0xF;
+	       sigB = (treeB[ptrB/w] >> (ptrB%w)) & 0xF;
+	       ptrA += 4; ptrB += 4;
+	       sig = sigA | sigB;
+	       if (dist)
+	          for (v=0;v<4;v++)
+	              { if (sig & (1<<v))
+		           { Q[tail] = hasdist(((sigA >> v) & 1)*1 +
+					       ((sigB >> v) & 1)*2,
+					       dist-1);
+		             tail = (tail+1)%size;
+		           }
+		       }
+	       else elems += pop4(sig);
 	     }
+	  treeM[ptr/w] &= ~(((uint64_t)0xF) << (ptr%w));
+	  treeM[ptr/w] |= ((uint64_t)sig) << (ptr%w);
+	  ptr += 4;
 	  head = (head+1)%size;
         }
-     myfree(Q); Q = NULL; // safety
+     myfree(Q);
      treeM = (uint64_t*)myrealloc(treeM,((ptr+w-1)/w)*sizeof(uint64_t));
      *telems = elems;
      *len = ptr;
@@ -454,24 +507,24 @@ uint64_t *k2merge (uint64_t *treeA, uint64_t lenA,
         // same but B is interpreted as transposed
 
 typedef struct {
-   short has;
-   short dist;
+   byte has;
+   byte dist;
    k2node nodeB;
    } queue3;
-
-static uint mapTr[] = { 0, 2, 1, 3 };
 
 uint64_t *k2mergeT (uint64_t *treeA, uint64_t lenA, k2tree B,
                     uint64_t *len, uint64_t *telems, uint64_t *levels)
 
-   { uint64_t *treeM;
-     uint64_t ptr,ptrA;
-     uint level,v;
+   { uint64_t *treeM,*treeB;
+     uint64_t ptr,ptrA,ptrB;
+     uint level,v,sig,sigA,sigB;
      uint64_t elems,size,lenB;
      queue3 *Q;
+     uint64_t head,tail;
 
      level = k2levels(B);
      lenB = bitsLength(k2bits(B));
+     treeB = bitsData(k2bits(B));
 
      treeM = (uint64_t*)myalloc(((lenA+lenB+w-1)/w)*sizeof(uint64_t));
      size = lenA + lenB + 1;
@@ -489,51 +542,54 @@ uint64_t *k2mergeT (uint64_t *treeA, uint64_t lenA, k2tree B,
           k2node nodeB = Q[head].nodeB;
 	  if (levels) levels[dist]++;
 	  if ((has & 1) == 0) // then node of B not null
-	     { for (v=0;v<4;v++)
-	           { uint has2 = k2hasChild(B,nodeB,mapTr[v]);
-	             bitsWriteA(treeM,ptr++,has2);
-	             if (has2)
-	                { if (dist)
-		             { Q[tail].has = 2;
-			       Q[tail].dist = dist-1;
-			       Q[tail].nodeB = k2child(B,nodeB,mapTr[v]);
-		               tail = (tail+1)%size;
-		             }
-			  else elems++;
-		        }
-		   }
+	     { ptrB = 4*nodeB;
+	       sig = remapTr[(treeB[ptrB/w] >> (ptrB%w)) & 0xF];
+	       if (dist)
+	          for (v=0;v<4;v++)
+	              { if (sig & (1<<v))
+		           { Q[tail].has = 2;
+			     Q[tail].dist = dist-1;
+			     Q[tail].nodeB = k2child(B,nodeB,mapTr[v]);
+		             tail = (tail+1)%size;
+		           }
+		       }
+	       else elems += pop4(sig);
 	     }
 	  else if ((has & 2) == 0) // node of A not null anyway
-	     { for (v=0;v<4;v++)
-	           { uint has1 = bitsAccessA(treeA,ptrA++);
-	             bitsWriteA(treeM,ptr++,has1);
-		     if (has1)
-			{ if (dist)
-		             { Q[tail].has = 1;
-			       Q[tail].dist = dist-1;
-		               tail = (tail+1)%size;
-		             }
-			  else elems++;
-			}
-		   }
+	     { sig = (treeA[ptrA/w] >> (ptrA%w)) & 0xF;
+	       ptrA += 4;
+	       if (dist)
+	          for (v=0;v<4;v++)
+	              { if (sig & (1<<v))
+		           { Q[tail].has = 1;
+			     Q[tail].dist = dist-1;
+		             tail = (tail+1)%size;
+		           }
+		       }
+	       else elems += pop4(sig);
 	     }
 	  else // both A and B nodes exist
-	     { for (v=0;v<4;v++)
-	           { uint has1 = bitsAccessA(treeA,ptrA++);
-	             uint has2 = k2hasChild(B,nodeB,mapTr[v]);
-	             bitsWriteA(treeM,ptr++,has1|has2);
-	             if (has1 | has2)
-			{ if (dist)
-		             { Q[tail].has = 2*has2 + has1;
-			       Q[tail].dist = dist-1;
-			       if (has2) 
-				  Q[tail].nodeB = k2child(B,nodeB,mapTr[v]);
-		               tail = (tail+1)%size;
-		             }
-			  else elems++;
-		        }
-		   }
+	     { sigA = (treeA[ptrA/w] >> (ptrA%w)) & 0xF;
+	       ptrA += 4;
+	       ptrB = 4*nodeB;
+	       sigB = remapTr[(treeB[ptrB/w] >> (ptrB%w)) & 0xF];
+	       sig = sigA | sigB;
+	       if (dist)
+	          for (v=0;v<4;v++)
+	              { if (sig & (1<<v))
+		           { Q[tail].has = ((sigA >> v) & 1)*1 +
+					   ((sigB >> v) & 1)*2;
+			     if (sigB & (1<<v))
+				Q[tail].nodeB = k2child(B,nodeB,mapTr[v]);
+			     Q[tail].dist = dist-1;
+		             tail = (tail+1)%size;
+		           }
+		       }
+	       else elems += pop4(sig);
 	     }
+	  treeM[ptr/w] &= ~(((uint64_t)0xF) << (ptr%w));
+	  treeM[ptr/w] |= ((uint64_t)sig) << (ptr%w);
+	  ptr += 4;
 	  head = (head+1)%size;
         }
      myfree(Q); Q = NULL; // safety

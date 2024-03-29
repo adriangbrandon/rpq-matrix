@@ -16,6 +16,11 @@ extern inline uint popcount (uint64_t y)
 
 	// creates an empty bitvector of n bits
 
+extern inline uint pop4 (uint x)
+{ uint s = (x & 0x5) + ((x>>1) & 0x5);
+    return (s & 0x3) + (s>>2);
+}
+
 bitvector bitsCreate (uint64_t n)
 
     { bitvector B;
