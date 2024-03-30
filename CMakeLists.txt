@@ -53,3 +53,6 @@ add_subdirectory(matrix_gn)
 
 add_executable(query src/query.cpp)
 target_link_libraries(query matrix_gn nfa)
+
+add_executable(sintecticas src/sintecticas.cpp)
+target_link_libraries(sintecticas matrix_gn nfa)
