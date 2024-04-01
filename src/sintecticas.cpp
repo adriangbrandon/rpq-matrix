@@ -38,7 +38,6 @@ int main(int argc, char **argv) {
         time_beg();
         M = matSum(m_matrices[i-1], m_matrices[i]);
         sum += M->elems;
-        matDestroy(M);
     }
     auto t2 =  std::chrono::high_resolution_clock::now();
     auto sum_ns = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();
@@ -52,7 +51,6 @@ int main(int argc, char **argv) {
         time_beg();
         M = matSum1(fullSide, m_matrices[i-1], m_matrices[i], fullSide);
         sum += M->elems;
-        matDestroy(M);
     }
     t2 =  std::chrono::high_resolution_clock::now();
     auto sum_rec_ns = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();
@@ -66,7 +64,6 @@ int main(int argc, char **argv) {
         time_beg();
         M = matAnd(m_matrices[i-1], m_matrices[i]);
         sum += M->elems;
-        matDestroy(M);
     }
     t2 =  std::chrono::high_resolution_clock::now();
     auto intersect_ns = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();
@@ -80,7 +77,6 @@ int main(int argc, char **argv) {
         time_beg();
         M = matMult(m_matrices[i-1], m_matrices[i]);
         sum += M->elems;
-        matDestroy(M);
     }
     t2 =  std::chrono::high_resolution_clock::now();
     auto product_ns = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();
@@ -94,7 +90,6 @@ int main(int argc, char **argv) {
         time_beg();
         M = matClos(m_matrices[i], 1);
         sum += M->elems;
-        matDestroy(M);
     }
     t2 =  std::chrono::high_resolution_clock::now();
     auto closure_ns = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();

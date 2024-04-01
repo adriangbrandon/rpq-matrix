@@ -40,7 +40,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <inttypes.h>
 #include <stdio.h>
 
-#define TIMEOUT 60
+//#define TIMEOUT 60
+#define TIMEOUT 0
 #define NANO_PER_SEC 1000000000.0
 
 static struct timespec beg;
