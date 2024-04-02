@@ -71,11 +71,15 @@ uint64_t matCollect32 (matrix M, uint32_t r1, uint32_t r2,
 
         // (boolean) sum of two matrices, assumed to be of the same side
 matrix matSum (matrix A, matrix B);
-#define matOr matSum
 
         // version with one row or one column, or both
 matrix matSum1 (uint64_t row, matrix A, matrix B, uint64_t col);
-#define matOr1 matSum1
+
+// (boolean) sum of two matrices, assumed to be of the same side (recursive)
+matrix matOr (matrix A, matrix B);
+
+// version with one row or one column, or both (recursive)
+matrix matOr1 (uint64_t row, matrix A, matrix B, uint64_t col);
 
         // (boolean) difference A-B, assumed to be of the same logside
 matrix matDif (matrix A, matrix B);

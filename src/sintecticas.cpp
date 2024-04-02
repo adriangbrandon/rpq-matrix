@@ -40,6 +40,7 @@ int main(int argc, char **argv) {
         auto t2 =  std::chrono::high_resolution_clock::now();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
         std::cerr << ns << std::endl;
+        matDestroy(M);
     }
     std::cout << " done. [" << sum << "]" << std::endl;
 
@@ -47,11 +48,12 @@ int main(int argc, char **argv) {
     sum = 0;
     for(uint i = 1; i < 20; ++i){
         auto t1 = std::chrono::high_resolution_clock::now();
-        M = matSum1(fullSide, m_matrices[i-1], m_matrices[i], fullSide);
+        M = matOr(m_matrices[i-1], m_matrices[i]);
         sum += M->elems;
         auto t2 =  std::chrono::high_resolution_clock::now();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
         std::cerr << ns << std::endl;
+        matDestroy(M);
     }
     std::cout << " done. [" << sum << "]" << std::endl;
 
@@ -64,6 +66,7 @@ int main(int argc, char **argv) {
         auto t2 =  std::chrono::high_resolution_clock::now();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
         std::cerr << ns << std::endl;
+        matDestroy(M);
     }
     std::cout << " done. [" << sum << "]" << std::endl;
 
@@ -76,6 +79,7 @@ int main(int argc, char **argv) {
         auto t2 =  std::chrono::high_resolution_clock::now();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
         std::cerr << ns << std::endl;
+        matDestroy(M);
     }
     std::cout << " done. [" << sum << "]" << std::endl;
 
@@ -88,6 +92,7 @@ int main(int argc, char **argv) {
         auto t2 =  std::chrono::high_resolution_clock::now();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
         std::cerr << ns << std::endl;
+        matDestroy(M);
     }
     std::cout << " done. [" << sum << "]" << std::endl;
 

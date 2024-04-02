@@ -723,10 +723,8 @@ static partition k2xorRC (k2tree treeA,k2node nodeA, k2tree treeB,k2node nodeB,
 	// compute the 4 quadrants (could be parallelized)
      for (v=0;v<4;v++)
         { if (!valA(v) && !valB(v)) part[v] = empty;
-          else if (!valB(v)) part[v] = k2sumRC(treeA,childA[v],NULL,0,
-			  		       level-1,rows[v],cols[v],1);
-          else if (!valA(v)) part[v] = k2sumRC(treeB,childB[v],NULL,0,
-			  		       level-1,rows[v],cols[v],1);
+          else if (!valA(v)) part[v] = k2extract(treeB,childB[v],level-1);
+          else if (!valB(v)) part[v] = k2extract(treeA,childA[v],level-1);
           else part[v] = k2xorRC(treeA,childA[v],treeB,childB[v],
 			  	 level-1,rows[v],cols[v]);
 	}
@@ -780,6 +778,116 @@ matrix matXor1 (uint64_t row, matrix A, matrix B, uint64_t col)
 	}
      return M;
    }
+
+
+static partition k2Or (k2tree treeA, k2node nodeA, k2tree treeB, k2node nodeB,
+                        uint level)
+
+{ partition part[4];
+    k2node childA[4],childB[4];
+    uint sigA,sigB;
+    uint v;
+
+    sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
+    sigB = k2fillMappedChildren(treeB,nodeB,mapB,childB);
+
+    // base case, level = 1
+    if (level == 1) return single (sigA | sigB);
+
+    // compute the 4 quadrants
+    for (v=0;v<4;v++)
+    { if (!valA(v) && !valB(v)) part[v] = empty;
+        else if (!valB(v)) part[v] = k2extract(treeA,childA[v],level-1);
+        else if (!valA(v)) part[v] = k2extract(treeB,childB[v],level-1);
+        else part[v] = k2Or(treeA,childA[v],treeB,childB[v],level-1);
+    }
+
+    // combine the 4 quadrants into a single matrix
+    return compose(part,level,1);
+}
+
+static partition k2OrRC (k2tree treeA,k2node nodeA, k2tree treeB,k2node nodeB,
+                          uint level, uint64_t row, uint64_t col)
+
+{ partition part[4];
+    k2node childA[4],childB[4];
+    uint sigA,sigB;
+    uint v;
+    uint64_t lim;
+    uint64_t rows[4],cols[4];
+
+    sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
+    sigB = k2fillMappedChildren(treeB,nodeB,mapB,childB);
+
+    lim = ((uint64_t)1)<<(level-1);
+    fixSig(row,col,lim,&sigA,&sigB);
+
+    // base case, level = 1
+    if (level == 1) return single (sigA ^ sigB);
+
+    rows[0] = rows[1] = row; cols[0] = cols[2] = col;
+    rows[2] = rows[3] = row == fullSide ? row : row-lim;
+    cols[1] = cols[3] = col == fullSide ? col : col-lim;
+    // compute the 4 quadrants (could be parallelized)
+    for (v=0;v<4;v++)
+    { if (!valA(v) && !valB(v)) part[v] = empty;
+        else if (!valB(v)) part[v] = k2sumRC(treeA,childA[v],NULL,0,
+                                             level-1,rows[v],cols[v],1);
+        else if (!valA(v)) part[v] = k2sumRC(treeB,childB[v],NULL,0,
+                                             level-1,rows[v],cols[v],1);
+        else part[v] = k2OrRC(treeA,childA[v],treeB,childB[v],
+                               level-1,rows[v],cols[v]);
+    }
+    // combine the 4 quadrants into a single matrix
+    return compose(part,level,1);
+}
+
+matrix matOr (matrix A, matrix B)
+
+{ return matOr1 (fullSide,A,B,fullSide);
+}
+
+matrix matOr1 (uint64_t row, matrix A, matrix B, uint64_t col)
+
+{ partition or;
+    matrix M;
+    uint64_t wA,hA,wB,hB,wM,hM;
+
+    if (A->logside != B->logside)
+    { fprintf(stderr,"Error: sym diff of matrices of different logside\n");
+        exit(1);
+    }
+    matDims(A,NULL,&wA,&hA); matDims(B,NULL,&wB,&hB);
+    wM = mmax(wA,wB); hM = mmax(hA,hB);
+    if ((A->elems == 0) && (B->elems == 0)) return matEmpty(hM,wM);
+    if (B->elems == 0)
+    { M = matCopy(A);
+        if (M->transposed) { M->height = wM; M->width = hM; }
+        else { M->height = hM; M->width = wM; }
+    }
+    else if (A->elems == 0)
+    { M = matCopy(B);
+        if (M->transposed) { M->height = wM; M->width = hM; }
+        else { M->height = hM; M->width = wM; }
+    }
+    else
+    { mapA = A->transposed ? mapTr : mapId;
+        mapB = B->transposed ? mapTr : mapId;
+        M = (matrix)myalloc(sizeof(struct s_matrix));
+        M->logside = A->logside;
+        if ((row == fullSide) && (col == fullSide))
+            or = k2Or (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
+                         k2levels(A->tree));
+        else or = k2OrRC (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
+                            k2levels(A->tree),row,col);
+        myfree (or.levels);
+        M->elems = or.elems;
+        if (M->elems == 0) M->tree = NULL;
+        else M->tree = k2createFrom (k2levels(A->tree),or.len,or.tree,1);
+        M->transposed = 0;
+    }
+    return M;
+}
 
 	// (boolean) intersection of A and B, of the same size
 
