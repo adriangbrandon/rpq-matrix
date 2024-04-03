@@ -823,7 +823,7 @@ static partition k2OrRC (k2tree treeA,k2node nodeA, k2tree treeB,k2node nodeB,
     fixSig(row,col,lim,&sigA,&sigB);
 
     // base case, level = 1
-    if (level == 1) return single (sigA ^ sigB);
+    if (level == 1) return single (sigA | sigB);
 
     rows[0] = rows[1] = row; cols[0] = cols[2] = col;
     rows[2] = rows[3] = row == fullSide ? row : row-lim;

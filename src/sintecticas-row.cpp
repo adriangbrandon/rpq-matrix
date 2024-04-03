@@ -14,6 +14,9 @@ int main(int argc, char **argv) {
 
     std::string base_name = argv[1];
 
+    std::vector<uint> random_rows = {434, 691, 884, 961, 750, 31, 245, 560, 447, 516,
+                                     757, 674, 776, 25, 1, 437, 842, 89, 241, 253};
+
     std::vector<matrix> m_matrices(20);
     FILE *f;
     uint64_t space = 0;
@@ -35,7 +38,7 @@ int main(int argc, char **argv) {
    std::cout << "Sum..." << std::flush;
     for(uint i = 1; i < 20; ++i){
         auto t1 = std::chrono::high_resolution_clock::now();
-        M = matSum(m_matrices[i-1], m_matrices[i]);
+        M = matSum1(random_rows[i-1], m_matrices[i-1], m_matrices[i], fullSide);
         sum += M->elems;
         auto t2 =  std::chrono::high_resolution_clock::now();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
@@ -48,7 +51,7 @@ int main(int argc, char **argv) {
     sum = 0;
     for(uint i = 1; i < 20; ++i){
         auto t1 = std::chrono::high_resolution_clock::now();
-        M = matOr(m_matrices[i-1], m_matrices[i]);
+        M = matOr1(random_rows[i-1], m_matrices[i-1], m_matrices[i], fullSide);
         sum += M->elems;
         auto t2 =  std::chrono::high_resolution_clock::now();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
@@ -61,11 +64,11 @@ int main(int argc, char **argv) {
     sum = 0;
     for(uint i = 1; i < 20; ++i){
         auto t1 = std::chrono::high_resolution_clock::now();
-        M = matAnd(m_matrices[i-1], m_matrices[i]);
+        M = matAnd1(random_rows[i-1], m_matrices[i-1], m_matrices[i], fullSide);
         sum += M->elems;
         auto t2 =  std::chrono::high_resolution_clock::now();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
-        std::cerr << ns << ";" << M->elems << std::endl;
+        std::cerr << ns << std::endl;
         matDestroy(M);
     }
     std::cout << " done. [" << sum << "]" << std::endl;
@@ -74,7 +77,7 @@ int main(int argc, char **argv) {
     sum = 0;
     for(uint i = 1; i < 20; ++i){
         auto t1 = std::chrono::high_resolution_clock::now();
-        M = matMult(m_matrices[i-1], m_matrices[i]);
+        M = matMult1(random_rows[i-1], m_matrices[i-1], m_matrices[i], fullSide);
         sum += M->elems;
         auto t2 =  std::chrono::high_resolution_clock::now();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
@@ -87,7 +90,7 @@ int main(int argc, char **argv) {
     sum = 0;
     for(uint i = 0; i < 20; ++i){
         auto t1 = std::chrono::high_resolution_clock::now();
-        M = matClos(m_matrices[i], 1);
+        M = matClos1(random_rows[i], m_matrices[i], 1, fullSide);
         sum += M->elems;
         auto t2 =  std::chrono::high_resolution_clock::now();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
