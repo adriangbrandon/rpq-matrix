@@ -21,6 +21,7 @@ std::vector<matrix> m_matrices(SIZE);
 void computeDensity(uint64_t i){
     double dens = m_matrices[i]->elems/ (double) (m_matrices[i]->width * m_matrices[i]->height);
     int exp = std::ceil(log10(dens));
+    std::cout << "Matriz: " << i << " with " << m_matrices[i]->elems << " elements." << std::endl;
     std::cout << "Matriz: " << i << std::endl;
     std::cout << "Density: " << dens << std::endl;
     std::cout << "Exp: " << exp << std::endl;
