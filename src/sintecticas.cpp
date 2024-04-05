@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
         sum += M->elems;
         auto t2 =  std::chrono::high_resolution_clock::now();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
-        std::cerr << ns << ";" << M->elems << std::endl;
+        std::cerr << ns << std::endl;
         matDestroy(M);
     }
     std::cout << " done. [" << sum << "]" << std::endl;

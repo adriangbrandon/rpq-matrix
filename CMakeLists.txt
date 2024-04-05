@@ -59,3 +59,9 @@ target_link_libraries(sintecticas matrix_gn nfa)
 
 add_executable(sintecticas-row src/sintecticas-row.cpp)
 target_link_libraries(sintecticas-row matrix_gn nfa)
+
+add_executable(rpq-densities src/rpq-densities.cpp)
+target_link_libraries(rpq-densities matrix_gn nfa)
+
+add_executable(rpq-proba src/rpq-proba.cpp)
+target_link_libraries(rpq-proba matrix_gn nfa)
