@@ -664,8 +664,10 @@ static int k2and (k2tree treeA, k2node nodeA, k2tree treeB, k2node nodeB,
      sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
      sigB = k2fillMappedChildren(treeB,nodeB,mapB,childB);
 
-     lim = ((uint64_t)1)<<(level-1);
-     fixSig(row,col,lim,&sigA,&sigB);
+     if (restr)
+        { lim = ((uint64_t)1)<<(level-1);
+          fixSig(row,col,lim,&sigA,&sigB);
+	}
 
 	// base case, level = 1
      if (level == 1) p = sigA & sigB;
