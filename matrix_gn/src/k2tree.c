@@ -192,6 +192,7 @@ k2tree k2createFrom (uint nlevels, uint64_t len, void *bits, uint own)
      T->nlevels = nlevels;
      T->B = bitsCreateFrom(bits,len,own);
      bitsRankPreprocess(T->B,rankK);
+     k2computeLevels (T);
      return T;
    }
 
@@ -250,6 +251,7 @@ k2tree k2load (FILE *file)
       fread (&T->nlevels,sizeof(uint),1,file);
       T->B = bitsLoad(file);
       bitsRankPreprocess(T->B,rankK);
+      k2computeLevels(T);
       return T;
     }
 
@@ -259,6 +261,7 @@ uint64_t k2space (k2tree T)
 
    { uint64_t space = sizeof(struct s_k2tree)*8/w;
      if (T == NULL) return 0;
+     if (T->levels != NULL) space += T->nlevels;
      if (T->B != NULL) space += bitsSpace(T->B);
      return space;
    }

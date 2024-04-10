@@ -973,17 +973,18 @@ matrix matAnd1 (uint64_t row, matrix A, matrix B, uint64_t col)
      mapA = A->transposed ? mapTr : mapId;
      mapB = B->transposed ? mapTr : mapId;
      if ((row == fullSide) && (col == fullSide))
-        { Tlevels *Lev = (Tlevels*)myalloc(k2levels(A->tree)*sizeof(Tlevels));
-          uint lev;
+        {
+         Tlevels *Lev = (Tlevels*)myalloc(k2levels(A->tree)*sizeof(Tlevels));
+         uint lev;
 	  for (lev=0;lev<k2levels(A->tree);lev++)
 	      { uint64_t nodes;
-		if (lev < k2levels(A->tree)-1)
-		   nodes = mmin(A->tree->levels[lev]-A->tree->levels[lev+1],
-			       B->tree->levels[lev]-B->tree->levels[lev+1]);
-		else nodes = 1;
-		Lev[lev].bits = (uint64_t*)myalloc(((nodes*4+w-1)/w)
-						   * sizeof(uint64_t));
-  		Lev[lev].ptr = 0;
+            if (lev < k2levels(A->tree)-1)
+               nodes = mmin(A->tree->levels[lev]-A->tree->levels[lev+1],
+                       B->tree->levels[lev]-B->tree->levels[lev+1]);
+            else nodes = 1;
+            Lev[lev].bits = (uint64_t*)myalloc(((nodes*4+w-1)/w)
+                               * sizeof(uint64_t));
+            Lev[lev].ptr = 0;
 	      }
           if (k2and (A->tree,k2root(A->tree),B->tree,k2root(B->tree),
 		     k2levels(A->tree),Lev))
