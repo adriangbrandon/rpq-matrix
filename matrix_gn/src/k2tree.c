@@ -129,6 +129,7 @@ k2tree k2create (uint64_t n, uint nbits, uint64_t *coords)
 
      T = (k2tree)myalloc(sizeof(struct s_k2tree));
      T->nlevels = nbits;
+     T->levels = (uint64_t*)myalloc(nbits * sizeof(uint64_t));
      B = (uint64_t*)myalloc(((4*(1+n*nbits)+w-1)/w)*sizeof(uint64_t));
      size = n+1;
      Q = (queue*)myalloc(size*sizeof(queue));
@@ -149,6 +150,7 @@ k2tree k2create (uint64_t n, uint nbits, uint64_t *coords)
      T->B = bitsCreateFrom(B,len,1);
      B = NULL; // safety
      bitsRankPreprocess(T->B,rankK);
+     k2computeLevels (T);
      return T;
    }
 
@@ -160,6 +162,7 @@ k2tree k2create32 (uint64_t n, uint nbits, uint32_t *coords)
 
      T = (k2tree)myalloc(sizeof(struct s_k2tree));
      T->nlevels = nbits;
+     T->levels = (uint64_t*)myalloc(nbits * sizeof(uint64_t));
      B = (uint64_t*)myalloc(((4*(1+n*nbits)+w-1)/w)*sizeof(uint64_t));
      size = n+1;
      Q32 = (queue32*)myalloc(size*sizeof(queue32));
@@ -180,6 +183,7 @@ k2tree k2create32 (uint64_t n, uint nbits, uint32_t *coords)
      T->B = bitsCreateFrom(B,len,1);
      B = NULL; // safety
      bitsRankPreprocess(T->B,rankK);
+     k2computeLevels (T);
      return T;
    }
 
@@ -201,6 +205,7 @@ k2tree k2createFrom (uint nlevels, uint64_t len, void *bits, uint own)
 void k2destroy (k2tree T)
 
    { if (T == NULL) return;
+     myfree(T->levels);
      bitsDestroy (T->B);
      myfree(T);
    }
