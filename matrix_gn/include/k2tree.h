@@ -6,6 +6,8 @@
 
 typedef struct s_k2tree {
    uint nlevels;
+   uint64_t *levels; // where each level starts in B
+   uint64_t elems;
    bitvector B;
    } *k2tree;
 
@@ -45,6 +47,9 @@ uint64_t k2space (k2tree T);
 	// levels of the k2tree
 extern inline uint k2levels (k2tree T);
 
+        // elements in the k2tree
+extern inline uint64_t k2elems (k2tree T);
+
 	// bitvector of the k2tree (somehow internal)
 extern inline bitvector k2bits (k2tree T);
 
@@ -81,7 +86,6 @@ uint64_t k2collect32 (k2tree T, uint32_t r1, uint32_t r2,
         // merges the bit arrays of two k2trees, writes its bit length
         // in *len and number of elements in *telems. nodes per level are
         // written in array *levels if not null, levels[0] is #leaves
-	// Btransp = 1 if B has to be interpreted as transposed
 uint64_t *k2merge (uint64_t *treeA, uint64_t lenA,
                    uint64_t *treeB, uint64_t lenB, uint level, 
 		   uint64_t *len, uint64_t *telems, uint64_t *levels);

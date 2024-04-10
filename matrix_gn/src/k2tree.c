@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "k2tree.h"
 
@@ -30,6 +31,21 @@ static queue32 *Q32 = NULL;
 static uint64_t head,tail,size;
 
 static uint64_t *B = NULL;
+
+	// computes levels of the k2tree
+
+static void k2computeLevels (k2tree T)
+
+   { int l;
+     uint64_t p;
+     T->levels = (uint64_t*)myalloc(T->nlevels * sizeof(uint64_t));
+     p = 1;
+     for (l=T->nlevels-1;l>=0;l--)
+	 { T->levels[l] = p;
+	   p = bitsRank(T->B,4*p-1)+1;
+	 }
+     T->elems = p-T->levels[0];
+   }
 
 static void k2write (uint level, uint64_t ptr, uint64_t n,
 		     uint64_t *coords1, uint64_t *coords2)
@@ -194,8 +210,10 @@ k2tree k2copy (k2tree T)
 
    { k2tree C = (k2tree)myalloc(sizeof(struct s_k2tree));
      *C = *T;
-      C->B = bitsCopy(T->B);
-      return C;
+     C->levels = (uint64_t*)myalloc(C->nlevels*sizeof(uint64_t));
+       memcpy(C->levels,T->levels,C->nlevels*sizeof(uint64_t));
+     C->B = bitsCopy(T->B);
+     return C;
    }
 
 	// computes levels of the k2tree, if not already computed
@@ -250,6 +268,13 @@ uint64_t k2space (k2tree T)
 extern inline uint k2levels (k2tree T)
 
    { return T->nlevels;
+   }
+
+	// elements in the k2tree
+
+extern inline uint64_t k2elems (k2tree T)
+
+   { return T->elems;
    }
 
 	// bitvector of the k2tree
