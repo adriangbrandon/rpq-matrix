@@ -355,6 +355,8 @@ static void copyBits (uint64_t *tgt, uint64_t ptgt,
 
 static uint *mapA,*mapB;
 
+	// a kind of k2tree without postprocessing
+
 typedef struct {
    uint64_t *tree,*levels;
    uint64_t elems,len;
@@ -561,8 +563,8 @@ static Tlevels *createLevels (matrix A, matrix B,
                 nodes = f(A->tree->levels[lev]-A->tree->levels[lev+1],
                           B->tree->levels[lev]-B->tree->levels[lev+1]);
            else nodes = 1;
-           Lev[lev].bits = (uint64_t*)myalloc(((nodes*4+w-1)/w)
-                                              * sizeof(uint64_t));
+           Lev[lev].bits = (uint64_t*)myalloc(((nodes*4+w-1+w)/w)
+                                              * sizeof(uint64_t)); // copyBits
            Lev[lev].ptr = 0;
          }
      return Lev;
@@ -582,7 +584,7 @@ static k2tree k2fromLevels (uint levels, Tlevels *Lev)
 	{ ptr = 0;
 	  for (lev=0;lev<levels;lev++)
               ptr += Lev[lev].ptr;
-	  tree = (uint64_t*)myalloc(((ptr+w-1+w)/w)*sizeof(uint64_t));
+	  tree = (uint64_t*)myalloc(((ptr+w-1+w)/w)*sizeof(uint64_t));//copyBits
           ptr = 0;
           for (lev=levels-1;lev>=0;lev--)
               { copyBits(tree,ptr,Lev[lev].bits,0,Lev[lev].ptr);
@@ -613,9 +615,9 @@ static inline int appendp (Tlevels *Lev, uint lev, uint p)
 
 	// Passes treeA from nodeA to Lev (like a copy)
 
-static int k2pass (k2tree treeA, k2node nodeA,
-		   uint level, Tlevels *Lev,
-		   int restr, uint64_t row, uint64_t col)
+static int k2pass1 (k2tree treeA, k2node nodeA,
+		    uint level, Tlevels *Lev,
+		    int restr, uint64_t row, uint64_t col)
 
    { k2node childA[4];
      uint sigA;
@@ -642,11 +644,30 @@ static int k2pass (k2tree treeA, k2node nodeA,
           p = 0;
           for (v=0;v<4;v++)
              { if (valA(v))
-                  p |= k2pass(treeA,childA[v],level-1,Lev,
-			      restr,rows[v],cols[v]) << v;
+                  p |= k2pass1(treeA,childA[v],level-1,Lev,
+			       restr,rows[v],cols[v]) << v;
 	     }
 	}
      return appendp(Lev,level-1,p);
+   }
+
+static int k2pass (k2tree treeA, k2node nodeA,
+		   uint level, Tlevels *Lev,
+		   uint *map, int restr, uint64_t row, uint64_t col)
+
+   { int lev;
+     uint64_t *bits = bitsData(k2bits(treeA));
+     k2node nextA;
+     if (restr || (map != mapId))
+	return k2pass1(treeA,nodeA,level,Lev,restr,row,col);
+     nextA = nodeA+1;
+     for (lev=level-1;lev>=0;lev--)
+	{ copyBits(Lev[lev].bits,Lev[lev].ptr,bits,4*nodeA,4*(nextA-nodeA));
+	  Lev[lev].ptr += 4*(nextA-nodeA);
+          if (nodeA) nodeA = bitsRank(treeA->B,4*nodeA-1)+1;
+	  nextA = bitsRank(treeA->B,4*nextA-1)+1;
+	}
+     return 1;
    }
 
 	// (boolean) intersection A \cap B, of the same size
@@ -763,10 +784,10 @@ static int k2or (k2tree treeA, k2node nodeA, k2tree treeB, k2node nodeB,
 			    restr,rows[v],cols[v]) << v;
 	       else if (valA(v))
                   p |= k2pass(treeA,childA[v],level-1,Lev,
-			      restr,rows[v],cols[v]) << v;
+			      mapA,restr,rows[v],cols[v]) << v;
 	       else if (valB(v))
                   p |= k2pass(treeB,childB[v],level-1,Lev,
-			      restr,rows[v],cols[v]) << v;
+			      mapB,restr,rows[v],cols[v]) << v;
 	     }
 	}
      return appendp(Lev,level-1,p);
@@ -854,7 +875,7 @@ static int k2dif (k2tree treeA, k2node nodeA, k2tree treeB, k2node nodeB,
 			     restr,rows[v],cols[v]) << v;
 	       else if (valA(v))
                   p |= k2pass(treeA,childA[v],level-1,Lev,
-			      restr,rows[v],cols[v]) << v;
+			      mapA,restr,rows[v],cols[v]) << v;
 	     }
 	}
      return appendp(Lev,level-1,p);
@@ -942,10 +963,10 @@ static int k2xor (k2tree treeA, k2node nodeA, k2tree treeB, k2node nodeB,
 			     restr,rows[v],cols[v]) << v;
 	       else if (valA(v))
                   p |= k2pass(treeA,childA[v],level-1,Lev,
-			      restr,rows[v],cols[v]) << v;
+			      mapA,restr,rows[v],cols[v]) << v;
 	       else if (valB(v))
                   p |= k2pass(treeB,childB[v],level-1,Lev,
-			      restr,rows[v],cols[v]) << v;
+			      mapB,restr,rows[v],cols[v]) << v;
 	     }
 	}
      return appendp(Lev,level-1,p);
