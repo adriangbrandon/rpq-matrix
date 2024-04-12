@@ -1,6 +1,7 @@
 //
 // Created by Adrián on 29/3/24.
 //
+#include <iomanip>
 
 #include <iostream>
 #include <chrono>
@@ -9,6 +10,8 @@ extern "C"{
 #include "matrix.h"
 #include "utilstime.h"
 }
+
+#define NANO_TO_MILLI 1000000.0
 
 uint64_t inline pos_matrix(uint64_t i, uint64_t d){
     return (d-1)*20+(i-1);
@@ -28,7 +31,6 @@ int main(int argc, char **argv) {
     uint side = 1000;
     uint size = side * side;
     uint div = 10;
-
 
     for(uint d = 1; d <= 4; ++d){
         uint elems = size / div;
@@ -61,8 +63,7 @@ int main(int argc, char **argv) {
         densities = {1, 2, 3};
     }
 
-
-
+    std::cerr << std::setprecision(8);
 
     for(auto d : densities){
         std::cout << "Sum..." << std::flush;
@@ -73,8 +74,8 @@ int main(int argc, char **argv) {
             matDestroy(M);
         }
         auto t2 =  std::chrono::high_resolution_clock::now();
-        auto ns = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count();
-        std::cerr << ns / (double) 20 << std::endl;
+        auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+        std::cerr << ns / (double) (20*NANO_TO_MILLI) << std::endl;
         std::cout << " done. [" << sum << "]" << std::endl;
 
         std::cout << "Sum RC..." << std::flush;
@@ -86,8 +87,8 @@ int main(int argc, char **argv) {
             matDestroy(M);
         }
         t2 =  std::chrono::high_resolution_clock::now();
-        ns = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count();
-        std::cerr << ns / (double) 20 << std::endl;
+        ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+        std::cerr << ns / (double) (20*NANO_TO_MILLI) << std::endl;
         std::cout << " done. [" << sum << "]" << std::endl;
 
         std::cout << "And..." << std::flush;
@@ -99,8 +100,8 @@ int main(int argc, char **argv) {
             matDestroy(M);
         }
         t2 =  std::chrono::high_resolution_clock::now();
-        ns = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count();
-        std::cerr << ns / (double) 20 << std::endl;
+        ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+        std::cerr << ns / (double) (20*NANO_TO_MILLI) << std::endl;
         std::cout << " done. [" << sum << "]" << std::endl;
 
         std::cout << "Mult..." << std::flush;
@@ -112,8 +113,8 @@ int main(int argc, char **argv) {
             matDestroy(M);
         }
         t2 =  std::chrono::high_resolution_clock::now();
-        ns = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count();
-        std::cerr << ns / (double) 20 << std::endl;
+        ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+        std::cerr << ns / (double) (20*NANO_TO_MILLI) << std::endl;
         std::cout << " done. [" << sum << "]" << std::endl;
 
     }
