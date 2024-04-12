@@ -264,42 +264,23 @@ matrix matSum (matrix A, matrix B)
 	{ fprintf(stderr,"Error: sum of matrices of different logside\n");
 	  exit(1);
 	}
-     if (A->elems == 0) M = matCopy(B);
-     else if (B->elems == 0) M = matCopy(A);
+     if (A->elems == 0) return matCopy(B);
+     else if (B->elems == 0) return matCopy(A);
+     else if (A->transposed != B->transposed) return matOr(A,B); // faster
      else { M = (matrix)myalloc(sizeof(struct s_matrix));
             M->logside = A->logside;
             treeA = bitsData(k2bits(A->tree));
 	    treeB = bitsData(k2bits(B->tree));
             lenA = bitsLength(k2bits(A->tree));
 	    lenB = bitsLength(k2bits(B->tree));
-	    if (A->transposed == B->transposed) // transposition can be ignored
-               { sum = k2merge (treeA,lenA,treeB,lenB,k2levels(A->tree),
-		                &len,&elems,NULL);
-		 M->transposed = A->transposed;
-	       }
-	    else if (A->elems > B->elems) // better that B is transposed
-	       { sum = k2mergeT(treeA,lenA,B->tree,&len,&elems,NULL);
-		 M->transposed = A->transposed;
-	       }
-	    else  // better that A is transposed
-	       { sum = k2mergeT(treeB,lenB,A->tree,&len,&elems,NULL);
-		 M->transposed = B->transposed;
-	       }
+            sum = k2merge (treeA,lenA,treeB,lenB,k2levels(A->tree),
+		           &len,&elems,NULL);
+	    M->transposed = A->transposed;
             M->elems = elems;
             M->tree = k2createFrom (k2levels(A->tree),len,sum,1);
 	  }
-     if (A->transposed == B->transposed)
-	{ M->width = mmax(A->width,B->width);
-     	  M->height = mmax(A->height,B->height);
-	}
-     else if (A->elems > B->elems) // the transposition of A dominates
-	{ M->width = mmax(A->width,B->height);
-     	  M->height = mmax(A->height,B->width);
-	}
-     else // A->elems <= B->elems, the transposition of B dominates
-	{ M->width = mmax(B->width,A->height);
-     	  M->height = mmax(B->height,A->width);
-	}
+     M->width = mmax(A->width,B->width);
+     M->height = mmax(A->height,B->height);
      return M;
    }
 
@@ -426,19 +407,6 @@ static partition compose (partition *part, uint level, uint freepart)
 #define valB(i) ((sigB >> i) & 1)
 #define val(i) ((sig >> i) & 1)
 
-static partition single (uint sig)
-
-   { partition answer;
-     if (sig == 0) return empty;
-     answer.elems = pop4(sig);
-     answer.len = 4;
-     answer.tree = (uint64_t*)myalloc(((4+w-1)/w)*sizeof(uint64_t));
-     answer.tree[0] = sig;
-     answer.levels = (uint64_t*)myalloc(1*sizeof(uint64_t));
-     answer.levels[0] = 1;
-     return answer;
-   }
-
 static inline void fixSig (uint64_t row, uint64_t col, uint64_t lim,
 		      uint *sigA, uint *sigB)
 
@@ -452,99 +420,6 @@ static inline void fixSig (uint64_t row, uint64_t col, uint64_t lim,
         }
    }
 
-static partition k2sumRC (k2tree treeA,k2node nodeA,k2tree treeB,k2node nodeB,
-			  uint level, uint64_t row, uint64_t col, uint has)
-
-   { partition part[4];
-     k2node childA[4],childB[4];
-     uint sigA,sigB;
-     uint v;
-     uint64_t lim;
-
-     if (has & 1) sigA = k2fillMappedChildren(treeA,nodeA,mapA,childA);
-     else sigA = 0;
-     if (has & 2) sigB = k2fillMappedChildren(treeB,nodeB,mapB,childB);
-     else sigB = 0;
-
-     lim = ((uint64_t)1)<<(level-1);
-     fixSig(row,col,lim,&sigA,&sigB);
-
-	// base case, level = 1
-     if (level == 1) return single (sigA | sigB);
-
-     for (v=0;v<4;v++) part[v] = empty;
-     has = valA(0) + 2*valB(0);
-     if (has) part[0] = k2sumRC (treeA,childA[0],treeB,childB[0],
-			         level-1,row,col,has);
-     has = valA(1) + 2*valB(1);
-     if (has) part[1] = k2sumRC (treeA,childA[1],treeB,childB[1],
-			      level-1,row,col == fullSide ? col : col-lim, has);
-     has = valA(2) + 2*valB(2);
-     if (has) part[2] = k2sumRC (treeA,childA[2],treeB,childB[2],
-			      level-1,row == fullSide ? row : row-lim,col, has);
-     has = valA(3) + 2*valB(3);
-     if (has) part[3] = k2sumRC (treeA,childA[3],treeB,childB[3],
-			         level-1,row == fullSide ? row : row-lim,
-				         col == fullSide ? col : col-lim, has);
-
-	// combine the 4 quadrants into a single matrix
-     return compose(part,level,1);
-   }
-
-static uint64_t *k2sum1 (k2tree A, k2tree B, uint64_t row, uint64_t col,
-			 uint64_t *len, uint64_t *telems)
-
-   { partition sum;
-     uint level,has;
-
-     if ((A == NULL) && (B == NULL))
-	{ *len = *telems = 0; return NULL; }
-     has = 0;
-     if (A != NULL) { level = k2levels(A); has += 1; }
-     if (B != NULL) { level = k2levels(B); has += 2; }
-
-     sum = k2sumRC(A,k2root(A),B,k2root(B),level,row,col,has);
-
-     *telems = sum.elems;
-     *len = sum.len;
-     myfree (sum.levels);
-     return sum.tree;
-   }
-
-matrix matSum1 (uint64_t row, matrix A, matrix B, uint64_t col)
-
-   { uint64_t *sum;
-     matrix M;
-     uint64_t wA,hA,wB,hB;
-     uint64_t len;
-
-     if ((row == fullSide) && (col == fullSide)) return matSum(A,B);
-
-     if (A->logside != B->logside)
-        { fprintf(stderr,"Error: sum of matrices of different logside\n");
-          exit(1);
-        }
-     matDims(A,NULL,&wA,&hA); matDims(B,NULL,&wB,&hB);
-
-     if ((row != fullSide) && (col != fullSide)) // just one cell
-        { if (matAccess(A,row,col) || matAccess(B,row,col))
-	     return matOne(mmax(hA,hB),mmax(wA,wB),row,col);
-	  else return matEmpty(mmax(hA,hB),mmax(wA,wB));
-        }
-
-     M = (matrix)myalloc(sizeof(struct s_matrix));
-     M->logside = A->logside;
-     M->width = mmax(wA,wB); M->height = mmax(hA,hB);
-     M->transposed = 0;
-     mapA = A->transposed ? mapTr : mapId;
-     mapB = B->transposed ? mapTr : mapId;
-     sum = k2sum1 (A->tree,B->tree,row,col,&len,&M->elems);
-     if (M->elems == 0) M->tree = NULL;
-     else if (A->tree) M->tree = k2createFrom (k2levels(A->tree),len,sum,1);
-     else M->tree = k2createFrom (k2levels(B->tree),len,sum,1);
-     return M;
-   }
-
 // -------------------- Recursive algorithms for Boolean operations
 
 	// creates Lev to operate A and B, assumed to be compatible
@@ -556,12 +431,14 @@ static Tlevels *createLevels (matrix A, matrix B,
    { uint levels = k2levels(A->tree);
      Tlevels *Lev = (Tlevels*)myalloc(levels*sizeof(Tlevels));
      uint lev;
-     uint64_t nodes;
+     uint64_t nodes,vA,vB;
 
      for (lev=0;lev<levels;lev++)
          { if (lev < levels-1)
-                nodes = f(A->tree->levels[lev]-A->tree->levels[lev+1],
-                          B->tree->levels[lev]-B->tree->levels[lev+1]);
+ 	      { vA = A->tree ? A->tree->levels[lev]-A->tree->levels[lev+1] : 0;
+ 	        vB = B->tree ? B->tree->levels[lev]-B->tree->levels[lev+1] : 0;
+                nodes = f(vA,vB);
+	      }
            else nodes = 1;
            Lev[lev].bits = (uint64_t*)myalloc(((nodes*4+w-1+w)/w)
                                               * sizeof(uint64_t)); // copyBits
@@ -668,6 +545,62 @@ static int k2pass (k2tree treeA, k2node nodeA,
 	  nextA = bitsRank(treeA->B,4*nextA-1)+1;
 	}
      return 1;
+   }
+
+	// (boolean) sum, when there are restrictions
+	// handles special cases like if one matrix is empty, so others use it
+
+uint64_t fsum (uint64_t a, uint64_t b)
+
+   { return a+b;
+   }
+
+matrix matSum1 (uint64_t row, matrix A, matrix B, uint64_t col)
+
+   { matrix M;
+     uint64_t wA,wB,hA,hB,wM,hM;
+     Tlevels *Lev;
+
+	// no restrictions: resort to matSum (also handles zero matrices)
+     if ((row == fullSide) && (col == fullSide))
+	return matSum(A,B);
+
+	// no zero matrices: resort to Or
+     if ((A->tree != NULL) && (B->tree != NULL))
+	return matOr1(row,A,B,col);
+
+     if (A->logside != B->logside)
+        { fprintf(stderr,"Error: and of matrices of different logside\n");
+          exit(1);
+        }
+     matDims(A,NULL,&wA,&hA); matDims(B,NULL,&wB,&hB);
+     wM = mmax(wA,wB); hM = mmax(hA,hB);
+
+	// both restrictions: just extract the cells and operate
+     if ((row != fullSide) && (col != fullSide)) // just one cell
+        { if (matAccess(A,row,col) || matAccess(B,row,col))
+	     return matOne(hM,wM,row,col);
+	  else return matEmpty(hM,wM);
+        }
+
+	// some zero matrix: use k2pass1 to copy one of them (restricted)
+     M = (matrix)myalloc(sizeof(struct s_matrix));
+     M->logside = A->logside;
+     M->width = wM; M->height = hM;
+     M->transposed = 0;
+     Lev = createLevels(A,B,fsum);
+     if (A->tree == NULL)
+        { mapA = B->transposed ? mapTr : mapId;
+	  k2pass1 (B->tree,k2root(B->tree),k2levels(B->tree),Lev,1,row,col);
+	}
+     else
+	{ mapA = A->transposed ? mapTr : mapId;
+	  k2pass1 (A->tree,k2root(A->tree),k2levels(A->tree),Lev,1,row,col);
+	}
+     M->tree = k2fromLevels (k2levels(A->tree), Lev);
+     if (M->tree == NULL) M->elems = 0;
+     else M->elems = k2elems(M->tree);
+     return M;
    }
 
 	// (boolean) intersection A \cap B, of the same size
@@ -793,16 +726,13 @@ static int k2or (k2tree treeA, k2node nodeA, k2tree treeB, k2node nodeB,
      return appendp(Lev,level-1,p);
    }
 
-uint64_t fsum (uint64_t a, uint64_t b)
-
-   { return a+b;
-   }
-
 matrix matOr1 (uint64_t row, matrix A, matrix B, uint64_t col)
 
    { matrix M;
      uint64_t wA,hA,wB,hB,wM,hM;
      Tlevels *Lev;
+     uint64_t aux;
+     int transp;
 
      if (A->logside != B->logside)
         { fprintf(stderr,"Error: and of matrices of different logside\n");
@@ -815,8 +745,38 @@ matrix matOr1 (uint64_t row, matrix A, matrix B, uint64_t col)
         { M = matSum1(row,A,B,col); // has provisions for this case
         }
      else
-        { mapA = A->transposed ? mapTr : mapId;
-          mapB = B->transposed ? mapTr : mapId;
+        { if (A->transposed)
+	     { if (B->transposed) // ignore both for now, speeds up
+	          { mapA = mapB = mapId;
+		    transp = 1;
+		  }
+	       else // switch if A is larger, speeds up
+		  if (A->elems > B->elems)
+		     { mapA = mapId; mapB = mapTr;
+		       transp = 1;
+		     }
+		  else
+		     { mapA = mapTr; mapB = mapId;
+		       transp = 0;
+		     }
+	     }
+	  else
+	     { if (B->transposed) // switch if B is larger, speeds up
+		  if (B->elems > A->elems)
+		     { mapB = mapId; mapA = mapTr;
+		       transp = 1;
+		     }
+		  else
+		     { mapB = mapTr; mapA = mapId;
+		       transp = 0;
+		     }
+	       else
+	          { mapA = mapB = mapId;
+		    transp = 0;
+		  }
+	     }
+	  if (transp)
+	     { aux = row; row = col; col = aux; }
           M = (matrix)myalloc(sizeof(struct s_matrix));
           M->logside = A->logside;
           Lev = createLevels(A,B,fsum);
@@ -824,10 +784,12 @@ matrix matOr1 (uint64_t row, matrix A, matrix B, uint64_t col)
 		k2root(B->tree),k2levels(A->tree),
 	        Lev,(row != fullSide) || (col != fullSide),row,col);
           M->tree = k2fromLevels (k2levels(A->tree), Lev);
-          if (M->tree == NULL)
-	       M->elems = 0;
-          else M->elems = k2elems(M->tree);
-          M->transposed = 0;
+	  if (M->tree == NULL)
+	     { M->elems = 0; M->transposed = 0; }
+	  else
+	     { M->elems = k2elems(M->tree);
+	       M->transposed = transp;
+	     }
 	}
      if (M->transposed) { M->height = wM; M->width = hM; }
      else { M->height = hM; M->width = wM; }
@@ -891,6 +853,8 @@ matrix matDif1 (uint64_t row, matrix A, matrix B, uint64_t col)
    { matrix M;
      uint64_t wA,hA,wB,hB,wM,hM;
      Tlevels *Lev;
+     uint64_t aux;
+     int transp;
 
      if (A->logside != B->logside)
         { fprintf(stderr,"Error: and of matrices of different logside\n");
@@ -903,8 +867,28 @@ matrix matDif1 (uint64_t row, matrix A, matrix B, uint64_t col)
         { M = matSum1(row,A,B,col); // has provisions for this case
         }
      else
-        { mapA = A->transposed ? mapTr : mapId;
-          mapB = B->transposed ? mapTr : mapId;
+        { if (A->transposed)
+	     { if (B->transposed) // ignore both for now, speeds up
+	          { mapA = mapB = mapId;
+		    transp = 1;
+		  }
+	       else // switch, better if A is not transposed
+		  { mapA = mapId; mapB = mapTr;
+		    transp = 1;
+		  }
+	     }
+	  else
+	     { if (B->transposed) // leave as is
+		  { mapB = mapTr; mapA = mapId;
+		    transp = 0;
+		  }
+	       else
+	          { mapA = mapB = mapId;
+		    transp = 0;
+		  }
+	     }
+	  if (transp)
+	     { aux = row; row = col; col = aux; }
           M = (matrix)myalloc(sizeof(struct s_matrix));
           M->logside = A->logside;
           Lev = createLevels(A,B,ffirst);
@@ -913,9 +897,11 @@ matrix matDif1 (uint64_t row, matrix A, matrix B, uint64_t col)
 	         Lev,(row != fullSide) || (col != fullSide),row,col);
           M->tree = k2fromLevels (k2levels(A->tree), Lev);
           if (M->tree == NULL)
-	       M->elems = 0;
-          else M->elems = k2elems(M->tree);
-          M->transposed = 0;
+	     { M->elems = 0; M->transposed = 0; }
+          else
+	     { M->elems = k2elems(M->tree);
+               M->transposed = transp;
+	     }
 	}
      if (M->transposed) { M->height = wM; M->width = hM; }
      else { M->height = hM; M->width = wM; }
@@ -977,6 +963,8 @@ matrix matXor1 (uint64_t row, matrix A, matrix B, uint64_t col)
    { matrix M;
      uint64_t wA,hA,wB,hB,wM,hM;
      Tlevels *Lev;
+     uint64_t aux;
+     int transp;
 
      if (A->logside != B->logside)
         { fprintf(stderr,"Error: and of matrices of different logside\n");
@@ -989,8 +977,38 @@ matrix matXor1 (uint64_t row, matrix A, matrix B, uint64_t col)
         { M = matSum1(row,A,B,col); // has provisions for this case
         }
      else
-        { mapA = A->transposed ? mapTr : mapId;
-          mapB = B->transposed ? mapTr : mapId;
+        { if (A->transposed)
+	     { if (B->transposed) // ignore both for now, speeds up
+	          { mapA = mapB = mapId;
+		    transp = 1;
+		  }
+	       else // switch if A is larger, speeds up
+		  if (A->elems > B->elems)
+		     { mapA = mapId; mapB = mapTr;
+		       transp = 1;
+		     }
+		  else
+		     { mapA = mapTr; mapB = mapId;
+		       transp = 0;
+		     }
+	     }
+	  else
+	     { if (B->transposed) // switch if B is larger, speeds up
+		  if (B->elems > A->elems)
+		     { mapB = mapId; mapA = mapTr;
+		       transp = 1;
+		     }
+		  else
+		     { mapB = mapTr; mapA = mapId;
+		       transp = 0;
+		     }
+	       else
+	          { mapA = mapB = mapId;
+		    transp = 0;
+		  }
+	     }
+	  if (transp)
+	     { aux = row; row = col; col = aux; }
           M = (matrix)myalloc(sizeof(struct s_matrix));
           M->logside = A->logside;
           Lev = createLevels(A,B,fsum);
@@ -999,9 +1017,11 @@ matrix matXor1 (uint64_t row, matrix A, matrix B, uint64_t col)
 	         Lev,(row != fullSide) || (col != fullSide),row,col);
           M->tree = k2fromLevels (k2levels(A->tree), Lev);
           if (M->tree == NULL)
-	       M->elems = 0;
-          else M->elems = k2elems(M->tree);
-          M->transposed = 0;
+	     { M->elems = 0; M->transposed = 0; }
+          else
+	     { M->elems = k2elems(M->tree);
+	       M->transposed = transp;
+	     }
 	}
      if (M->transposed) { M->height = wM; M->width = hM; }
      else { M->height = hM; M->width = wM; }
@@ -1014,6 +1034,19 @@ matrix matXor (matrix A, matrix B)
    }
 
 // ----------------------- Boolean matrix multiplication
+
+static partition single (uint sig)
+
+   { partition answer;
+     if (sig == 0) return empty;
+     answer.elems = pop4(sig);
+     answer.len = 4;
+     answer.tree = (uint64_t*)myalloc(((4+w-1)/w)*sizeof(uint64_t));
+     answer.tree[0] = sig;
+     answer.levels = (uint64_t*)myalloc(1*sizeof(uint64_t));
+     answer.levels[0] = 1;
+     return answer;
+   }
 
 	// extracts the subtree as a partition, allows transpositions
 

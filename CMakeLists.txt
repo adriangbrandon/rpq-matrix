@@ -57,6 +57,9 @@ target_link_libraries(query matrix_gn nfa)
 add_executable(sintecticas src/sintecticas.cpp)
 target_link_libraries(sintecticas matrix_gn nfa)
 
+add_executable(sintecticas-dd src/sintecticas-dd.cpp)
+target_link_libraries(sintecticas-dd matrix_gn nfa)
+
 add_executable(sintecticas-row src/sintecticas-row.cpp)
 target_link_libraries(sintecticas-row matrix_gn nfa)
 
