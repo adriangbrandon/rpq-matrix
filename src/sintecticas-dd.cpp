@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
         sum = 0;
         t1 = std::chrono::high_resolution_clock::now();
         for(uint i = 1; i <= 20; ++i){
-            M = matAnd(m_matrices[left_matrix], m_matrices[i]);
+            M = matAnd(m_matrices[left_matrix], m_matrices[pos_matrix(i, d)]);
             sum += M->elems;
             matDestroy(M);
         }
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
         sum = 0;
         t1 = std::chrono::high_resolution_clock::now();
         for(uint i = 1; i < 20; ++i){
-            M = matMult(m_matrices[left_matrix], m_matrices[i]);
+            M = matMult(m_matrices[left_matrix], m_matrices[pos_matrix(i, d)]);
             sum += M->elems;
             matDestroy(M);
         }
