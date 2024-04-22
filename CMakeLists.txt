@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.8.7)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(AppendCompilerFlags)
 set(CMAKE_OSX_ARCHITECTURES x86_64)
-project(Matrix-Clos-RPQ)
-set(CMAKE_PROJECT_NAME "Matrix Clos RPQ")
+project(RPQ-Matrix)
+set(CMAKE_PROJECT_NAME "RPQ-Matrix")
 
 #Change to "Debug" when you need it
 set(CMAKE_BUILD_TYPE "Release")
@@ -43,28 +43,39 @@ else()
 endif()
 
 include_directories(~/include
+        ${CMAKE_HOME_DIRECTORY}/include
         ${CMAKE_HOME_DIRECTORY}/nfa/include
-        ${CMAKE_HOME_DIRECTORY}/matrix_gn/include)
+        ${CMAKE_HOME_DIRECTORY}/lib/matrix_gn/include
+        ${CMAKE_HOME_DIRECTORY}/lib/matrix_p_gn/include
+        ${CMAKE_HOME_DIRECTORY}/lib/baseline_gn/include)
 
-link_directories(~/lib)
+#link_directories(~/lib)
 
 add_subdirectory(nfa)
-add_subdirectory(matrix_gn)
+add_subdirectory(lib/matrix_gn)
+add_subdirectory(lib/matrix_p_gn)
+add_subdirectory(lib/baseline_gn)
 
-add_executable(query src/query.cpp)
-target_link_libraries(query matrix_gn nfa)
+add_executable(k2_tree_query src/k2_tree_query.cpp)
+target_link_libraries(k2_tree_query matrix_gn nfa)
 
-add_executable(sintecticas src/sintecticas.cpp)
-target_link_libraries(sintecticas matrix_gn nfa)
+add_executable(k2_tree_p_query src/k2_tree_p_query.cpp)
+target_link_libraries(k2_tree_p_query matrix_p_gn nfa)
 
-add_executable(sintecticas-dd src/sintecticas-dd.cpp)
-target_link_libraries(sintecticas-dd matrix_gn nfa)
+add_executable(baseline_query src/baseline_query.cpp)
+target_link_libraries(baseline_query baseline_gn nfa)
 
-add_executable(sintecticas-row src/sintecticas-row.cpp)
-target_link_libraries(sintecticas-row matrix_gn nfa)
+add_executable(baseline_32_query src/baseline_32_query.cpp)
+target_link_libraries(baseline_32_query baseline_gn nfa)
 
-add_executable(rpq-densities src/rpq-densities.cpp)
-target_link_libraries(rpq-densities matrix_gn nfa)
+add_executable(create_pairs src/create_pairs.cpp)
+target_link_libraries(create_pairs matrix_gn)
 
-add_executable(rpq-proba src/rpq-proba.cpp)
-target_link_libraries(rpq-proba matrix_gn nfa)
+add_executable(k2_tree_build src/k2_tree_build.cpp)
+target_link_libraries(k2_tree_build matrix_gn)
+
+add_executable(baseline_32_build src/baseline_32_build.cpp)
+target_link_libraries(baseline_32_build baseline_gn)
+
+add_executable(baseline_build src/baseline_build.cpp)
+target_link_libraries(baseline_build baseline_gn)

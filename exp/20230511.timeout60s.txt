@@ -1,5 +1,0 @@
-Reading 5420 matrices... done... 610166040 total words (5.09 bpt)
-Reading mapping... done.
-1;50572093;11904000000
-2;66728842;600384000000
-3;6237;6936000000
