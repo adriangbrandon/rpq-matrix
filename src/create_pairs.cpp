@@ -15,16 +15,14 @@ typedef struct
 
 int main(int argc, char **argv) {
 
-    if (argc < 5) {
-        std::cerr << "\tUsage: " << argv[0] << " <dataset> <queries> <n_preds> <n_triples>" << std::endl;
+    if (argc < 4) {
+        std::cerr << "\tUsage: " << argv[0] << " <dataset> <n_preds> <n_triples>" << std::endl;
         exit(1);
     }
 
     std::string dataset = argv[1];
-    std::string queries = argv[2];
-    std::string index   = dataset + ".matrices";
-    uint n_preds = atoi(argv[3]);
-    uint n_triples = atoi(argv[4]);
+    uint n_preds = atoi(argv[2]);
+    uint n_triples = atoi(argv[3]);
 
     uint S = n_preds+1;
     uint maxV = 0;
