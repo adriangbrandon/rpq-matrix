@@ -235,13 +235,13 @@ matrix32 matLoad32 (FILE *file)
     return M;
 }
 
-// space of the matrix32, in 32-bit words
+// space of the matrix32, in 64-bit words
 
 uint64_t matSpace32 (matrix32 M)
 
-{ return (sizeof(struct s_matrix32)/sizeof(uint) +
+{ return ((sizeof(struct s_matrix32)/sizeof(uint) +
           2 * (M->nrows+1) + 2 * (M->ncols+1) + 2 * (uint64_t)M->elems)
-         * (sizeof(uint) / 4);
+         * (sizeof(uint) / 4))/2;
 }
 
 // dimensions of M, returns #elems and writes the others if not null

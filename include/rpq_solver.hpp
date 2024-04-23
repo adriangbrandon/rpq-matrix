@@ -1013,7 +1013,7 @@ namespace rpq {
             uint64_t space = 0;
             uint i;
             FILE *f;
-            printf ("Reading 5420 matrices..."); fflush(stdout);
+            printf ("Reading %i matrices...", n_preds); fflush(stdout);
             for (i=1;i<m_matrices.size();i++) {
                 std::string file = file_name(i, index);
                 f = fopen(file.c_str(), "r");

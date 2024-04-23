@@ -272,7 +272,7 @@ matrix matLoad (FILE *file)
     return M;
 }
 
-// space of the matrix, in 32-bit words
+// space of the matrix, in 64-bit words
 
 uint64_t matSpace (matrix M)
 
@@ -283,7 +283,7 @@ uint64_t matSpace (matrix M)
           (M->ncols+1)*sizeof(uint) +
           packedwords(M->ncols+1,numbits(M->elems))*sizeof(uint64_t) +
           M->elems*sizeof(uint))
-         / (w32/8);
+         / (w/8);
 }
 
 // dimensions of M, returns #elems and writes the others if not null
