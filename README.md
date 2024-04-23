@@ -8,8 +8,7 @@ The queries are available in `queries`:
 - `queries/paths.tsv`: the queries of our benchmark that can be run on Wikidata dataset.
 
 The dataset is available here: [datasets](https://zenodo.org/record/7254968). Specifically we use the file `wikidata.tar.gz`, 
-which contains the data (*.dat*) and the dictionaries for subjects/objects (*.dat.SO*) and predicates (*.dat.P*). This dataset
-contains 
+which contains the data (*.dat*) and the dictionaries for subjects/objects (*.dat.SO*) and predicates (*.dat.P*).
 
 ### Instructions
 
@@ -59,7 +58,7 @@ cd ..
 ./build/k2_tree_query dataset/wikidata-enumerated.dat rpq-matrix/queries/paths.tsv 5419 958844164
 ```
 
-**IMPORTANT:** The folders of our representations shall be created in the same folder of the dataset, because
+**IMPORTANT:** The folders of our representations shall be created in the same folder of the dataset because
 they depend on the dictionaries for predicates and subjects/objects.
 
 ### Authors
