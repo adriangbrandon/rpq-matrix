@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "k2-tree/utilstime.h"
 #include "k2-tree/matrix.h"
 
 typedef struct

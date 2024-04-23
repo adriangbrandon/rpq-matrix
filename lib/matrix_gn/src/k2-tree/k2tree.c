@@ -6,8 +6,8 @@
 
 #define rankK 4  // parameter for bit rank
 
-uint mapId[] = { 0, 1, 2, 3 };
-uint mapTr[] = { 0, 2, 1, 3 };
+extern uint mapId[] = { 0, 1, 2, 3 };
+extern uint mapTr[] = { 0, 2, 1, 3 };
 static uint remapTr[] =
 		{ 0, 1, 4, 5,  2, 3, 6, 7,  8, 9, 12, 13,  10, 11, 14, 15 };
 

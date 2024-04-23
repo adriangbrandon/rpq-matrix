@@ -15,6 +15,8 @@ namespace bm_baseline_32 {
     class wrapper {
 
     public:
+
+        static const uint64_t full_side = fullSide;
         typedef matrix32 matrix_type;
         typedef s_matrix32 s_matrix_type;
         // creates matrix of width x height with n cells (2n ints row,col)

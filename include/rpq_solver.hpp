@@ -9,10 +9,6 @@
 #define SIZE 5420 // 1 to 5419
 #define V 296008192 // 1 to...
 
-#ifndef fullSide
-#define fullSide (~(uint)0)
-#endif
-
 #ifndef w
 #define w (8*sizeof(uint64_t))
 #endif
@@ -258,7 +254,7 @@ namespace rpq {
                         s_matrix sA;
                         A = get_matrix(sA, a, (pred > SIZE));
                         matrix e = wrapper::empty(A->height, A->width);
-                        matrix m = wrapper::sum1(fullSide, A, e, col);
+                        matrix m = wrapper::sum1(wrapper::full_side, A, e, col);
                         wrapper::destroy(e);
                         res.insert(res.begin(), data_type{m, false,true, true});
                     }
@@ -288,7 +284,7 @@ namespace rpq {
                                 s_matrix sA, sB;
                                 A = get_matrix(sA, it2->m, it2->is_transposed);
                                 B = get_matrix(sB, it1->m, it1->is_transposed);
-                                tmp = wrapper::mult1(fullSide, A,B, col);
+                                tmp = wrapper::mult1(wrapper::full_side, A,B, col);
                             }
                             if(it1->is_tmp) wrapper::destroy(it1->m);
                             if(it2->is_tmp) wrapper::destroy(it2->m);
@@ -304,7 +300,7 @@ namespace rpq {
                             matrix A;
                             s_matrix sA;
                             A = get_matrix(sA, ll.front().m,  ll.front().is_transposed);
-                            aux = wrapper::clos_mult1(fullSide, A, pos, tmp, col);
+                            aux = wrapper::clos_mult1(wrapper::full_side, A, pos, tmp, col);
                             wrapper::destroy(tmp);
                             if(ll.front().is_tmp) wrapper::destroy(ll.front().m);
                             res.insert(res.begin(), data_type{aux, false, true, true});
@@ -313,7 +309,7 @@ namespace rpq {
                             s_matrix sA, sB;
                             A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
                             B = get_matrix(sB, rl.front().m, rl.front().is_transposed);
-                            tmp = wrapper::clos_mult1(fullSide, A, pos, B, col);
+                            tmp = wrapper::clos_mult1(wrapper::full_side, A, pos, B, col);
                             if(ll.front().is_tmp) wrapper::destroy(ll.front().m);
                             if(rl.front().is_tmp) wrapper::destroy(rl.front().m);
                             res.insert(res.begin(), data_type{tmp, false, true, true});
@@ -340,7 +336,7 @@ namespace rpq {
                                 s_matrix sA, sB;
                                 A = get_matrix(sA, it2->m, it2->is_transposed);
                                 B = get_matrix(sB, it1->m, it1->is_transposed);
-                                tmp = wrapper::mult1(fullSide, A, B, col);
+                                tmp = wrapper::mult1(wrapper::full_side, A, B, col);
                             }
                             if(it1->is_tmp) wrapper::destroy(it1->m);
                             if(it2->is_tmp) wrapper::destroy(it2->m);
@@ -395,7 +391,7 @@ namespace rpq {
                                 }
                                 ++it2;
                             }
-                            //tmp = matSum1(it1_min->m, it2_min->m, fullSide, col);
+                            //tmp = matSum1(it1_min->m, it2_min->m, wrapper::full_side, col);
                             if(it1_min->is_fixed && it2_min->is_fixed){
                                 matrix A, B;
                                 s_matrix sA, sB;
@@ -407,7 +403,7 @@ namespace rpq {
                                 s_matrix sA, sB;
                                 A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
                                 B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
-                                tmp = wrapper::sum1(fullSide, A, B, col);
+                                tmp = wrapper::sum1(wrapper::full_side, A, B, col);
                             }
                             if (it1_min->is_tmp) wrapper::destroy(it1_min->m);
                             if (it2_min->is_tmp) wrapper::destroy(it2_min->m);
@@ -429,7 +425,7 @@ namespace rpq {
                             s_matrix sA, sB;
                             A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
                             B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
-                            tmp = wrapper::sum1(fullSide, A, B, col);
+                            tmp = wrapper::sum1(wrapper::full_side, A, B, col);
                         }
                         if(it1_min->is_tmp) wrapper::destroy(it1_min->m);
                         if(it2_min->is_tmp) wrapper::destroy(it2_min->m);
@@ -451,7 +447,7 @@ namespace rpq {
                         matrix A;
                         s_matrix sA;
                         A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
-                        matrix tmp = wrapper::clos1(fullSide, A, 0, col);
+                        matrix tmp = wrapper::clos1(wrapper::full_side, A, 0, col);
                         // std::cout << "STAR : " << ll.front() << std::endl;
                         if(ll.front().is_tmp) wrapper::destroy(ll.front().m);
                         res.insert(res.begin(), data_type{tmp, false, true, true});
@@ -475,7 +471,7 @@ namespace rpq {
                         matrix A;
                         s_matrix sA;
                         A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
-                        matrix tmp = wrapper::clos1(fullSide, A, 1, col);
+                        matrix tmp = wrapper::clos1(wrapper::full_side, A, 1, col);
                         if(ll.front().is_tmp) wrapper::destroy(ll.front().m);
                         res.insert(res.begin(), data_type{tmp, false,true, true});
                     }else{
@@ -495,7 +491,7 @@ namespace rpq {
                     s_matrix sA;
                     A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
                     matrix Id = wrapper::id(std::max(A->height,A->width));
-                    matrix tmp = wrapper::sum1(fullSide, A, Id, col);
+                    matrix tmp = wrapper::sum1(wrapper::full_side, A, Id, col);
                     wrapper::destroy(Id);
                     if(ll.front().is_tmp) wrapper::destroy(ll.front().m);
                     res.insert(res.begin(), data_type{tmp, false, true, true});
@@ -518,7 +514,7 @@ namespace rpq {
                         matrix a = (pred > SIZE) ? m_matrices[pred-SIZE] :  m_matrices[pred];
                         A = get_matrix(sA, a, (pred > SIZE));
                         matrix e = wrapper::empty(A->height, A->width);
-                        matrix m = wrapper::sum1(row, A, e, fullSide);
+                        matrix m = wrapper::sum1(row, A, e, wrapper::full_side);
                         wrapper::destroy(e);
                         res.insert(res.begin(), data_type{m, false, true, true});
                     }
@@ -548,7 +544,7 @@ namespace rpq {
                                 s_matrix sA, sB;
                                 A = get_matrix(sA, it1->m, it1->is_transposed);
                                 B = get_matrix(sB, it2->m, it2->is_transposed);
-                                tmp = wrapper::mult1(row, A, B, fullSide);
+                                tmp = wrapper::mult1(row, A, B, wrapper::full_side);
                             }
                             if(it1->is_tmp) wrapper::destroy(it1->m);
                             if(it2->is_tmp) wrapper::destroy(it2->m);
@@ -561,7 +557,7 @@ namespace rpq {
                                 wrapper::destroy(tmp);
                                 tmp = aux;
                             }
-                            aux = wrapper::mult_clos1(row, tmp, rl.front().m, pos, fullSide);
+                            aux = wrapper::mult_clos1(row, tmp, rl.front().m, pos, wrapper::full_side);
                             wrapper::destroy(tmp);
                             if(rl.front().is_tmp) wrapper::destroy(rl.front().m);
                             res.insert(res.begin(), data_type{aux, false, true, true});
@@ -570,7 +566,7 @@ namespace rpq {
                             s_matrix sA, sB;
                             A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
                             B = get_matrix(sB, rl.front().m, rl.front().is_transposed);
-                            tmp = wrapper::mult_clos1(row, A, B, pos, fullSide);
+                            tmp = wrapper::mult_clos1(row, A, B, pos, wrapper::full_side);
                             if(ll.front().is_tmp) wrapper::destroy(ll.front().m);
                             if(rl.front().is_tmp) wrapper::destroy(rl.front().m);
                             res.insert(res.begin(), data_type{tmp, false,true, true});
@@ -597,7 +593,7 @@ namespace rpq {
                                 s_matrix sA, sB;
                                 A = get_matrix(sA, it1->m, it1->is_transposed);
                                 B = get_matrix(sB, it2->m, it2->is_transposed);
-                                tmp = wrapper::mult1(row, A,B, fullSide);
+                                tmp = wrapper::mult1(row, A,B, wrapper::full_side);
                             }
                             if(it1->is_tmp) wrapper::destroy(it1->m);
                             if(it2->is_tmp) wrapper::destroy(it2->m);
@@ -649,7 +645,7 @@ namespace rpq {
                                 }
                                 ++it2;
                             }
-                            //tmp = wrapper::sum1(it1_min->m, it2_min->m, row, fullSide);
+                            //tmp = wrapper::sum1(it1_min->m, it2_min->m, row, wrapper::full_side);
                             if(it1_min->is_fixed && it2_min->is_fixed){
                                 matrix A, B;
                                 s_matrix sA, sB;
@@ -661,7 +657,7 @@ namespace rpq {
                                 s_matrix sA, sB;
                                 A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
                                 B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
-                                tmp = wrapper::sum1(row, A, B, fullSide);
+                                tmp = wrapper::sum1(row, A, B, wrapper::full_side);
                             }
                             if (it1_min->is_tmp) wrapper::destroy(it1_min->m);
                             if (it2_min->is_tmp) wrapper::destroy(it2_min->m);
@@ -672,7 +668,7 @@ namespace rpq {
                         }
                         it1_min = it2_min = rl.begin();
                         ++it2_min;
-                        //tmp = matSum1(it1_min->m, it2_min->m, row, fullSide);
+                        //tmp = matSum1(it1_min->m, it2_min->m, row, wrapper::full_side);
                         if(it1_min->is_fixed && it2_min->is_fixed){
                             matrix A, B;
                             s_matrix sA, sB;
@@ -684,7 +680,7 @@ namespace rpq {
                             s_matrix sA, sB;
                             A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
                             B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
-                            tmp = wrapper::sum1(row, A, B, fullSide);
+                            tmp = wrapper::sum1(row, A, B, wrapper::full_side);
                         }
                         if(it1_min->is_tmp) wrapper::destroy(it1_min->m);
                         if(it2_min->is_tmp) wrapper::destroy(it2_min->m);
@@ -700,7 +696,7 @@ namespace rpq {
                         matrix A;
                         s_matrix sA;
                         A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
-                        matrix tmp = wrapper::clos1(row, A, 0, fullSide);
+                        matrix tmp = wrapper::clos1(row, A, 0, wrapper::full_side);
                         // std::cout << "STAR : " << ll.front() << std::endl;
                         if(ll.front().is_tmp) wrapper::destroy(ll.front().m);
                         res.insert(res.begin(), data_type{tmp, false, true, true});
@@ -717,7 +713,7 @@ namespace rpq {
                         matrix A;
                         s_matrix sA;
                         A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
-                        matrix tmp = wrapper::clos1(row, A, 1, fullSide);
+                        matrix tmp = wrapper::clos1(row, A, 1, wrapper::full_side);
                         if(ll.front().is_tmp) wrapper::destroy(ll.front().m);
                         res.insert(res.begin(), data_type{tmp, false, true, true});
                     }else{
@@ -733,7 +729,7 @@ namespace rpq {
                     s_matrix sA;
                     A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
                     matrix Id = wrapper::id(std::max(A->height,A->width));
-                    matrix tmp = wrapper::sum1(row, ll.front().m, Id, fullSide);
+                    matrix tmp = wrapper::sum1(row, ll.front().m, Id, wrapper::full_side);
                     wrapper::destroy(Id);
                     if(ll.front().is_tmp) wrapper::destroy(ll.front().m);
                     res.insert(res.begin(), data_type{tmp, false, true, true});
@@ -786,7 +782,7 @@ namespace rpq {
                                 s_matrix sA, sB;
                                 A = get_matrix(sA, it1->m, it1->is_transposed);
                                 B = get_matrix(sB, it2->m, it2->is_transposed);
-                                tmp = wrapper::mult1(row, A, B, fullSide);
+                                tmp = wrapper::mult1(row, A, B, wrapper::full_side);
                             }
                             if(it1->is_tmp) wrapper::destroy(it1->m);
                             if(it2->is_tmp) wrapper::destroy(it2->m);
@@ -843,7 +839,7 @@ namespace rpq {
                                 if(rl.size() == cnt_mult){
                                     tmp = wrapper::mult1(row, A, B, col); //Final
                                 }else{
-                                    tmp = wrapper::mult1(row, A,B, fullSide);
+                                    tmp = wrapper::mult1(row, A,B, wrapper::full_side);
                                 }
                             }
                             if(it1->is_tmp) wrapper::destroy(it1->m);
@@ -901,7 +897,7 @@ namespace rpq {
                                 }
                                 ++it2;
                             }
-                            //tmp = wrapper::sum1(it1_min->m, it2_min->m, row, fullSide);
+                            //tmp = wrapper::sum1(it1_min->m, it2_min->m, row, wrapper::full_side);
                             if(it1_min->is_fixed && it2_min->is_fixed){
                                 matrix A, B;
                                 s_matrix sA, sB;
@@ -913,7 +909,7 @@ namespace rpq {
                                 s_matrix sA, sB;
                                 A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
                                 B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
-                                tmp = wrapper::sum1(row, A, B, fullSide);
+                                tmp = wrapper::sum1(row, A, B, wrapper::full_side);
                             }
                             if (it1_min->is_tmp) wrapper::destroy(it1_min->m);
                             if (it2_min->is_tmp) wrapper::destroy(it2_min->m);
@@ -924,7 +920,7 @@ namespace rpq {
                         }
                         it1_min = it2_min = rl.begin();
                         ++it2_min;
-                        //tmp = wrapper::sum1(it1_min->m, it2_min->m, row, fullSide);
+                        //tmp = wrapper::sum1(it1_min->m, it2_min->m, row, wrapper::full_side);
                         if(it1_min->is_fixed && it2_min->is_fixed){
                             matrix A, B;
                             s_matrix sA, sB;

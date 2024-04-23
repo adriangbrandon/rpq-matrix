@@ -15,6 +15,7 @@ namespace bm_k2_tree_p {
     class wrapper {
 
     public:
+        static const uint64_t full_side = fullSide;
         typedef matrix matrix_type;
         typedef s_matrix s_matrix_type;
         // creates matrix of width x height with n cells (2n ints row,col)
