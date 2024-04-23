@@ -7,7 +7,7 @@ The queries are available in `queries`:
 
 - `queries/paths.tsv`: the queries of our benchmark that can be run on Wikidata dataset.
 
-The dataset is available here: [datasets](https://zenodo.org/record/7254968). Specifically we use the file `wikidata.tar.gz`, 
+The dataset is available here: [dataset](https://zenodo.org/record/7254968). Specifically we use the file `wikidata.tar.gz`, 
 which contains the data (*.dat*) and the dictionaries for subjects/objects (*.dat.SO*) and predicates (*.dat.P*).
 
 ### Instructions
