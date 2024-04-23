@@ -34,9 +34,11 @@ mkdir pairs
 cd pairs
 ../bin/create_pairs ../dataset/wikidata-enumerated.dat 5419 958844164
 cd ..
-./bin/k2_tree_build pairs/ k2-tree/wikidata-enumerated.dat.matrices 29
-./bin/baseline_build pairs/ baseline-64/wikidata-enumerated.dat.matrices 348945080
-./bin/baseline_32_build pairs/ baseline-64/wikidata-enumerated.dat.matrices 348945080
+./bin/k2_tree_build pairs/ dataset/wikidata-enumerated.dat.k2-tree 29
+./bin/baseline_build pairs/ dataset/wikidata-enumerated.dat.baseline-64 348945080
+./bin/baseline_32_build pairs/ dataset/wikidata-enumerated.dat.baseline-32 348945080
+
+./bin/baseline_query baseline-64/wikidata-enumerated.dat.baseline-64 rpq-matrix/queries/paths.tsv 5419 958844164
 ```
 
 This shall create several executables:

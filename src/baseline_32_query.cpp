@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 
     std::string dataset = argv[1];
     std::string queries = argv[2];
-    std::string index   = dataset + ".matrices";
+    std::string index   = dataset + ".baseline-32";
     uint n_preds = atoi(argv[3]);
     uint n_triples = atoi(argv[4]);
     rpq::run_query<bm_baseline_32::wrapper>(dataset, index, queries, n_preds, n_triples);
