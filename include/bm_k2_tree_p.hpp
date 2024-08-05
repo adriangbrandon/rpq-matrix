@@ -53,6 +53,11 @@ namespace bm_k2_tree_p {
             return matId(side);
         };
 
+        // creates an identity matrix
+        static inline matrix_type id1(uint64_t side, uint64_t rc){
+            return matOne(side, side, rc, rc);
+        };
+
         // creates a new copy of A, with its own data
         static inline matrix_type copy(matrix A){
             return matCopy(A);

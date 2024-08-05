@@ -417,7 +417,7 @@ matrix32 matSum32 (matrix32 A, matrix32 B)
 
 // version with one row or one column, or both
 
-static matrix32 matOne32 (uint height, uint width, uint row, uint col)
+matrix32 matOne32 (uint height, uint width, uint row, uint col)
 
 { matrix32 M = (matrix32)myalloc(sizeof(struct s_matrix32));
     M->elems = M->nrows = M->ncols = 1;

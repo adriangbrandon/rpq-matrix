@@ -44,6 +44,11 @@ namespace bm_baseline_32 {
             return matId32(side);
         };
 
+        // version of identity matrix with one row or column
+        static inline matrix_type id1(uint64_t side, uint64_t rc){
+            return matOne32(side, side, rc, rc);
+        };
+
         // creates a new copy of A, with its own data
         static inline matrix_type copy(matrix_type A){
             return matCopy32(A);

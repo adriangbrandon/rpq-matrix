@@ -35,6 +35,8 @@ matrix matId (uint side);
 // creates a new copy of M, with its own data
 matrix matCopy (matrix M);
 
+matrix matOne (uint height, uint width, uint row, uint col);
+
 // transpose a matrix, creating a non-allocated copy that shares the
 // data. You need not (and should not) matDestroy this copy
 // use *M = matTranspose(M) to actually transpose M
