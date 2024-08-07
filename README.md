@@ -25,8 +25,8 @@ which contains the data (*.dat*) and the dictionaries for subjects/objects (*.da
 To run our code, follow these steps:
 
 ```Bash
-git clone https://github.com/adriangbrandon/matrix-alg.git
-cd matrix-alg
+git clone https://github.com/adriangbrandon/rpq-matrix.git
+cd rpq-matrix
 mkdir build
 cd build
 cmake ..
