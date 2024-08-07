@@ -4,7 +4,7 @@ Repository for the Sparse Boolean Matrix Algebra that supports the results of th
 In the folder `include` you can find four different classes to operate with boolean matrices:
 - `bm_k2_tree`: operations on the *k<sup>2</sup>-tree* representation of the boolean matrices.
 - `bm_k2_tree_p`: same as the previous but supporting multithreading in some algebra operations.
-- `bm_baseline`: opereations on the *baseline* representation of the boolean matrices based on the CSR and CSC formats.
+- `bm_baseline`: operations on the *baseline* representation of the boolean matrices based on the CSR and CSC formats.
 - `bm_baseline_32`: same as the previous but the maximum number of elements in a boolean matrix can be 2<sup>32</sup>.
 
 ## Application: Regular Path Queries on Compressed Adjacency Matrices
