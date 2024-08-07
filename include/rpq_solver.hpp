@@ -340,7 +340,8 @@ namespace rpq {
                             }
                             if(it1->is_tmp) wrapper::destroy(it1->m);
                             if(it2->is_tmp) wrapper::destroy(it2->m);
-                            while(++it2 != rl.rend()){
+                            //TODO: original
+                            /*while(++it2 != rl.rend()){
                                 matrix A;
                                 s_matrix sA;
                                 A = get_matrix(sA, it2->m, it2->is_transposed);
@@ -350,6 +351,52 @@ namespace rpq {
                                 tmp = aux;
                             }
                             res.insert(res.begin(), data_type{tmp, false, true, true});
+                            */
+
+                            if(rl.size() == 2) {
+                                res.insert(res.begin(), data_type{tmp, false, true, true});
+                            }else {
+                                rl.insert(it2, data_type{tmp, false, true, true});
+                                rl.erase(it2);
+                                rl.erase(it1);
+                                it_type it1_min, it2_min;
+                                while(rl.size() > 2){//Check size if there are more than three elements
+                                    it1 = it2 = rl.begin();
+                                    ++it2;
+                                    uint64_t min = UINT64_MAX, weight;
+                                    while(it2 != rl.end()){
+                                        weight = wrapper::space(it1->m) + wrapper::space(it2->m);
+                                        if(min > weight){
+                                            it1_min = it1;
+                                            it2_min = it2;
+                                            min = weight;
+                                        }
+                                        ++it1; ++it2;
+                                    }
+                                    matrix A, B;
+                                    s_matrix sA, sB;
+                                    A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                                    B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                                    tmp = wrapper::mult(A, B);
+                                    if(it1_min->is_tmp) wrapper::destroy(it1_min->m);
+                                    if(it2_min->is_tmp) wrapper::destroy(it2_min->m);
+
+                                    rl.insert(it1_min, data_type{tmp, false, true, false});
+                                    rl.erase(it1_min);
+                                    rl.erase(it2_min);
+                                }
+                                it1_min = it2_min = rl.begin();
+                                ++it2_min;
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                                B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                                tmp = wrapper::mult(A, B);
+                                if(it1_min->is_tmp) wrapper::destroy(it1_min->m);
+                                if(it2_min->is_tmp) wrapper::destroy(it2_min->m);
+
+                                res.insert(res.begin(), data_type{tmp, false, true, true});
+                            }
                         }
                     }
                     break;
@@ -597,7 +644,8 @@ namespace rpq {
                             }
                             if(it1->is_tmp) wrapper::destroy(it1->m);
                             if(it2->is_tmp) wrapper::destroy(it2->m);
-                            while(++it2 != rl.end()){
+                            //TODO: original
+                            /*while(++it2 != rl.end()){
                                 matrix A;
                                 s_matrix sA;
                                 A = get_matrix(sA, it2->m, it2->is_transposed);
@@ -607,6 +655,51 @@ namespace rpq {
                                 tmp = aux;
                             }
                             res.insert(res.begin(), data_type{tmp, false,true, true});
+                            */
+                            if(rl.size() == 2) {
+                                res.insert(res.begin(), data_type{tmp, false, true, true});
+                            }else {
+                                rl.insert(it1, data_type{tmp, false, true, true});
+                                rl.erase(it1);
+                                rl.erase(it2);
+                                it_type it1_min, it2_min;
+                                while(rl.size() > 2){//Check size if there are more than three elements
+                                    it1 = it2 = rl.begin();
+                                    ++it2;
+                                    uint64_t min = UINT64_MAX, weight;
+                                    while(it2 != rl.end()){
+                                        weight = wrapper::space(it1->m) + wrapper::space(it2->m);
+                                        if(min > weight){
+                                            it1_min = it1;
+                                            it2_min = it2;
+                                            min = weight;
+                                        }
+                                        ++it1; ++it2;
+                                    }
+                                    matrix A, B;
+                                    s_matrix sA, sB;
+                                    A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                                    B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                                    tmp = wrapper::mult(A, B);
+                                    if(it1_min->is_tmp) wrapper::destroy(it1_min->m);
+                                    if(it2_min->is_tmp) wrapper::destroy(it2_min->m);
+
+                                    rl.insert(it1_min, data_type{tmp, false, true, false});
+                                    rl.erase(it1_min);
+                                    rl.erase(it2_min);
+                                }
+                                it1_min = it2_min = rl.begin();
+                                ++it2_min;
+                                matrix A, B;
+                                s_matrix sA, sB;
+                                A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
+                                B = get_matrix(sB, it2_min->m, it2_min->is_transposed);
+                                tmp = wrapper::mult(A, B);
+                                if(it1_min->is_tmp) wrapper::destroy(it1_min->m);
+                                if(it2_min->is_tmp) wrapper::destroy(it2_min->m);
+
+                                res.insert(res.begin(), data_type{tmp, false, true, true});
+                            }
                         }
                     }
                     break;
