@@ -321,9 +321,10 @@ namespace rpq {
                         if (parentType == CONC){
                             res = std::move(rl);
                         }else{
-                            auto it2 = rl.rbegin(); //last element
-                            auto it1 = rl.rbegin(); //last element
-                            ++it2; //last element -1
+                            auto it2 = rl.end(); //last element
+                            auto it1 = rl.end(); //last element
+                            --it1; //last element
+                            --it2;--it2; //last element -1
                             matrix tmp, aux;
                             if(it1->is_fixed){
                                 matrix A, B;
