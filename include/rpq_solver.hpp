@@ -374,6 +374,7 @@ namespace rpq {
                                         }
                                         ++it1; ++it2;
                                     }
+                                    std::cout << std::distance(rl.begin(), it1_min) << std::endl;
                                     matrix A, B;
                                     s_matrix sA, sB;
                                     A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
@@ -677,6 +678,7 @@ namespace rpq {
                                         }
                                         ++it1; ++it2;
                                     }
+                                    std::cout << std::distance(rl.begin(), it1_min) << std::endl;
                                     matrix A, B;
                                     s_matrix sA, sB;
                                     A = get_matrix(sA, it1_min->m, it1_min->is_transposed);
