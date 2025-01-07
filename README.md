@@ -1,11 +1,13 @@
 # Sparse Boolean Matrix Algebra
 
-Repository for the Sparse Boolean Matrix Algebra that supports the results of the paper Evaluating Regular Path Queries on Compressed Adjacency Matrices.
+Repository for the Sparse Boolean Matrix Algebra that supports the results of the paper [Evaluating Regular Path Queries on Compressed Adjacency Matrices](https://link.springer.com/article/10.1007/s00778-024-00885-6)
 In the folder `include` you can find four different classes to operate with boolean matrices:
 - `bm_k2_tree`: operations on the *k<sup>2</sup>-tree* representation of the boolean matrices.
 - `bm_k2_tree_p`: same as the previous but supporting multithreading in some algebra operations.
 - `bm_baseline`: operations on the *baseline* representation of the boolean matrices based on the CSR and CSC formats.
 - `bm_baseline_32`: same as the previous but the maximum number of elements in a boolean matrix can be 2<sup>32</sup>.
+
+Please, cite that paper if you are using this library.
 
 ## Application: Regular Path Queries on Compressed Adjacency Matrices
 
@@ -29,7 +31,7 @@ git clone https://github.com/adriangbrandon/rpq-matrix.git
 cd rpq-matrix
 mkdir build
 cd build
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Release
 make
 ```
 After those steps, you can find the following executables in `build`:
