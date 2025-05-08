@@ -79,3 +79,6 @@ target_link_libraries(baseline_32_build baseline_gn)
 
 add_executable(baseline_build src/baseline_build.cpp)
 target_link_libraries(baseline_build baseline_gn)
+
+add_executable(mult_matrices src/synthetic/mult_matrices.cpp)
+target_link_libraries(mult_matrices matrix_gn)
