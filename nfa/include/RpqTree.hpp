@@ -39,6 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <unordered_map>
 #include <iostream>
 #include <regex>
+#include <cstdint>
 #include "regular.hpp"
 
 

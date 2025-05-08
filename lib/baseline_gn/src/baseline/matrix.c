@@ -480,7 +480,7 @@ matrix matSum (matrix A, matrix B)
 
 // version with one row or one column, or both
 
-static matrix matOne (uint height, uint width, uint row, uint col)
+matrix matOne (uint height, uint width, uint row, uint col)
 
 { matrix M = (matrix)myalloc(sizeof(struct s_matrix));
     uint bits;

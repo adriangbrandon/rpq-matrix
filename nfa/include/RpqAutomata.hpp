@@ -2,7 +2,7 @@
 #define RPQ_AUTOMATA_INCLUDED
 
 #include <string>
-#include <vector>
+#include <cstdint>
 #include <unordered_map>
 #include "regular.hpp"
 

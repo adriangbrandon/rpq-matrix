@@ -6,7 +6,9 @@
 #define RPQ_MATRIX_UTILS_HPP
 
 #include <vector>
+#include <array>
 #include <algorithm>
+#include <sstream>
 #include <rpq_solver.hpp>
 
 namespace rpq {
