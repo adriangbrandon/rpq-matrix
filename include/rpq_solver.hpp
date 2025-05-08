@@ -490,7 +490,7 @@ namespace rpq {
                     matrix A;
                     s_matrix sA;
                     A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
-                    matrix Id = wrapper::id(std::max(A->height,A->width));
+                    matrix Id = wrapper::id1(std::max(A->height,A->width), col);
                     matrix tmp = wrapper::sum1(wrapper::full_side, A, Id, col);
                     wrapper::destroy(Id);
                     if(ll.front().is_tmp) wrapper::destroy(ll.front().m);
@@ -728,7 +728,7 @@ namespace rpq {
                     matrix A;
                     s_matrix sA;
                     A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
-                    matrix Id = wrapper::id(std::max(A->height,A->width));
+                    matrix Id = wrapper::id1(std::max(A->height,A->width), row);
                     matrix tmp = wrapper::sum1(row, ll.front().m, Id, wrapper::full_side);
                     wrapper::destroy(Id);
                     if(ll.front().is_tmp) wrapper::destroy(ll.front().m);
@@ -980,7 +980,7 @@ namespace rpq {
                     matrix A;
                     s_matrix sA;
                     A = get_matrix(sA, ll.front().m, ll.front().is_transposed);
-                    matrix Id = wrapper::id(std::max(A->height,A->width));
+                    matrix Id = wrapper::id1(std::max(A->height,A->width), col);
                     matrix tmp = wrapper::sum1(row, ll.front().m, Id, col);
                     wrapper::destroy(Id);
                     if(ll.front().is_tmp) wrapper::destroy(ll.front().m);
