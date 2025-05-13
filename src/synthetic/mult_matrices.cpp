@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     printf ("Reading matrices..."); fflush(stdout);
 
     for (uint i=0; i<m_matrices.size(); i++) {
-        std::string file = base_name + "." + std::to_string(i) + ".mat";
+        std::string file = base_name + "." + std::to_string(i+1) + ".mat";
         f = fopen(file.c_str(), "r");
         m_matrices[i] = wrapper::load(f);
         fclose(f);
