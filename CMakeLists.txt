@@ -82,3 +82,9 @@ target_link_libraries(baseline_build baseline_gn)
 
 add_executable(mult_matrices src/synthetic/mult_matrices.cpp)
 target_link_libraries(mult_matrices matrix_gn)
+
+add_executable(exp-mult-k2tree-D src/exp-mult-k2tree-D.cpp)
+target_link_libraries(exp-mult-k2tree-D matrix_gn)
+
+add_executable(exp-sum-k2tree-D src/exp-sum-k2tree-D.cpp)
+target_link_libraries(exp-sum-k2tree-D matrix_gn)
