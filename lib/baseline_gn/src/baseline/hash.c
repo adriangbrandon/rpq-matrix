@@ -26,13 +26,13 @@ extern inline void hashInsert (hashTable hash, uint key, uint val)
 hashTable hashCreate (uint *values, uint n)
 
    { hashTable hash;
-     uint i;
-     hash.b = (((uint)1) << (1+numbits(n)))-1;
-     hash.table = (uint*)myalloc(hash.b*sizeof(uint));
-     hash.sat = (uint*)myalloc(hash.b*sizeof(uint));
-     for (i=0;i<hash.b;i++) hash.table[i] = ~0;
-     for (i=0;i<n;i++) hashInsert (hash,values[i],i);
-     return hash;
+    uint size = 1 << (1 + numbits(n));
+    hash.b = size - 1;
+    hash.table = (uint*)myalloc(size * sizeof(uint));
+    hash.sat   = (uint*)myalloc(size * sizeof(uint));
+    for (uint i = 0; i < size; i++) hash.table[i] = ~0;
+    for (uint i = 0; i < n; i++) hashInsert(hash, values[i], i);
+    return hash;
    }
 
 void hashDestroy (hashTable hash)

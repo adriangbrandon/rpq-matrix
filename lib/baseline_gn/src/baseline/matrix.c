@@ -728,7 +728,7 @@ matrix matMult (matrix A, matrix B)
     }
     task = (ttask*)myrealloc(task,p*sizeof(ttask));
     Hr = (heap)myalloc(p*sizeof(struct s_heap)); // to merge rows
-    Hc = (heap)myalloc(p*sizeof(struct s_heap)); // to merge columns
+    Hc = (heap)myalloc((B->width)*sizeof(struct s_heap)); // to merge columns
 
     // we first fill M in row-wise form
     matrix M = (matrix)myalloc(sizeof(struct s_matrix));
