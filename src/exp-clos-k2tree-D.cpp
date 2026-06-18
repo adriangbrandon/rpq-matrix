@@ -80,13 +80,19 @@ int main(int argc, char **argv) {
     std::cout << "Mult..." << std::flush;
     sum = 0;
     auto t1 = std::chrono::high_resolution_clock::now();
-    for(uint i = 1; i < nmatrices; ++i){
-        tmp = wrapper::mult(m_matrices[i-1], m_matrices[i]);
+    for(uint i = 0; i < nmatrices; ++i){
+        tmp = wrapper::clos(m_matrices[i], 1);
+        //uint64_t buffer[1024];
+        //wrapper::collect(tmp, 0, 1000, 0, 1000, buffer);
         sum += tmp->elems;
+        std::cout << "[" << i << "] " << tmp->elems << std::endl;
+        /*for (uint j = 0; j < tmp->elems; ++j) {
+            std::cout << buffer[2*j] << ", " << buffer[2*j+1]  << std::endl;
+        }*/
     }
     auto t2 =  std::chrono::high_resolution_clock::now();
     auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
-    std::cerr << space*8 << ";" << ns / (double) ((nmatrices-1)*NANO_TO_MILLI) << std::endl;
+    std::cerr << space*8 << ";" << ns / (double) ((nmatrices)*NANO_TO_MILLI) << std::endl;
     std::cout << " done. [" << sum << "]" << std::endl;
 
 
