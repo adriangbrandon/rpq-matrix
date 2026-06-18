@@ -86,5 +86,8 @@ target_link_libraries(mult_matrices matrix_gn)
 add_executable(exp-mult-k2tree-D src/exp-mult-k2tree-D.cpp)
 target_link_libraries(exp-mult-k2tree-D matrix_gn)
 
+add_executable(exp-clos-k2tree-D src/exp-clos-k2tree-D.cpp)
+target_link_libraries(exp-clos-k2tree-D matrix_gn)
+
 add_executable(exp-sum-k2tree-D src/exp-sum-k2tree-D.cpp)
 target_link_libraries(exp-sum-k2tree-D matrix_gn)
