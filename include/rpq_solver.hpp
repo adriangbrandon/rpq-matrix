@@ -62,7 +62,7 @@ namespace rpq {
                     res.insert(res.begin(), data_type{a, (pred > SIZE),
                                                       false, false});
 #if VERBOSE
-                    std::cerr << pred << " : " << a->get_elems() << std::endl;
+                    std::cerr << pred << " : " << a->elems << std::endl;
 #endif
                     break;
                 }
