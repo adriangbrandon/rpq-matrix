@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
     uint64_t sum = 0;
 
     
-    std::cout << "Mult..." << std::flush;
+    std::cout << "Clos..." << std::flush;
     sum = 0;
     auto t1 = std::chrono::high_resolution_clock::now();
     for(uint i = 0; i < nmatrices; ++i){
