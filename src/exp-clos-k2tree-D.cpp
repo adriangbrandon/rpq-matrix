@@ -91,8 +91,8 @@ int main(int argc, char **argv) {
         }*/
     }
     auto t2 =  std::chrono::high_resolution_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count();
-    std::cerr << space*8 << ";" << ms << std::endl;
+    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+    std::cerr << space*8 << ";" << ns / (double) ((nmatrices)*NANO_TO_MILLI) << std::endl;
     std::cout << " done. [" << sum << "]" << std::endl;
 
 
