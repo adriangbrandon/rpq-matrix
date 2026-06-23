@@ -13,7 +13,7 @@
 #define w (8*sizeof(uint64_t))
 #endif
 
-#define VERBOSE 0
+#define VERBOSE 1
 
 
 #include "RpqTree.hpp"
@@ -61,6 +61,9 @@ namespace rpq {
                     matrix a = (pred > SIZE) ? m_matrices[pred-SIZE] :  m_matrices[pred];
                     res.insert(res.begin(), data_type{a, (pred > SIZE),
                                                       false, false});
+#if VERBOSE
+                    std::cerr << pred << " : " << a->get_elems() << std::endl;
+#endif
                     break;
                 }
                 case CONC:
