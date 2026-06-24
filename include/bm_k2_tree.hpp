@@ -190,6 +190,10 @@ namespace bm_k2_tree {
             return matClosMult1(row, A, pos, B, col);
         };
 
+        static inline double* mult_vec (matrix_type A, double* vector) {
+            return matVectorMult(A, vector);
+        }
+
 
     };
 }
