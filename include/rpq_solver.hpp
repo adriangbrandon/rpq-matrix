@@ -13,7 +13,7 @@
 #define w (8*sizeof(uint64_t))
 #endif
 
-#define VERBOSE 1
+#define VERBOSE 0
 
 
 #include "RpqTree.hpp"

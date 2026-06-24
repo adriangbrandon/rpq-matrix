@@ -27,22 +27,22 @@ int main(int argc, char **argv) {
         fclose(f);
         space += wrapper::space(m_matrices[i]);
     }
-    std::cout << std::endl;
-
+    //space * (64/8)
+    std::cout << "[done] Space=" << space*8 << std::endl;
 
     matrix tmp;
     uint64_t sum = 0;
 
-    std::cout << "Clos..." << std::flush;
+    std::cout << "Sum..." << std::flush;
     sum = 0;
     auto t1 = std::chrono::high_resolution_clock::now();
-    for(uint i = 0; i < 20; ++i){
-        tmp = wrapper::clos(m_matrices[i], 0);
+    for(uint i = 1; i < 20; ++i){
+        tmp = wrapper::sum(m_matrices[i-1], m_matrices[i]);
         sum += tmp->elems;
     }
     auto t2 =  std::chrono::high_resolution_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count();
-    std::cerr << ms << std::endl;
+    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+    std::cerr << ns / (double) (19*NANO_TO_MILLI) << std::endl;
     std::cout << " done. [" << sum << "]" << std::endl;
 
 

@@ -100,3 +100,14 @@ target_link_libraries(exp-clos-k2tree-D matrix_gn)
 
 add_executable(exp-sum-k2tree-D src/exp-sum-k2tree-D.cpp)
 target_link_libraries(exp-sum-k2tree-D matrix_gn)
+
+add_executable(exp-mult-baseline-D src/exp-mult-baseline-D.cpp)
+target_link_libraries(exp-mult-baseline-D baseline_gn)
+
+
+#fari's
+add_executable(exp-range-queries src/exp-range-queries.cpp)
+target_link_libraries(exp-range-queries matrix_gn)
+
+add_executable(exp-range-row-queries src/exp-range-row-queries.cpp)
+target_link_libraries(exp-range-row-queries matrix_gn)
