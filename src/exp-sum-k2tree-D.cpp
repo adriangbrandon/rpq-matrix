@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
         space += wrapper::space(m_matrices[nmatrices]);
         ++nmatrices;
     }
-    std::cout << " done. [" << space << " B]" << std::endl;
+    std::cout << " done. [" << space*8 << " B]" << std::endl;
 
     matrix tmp;
     uint64_t sum = 0;
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
     }
     auto t2 =  std::chrono::high_resolution_clock::now();
     auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
-    std::cerr << space << ";" << ns / (double) ((nmatrices-1)*NANO_TO_MILLI) << std::endl;
+    std::cerr << space*8 << ";" << ns / (double) ((nmatrices-1)*NANO_TO_MILLI) << std::endl;
     std::cout << " done. [" << sum << "]" << std::endl;
 
 
