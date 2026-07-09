@@ -48,7 +48,11 @@ void points2matrix(std::vector<std::pair<uint32_t, uint32_t>> &points, matrix_ty
 
 int main(int argc, char **argv) {
 
+    if (argc <3 ){std::cerr << "Usage: " << argv[0] << " <matrices_dir> <ntimes>" << std::endl; return 0;}
+
     std::string matrices_dir = argv[1];
+    uint32_t ntimes = atoi(argv[2]);
+
 
     auto files = util::file::read_directory(matrices_dir);
     std::sort(files.begin(), files.end());
@@ -70,14 +74,15 @@ int main(int argc, char **argv) {
         fclose(f);
         space += wrapper::space(m_matrices[nmatrices]);
         ++nmatrices;
+        if (nmatrices>=ntimes) {nmatrices=ntimes; break;}
     }
-    std::cout << " done. [" << space*8 << " B]" << std::endl;
+    std::cout << " done. [" << space*8 << " Bytes]" << std::endl;
 
     matrix tmp;
     uint64_t sum = 0;
 
     
-    std::cout << "Clos..." << std::flush;
+    std::cout << "Clos...  (over " << nmatrices <<") matrices/runs" << std::flush;
     sum = 0;
     auto t1 = std::chrono::high_resolution_clock::now();
     for(uint i = 0; i < nmatrices; ++i){
@@ -92,9 +97,10 @@ int main(int argc, char **argv) {
     }
     auto t2 =  std::chrono::high_resolution_clock::now();
     auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
-    //std::cerr << space*8 << ";" << ns / (double) ((nmatrices)*NANO_TO_MILLI) << std::endl;
-    //    std::cerr << space << ";" << ns / (double) ((nmatrices)*NANO_TO_MILLI) << std::endl;
-    std::cerr << space*8/(nmatrices) << ";" << ns / (double) ((nmatrices)*NANO_TO_MILLI) << std::endl;
+
+    //    std::cerr << space*8 << ";" << ns / (double) ((nmatrices)*NANO_TO_MILLI) << std::endl;
+    std::cerr << (space*8/nmatrices) << ";" << ns / (double) ((nmatrices)*NANO_TO_MILLI) << std::endl;
+
 
     std::cout << " done. [" << sum << "]" << std::endl;
 

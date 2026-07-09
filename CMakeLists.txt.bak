@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 2.8.7)
-#cmake_minimum_required(VERSION 3.6)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(AppendCompilerFlags)
 set(CMAKE_OSX_ARCHITECTURES x86_64)
@@ -99,10 +98,6 @@ target_link_libraries(exp-and-k2tree-D matrix_gn)
 add_executable(exp-clos-k2tree-D src/exp-clos-k2tree-D.cpp)
 target_link_libraries(exp-clos-k2tree-D matrix_gn)
 
-add_executable(exp-clos-k2tree-D-ntimes src/exp-clos-k2tree-D-ntimes.cpp)
-target_link_libraries(exp-clos-k2tree-D-ntimes matrix_gn)
-
-
 add_executable(exp-sum-k2tree-D src/exp-sum-k2tree-D.cpp)
 target_link_libraries(exp-sum-k2tree-D matrix_gn)
 
@@ -116,12 +111,3 @@ target_link_libraries(exp-range-queries matrix_gn)
 
 add_executable(exp-range-row-queries src/exp-range-row-queries.cpp)
 target_link_libraries(exp-range-row-queries matrix_gn)
-
-add_executable(exp-mult-k2tree-D-alternateDirs ${srcs} src/exp-mult-k2tree-D-alternateDirs.cpp)
-target_link_libraries(exp-mult-k2tree-D-alternateDirs matrix_gn)
-
-add_executable(exp-sum-k2tree-D-alternateDirs ${srcs} src/exp-sum-k2tree-D-alternateDirs.cpp)
-target_link_libraries(exp-sum-k2tree-D-alternateDirs matrix_gn)
-
-add_executable(exp-and-k2tree-D-alternateDirs ${srcs} src/exp-and-k2tree-D-alternateDirs.cpp)
-target_link_libraries(exp-and-k2tree-D-alternateDirs matrix_gn)
