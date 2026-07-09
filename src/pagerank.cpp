@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
     int iter = 0;
     double delta = 11 + eps;   // ensure we don't stop before the first iteration
     while (iter < maxiter && delta >= eps) {
-        double* z = new double[N];
+        double* z;
         z = wrapper::mult_vec(A, y);                 // z = M * y  (z is (re)sized to N)
 
         /*for (uint64_t i = 0; i < 100; ++i) {
