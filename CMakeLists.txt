@@ -109,6 +109,8 @@ target_link_libraries(exp-sum-k2tree-D matrix_gn)
 add_executable(exp-mult-baseline-D src/exp-mult-baseline-D.cpp)
 target_link_libraries(exp-mult-baseline-D baseline_gn)
 
+add_executable(pagerank src/pagerank.cpp)
+target_link_libraries(pagerank matrix_gn)
 
 #fari's
 add_executable(exp-range-queries src/exp-range-queries.cpp)
@@ -125,3 +127,5 @@ target_link_libraries(exp-sum-k2tree-D-alternateDirs matrix_gn)
 
 add_executable(exp-and-k2tree-D-alternateDirs ${srcs} src/exp-and-k2tree-D-alternateDirs.cpp)
 target_link_libraries(exp-and-k2tree-D-alternateDirs matrix_gn)
+
+
