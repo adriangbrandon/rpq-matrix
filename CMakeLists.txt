@@ -102,6 +102,8 @@ target_link_libraries(exp-clos-k2tree-D matrix_gn)
 add_executable(exp-clos-k2tree-D-ntimes src/exp-clos-k2tree-D-ntimes.cpp)
 target_link_libraries(exp-clos-k2tree-D-ntimes matrix_gn)
 
+add_executable(exp-clos-slow-k2tree-D-ntimes src/exp-clos-slow-k2tree-D-ntimes.cpp)
+target_link_libraries(exp-clos-slow-k2tree-D-ntimes matrix_gn)
 
 add_executable(exp-sum-k2tree-D src/exp-sum-k2tree-D.cpp)
 target_link_libraries(exp-sum-k2tree-D matrix_gn)

@@ -170,6 +170,13 @@ namespace bm_k2_tree {
             return matMult1(row, A, B, col);
         };
 
+
+        // transitive closure of a matrix, pos says if it's + rather than *
+        static inline matrix_type clos0 (matrix_type A, uint pos){
+            return matClos0(A, pos);
+        };
+
+
         // transitive closure of a matrix, pos says if it's + rather than *
         static inline matrix_type clos (matrix_type A, uint pos){
             return matClos(A, pos);

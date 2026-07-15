@@ -105,6 +105,9 @@ matrix matMult1 (uint64_t row, matrix A, matrix B, uint64_t col);
 	// transitive closure of a matrix, pos says if it's + rather than *
 matrix matClos (matrix A, uint pos);
 
+// transitive closure of a matrix, pos says if it's + rather than *
+matrix matClos0 (matrix A, uint pos);
+
 	// versions to choose one row or one column, or both
 matrix matClos1 (uint64_t row, matrix A, uint pos, uint64_t col);
 
