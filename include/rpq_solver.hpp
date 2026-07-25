@@ -1001,7 +1001,7 @@ namespace rpq {
 
         explicit solver(const std::string &dataset, const std::string &index,
                         const uint n_preds, const uint n_triples)
-            : m_predicate_offset(static_cast<uint64_t>(n_preds) + 1){
+            : m_predicate_offset(n_preds){
 
             m_matrices.resize(n_preds + 1);
             uint64_t space = 0;
